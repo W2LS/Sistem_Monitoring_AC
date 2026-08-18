@@ -50,7 +50,7 @@
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col antialiased">
 
-    @include('partials.navbar')
+    @include('partials.menu-atas')
 
     <!-- Main Container -->
     <main class="flex-grow max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
@@ -63,25 +63,25 @@
             </div>
         @endif
 
-        @include('partials.welcome-cards')
+        @include('partials.kartu-selamat-datang')
 
         <!-- AC UNIT STATUS CARDS -->
         <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            @include('partials.ac-card', ['id' => 1, 'pin' => 18, 'name' => 'Lampu Panel Bawah', 'color' => 'teal'])
-            @include('partials.ac-card', ['id' => 2, 'pin' => 19, 'name' => 'Lampu Panel Atas', 'color' => 'cyan'])
+            @include('partials.kartu-ac', ['id' => 1, 'pin' => 18, 'name' => 'Lampu Panel Bawah', 'color' => 'teal'])
+            @include('partials.kartu-ac', ['id' => 2, 'pin' => 19, 'name' => 'Lampu Panel Atas', 'color' => 'cyan'])
         </section>
 
-        @include('partials.chart')
+        @include('partials.grafik-arus')
 
         <!-- SCHEDULER SECTION -->
         <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            @include('partials.schedule-form')
-            @include('partials.schedule-list')
+            @include('partials.form-tambah-jadwal')
+            @include('partials.daftar-jadwal')
         </section>
 
     </main>
 
-    @include('partials.footer')
+    @include('partials.footer-bawah')
 
 
     <!-- Scripts Section -->
