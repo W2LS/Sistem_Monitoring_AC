@@ -32,116 +32,21 @@
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Akar Icons CDN -->
-    <link rel="stylesheet" href="https://unpkg.com/akar-icons-fonts/dist/akar-icons.css">
-    <script src="https://unpkg.com/akar-icons-fonts"></script>
-
     <style>
         [x-cloak] { display: none !important; }
-        
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f2f5f7;
-        }
-
-        .sidebar-akar-container {
-            flex-shrink: 0;
-        }
-
-        .sidebar-akar-menu { 
-            list-style: none;
-            margin: 0;
-            padding: .75rem;
-            background-color: #05043e;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            border-radius: 10px;
-            box-shadow: 0 10px 50px 0 rgba(5, 4, 62, 0.25);
-            position: sticky;
-            top: 1.5rem;
-            height: fit-content;
-            z-index: 50;
-        }
-
-        .sidebar-akar-menu li:nth-child(6) {
-            margin-top: 5rem; 
-            padding-top: 1.25rem;
-            border-top: 1px solid #363664;
-        }
-
-        .sidebar-akar-menu li + li {
-            margin-top: .75rem;
-        }
-
-        .sidebar-akar-menu a {
-            color: #FFF; 
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 3rem;
-            height: 3rem;
-            border-radius: 8px;
-            position: relative;
-            transition: background-color 0.15s ease;
-        }
-
-        .sidebar-akar-menu a:hover, 
-        .sidebar-akar-menu a:focus, 
-        .sidebar-akar-menu a.active {
-            background-color: #30305a;
-            outline: 0;
-        }
-
-        .sidebar-akar-menu a:hover span, 
-        .sidebar-akar-menu a:focus span, 
-        .sidebar-akar-menu a.active span { 
-            transform: scale(1);
-            opacity: 1;
-        }
-
-        .sidebar-akar-menu a i {
-            font-size: 1.375rem;
-        }
-
-        .sidebar-akar-menu a span {
-            position: absolute;
-            background-color: #30305a;
-            white-space: nowrap;
-            padding: .5rem 1rem;
-            border-radius: 6px;
-            left: calc(100% + 1.5rem);
-            transform-origin: center left;
-            transform: scale(0);
-            opacity: 0;
-            transition: .15s ease;
-            z-index: 100;
-            pointer-events: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .sidebar-akar-menu a span::before {
-            content: "";
-            display: block;
-            width: 12px;
-            height: 12px;
-            position: absolute;
-            background-color: #30305a;
-            left: -5px;
-            top: 50%;
-            transform: translateY(-50%) rotate(45deg);
-            border-radius: 3px;
+            background-color: #F8FAFC;
         }
     </style>
 </head>
-<body class="text-slate-800 bg-slate-100 min-h-screen flex antialiased p-4 md:p-6 gap-6">
+<body class="text-slate-800 bg-slate-50 min-h-screen flex flex-col antialiased">
 
-    <!-- VERTICAL SIDEBAR (SUBSTITUTE FOR TOP NAVBAR) -->
-    @include('partials.sidebar')
+    <!-- Clean Header Bar -->
+    @include('partials.menu-atas')
 
     <!-- Main Container -->
-    <main class="flex-grow max-w-6xl w-full space-y-6 overflow-x-hidden">
+    <main class="flex-grow max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
         
         <!-- Alerts Feedback Notification -->
         @if(session('success'))
@@ -176,9 +81,10 @@
             @include('partials.grafik-arus')
         </section>
 
-        <!-- Footer -->
-        @include('partials.footer-bawah')
     </main>
+
+    <!-- Footer -->
+    @include('partials.footer-bawah')
 
 
     <!-- Scripts Section -->
