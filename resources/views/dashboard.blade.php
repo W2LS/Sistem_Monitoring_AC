@@ -26,10 +26,14 @@
         }
     </script>
 
+    <!-- Alpine.js CDN for interactive modals & state -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
+        [x-cloak] { display: none !important; }
         body {
             font-family: 'Inter', sans-serif;
             background-color: #F8FAFC; /* Clean soft light slate background */
@@ -77,21 +81,7 @@
             @include('partials.grafik-arus')
         </section>
 
-        <!-- SECTION 3: JAM ATUR AC (MANAJEMEN PENJADWALAN OTOMATIS) -->
-        <section class="space-y-4">
-            <div class="flex items-center justify-between">
-                <h2 class="font-outfit font-black text-xl text-slate-800 uppercase tracking-wide flex items-center space-x-2">
-                    <span class="text-teal-600 font-bold">⏱️</span>
-                    <span>Pengaturan Jam Atur AC</span>
-                </h2>
-                <span class="text-xs font-bold text-slate-400">Penjadwalan Otomatis</span>
-            </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                @include('partials.form-tambah-jadwal')
-                @include('partials.daftar-jadwal')
-            </div>
-        </section>
 
     </main>
 
