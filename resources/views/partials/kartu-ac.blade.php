@@ -63,8 +63,8 @@
         </div>
     </div>
 
-    <!-- 3 KARTU INFORMASI PENTING (Arus Listrik, Info Pendingin, Jam Atur AC) -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <!-- 2 KARTU INFORMASI PENTING (Arus Listrik & Jam Atur AC) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         
         <!-- 1. ARUS LISTRIK (AMPERE ⚡) -->
         <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex flex-col justify-between">
@@ -77,19 +77,6 @@
                 <span class="text-xs font-bold text-slate-500">Ampere</span>
             </div>
             <span class="text-[10px] text-slate-400 font-medium">Recorded: <span id="ac{{ $id }}-time">Live</span></span>
-        </div>
-
-        <!-- 2. INFORMASI PENDINGIN / SUHU AC -->
-        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex flex-col justify-between">
-            <div class="flex items-center justify-between">
-                <span class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Info Pendingin</span>
-                <span class="text-cyan-500 font-black text-sm">❄️</span>
-            </div>
-            <div class="my-2">
-                <span class="font-outfit font-black text-2xl text-slate-900">24°C</span>
-                <span class="text-xs font-bold text-slate-500">Cooling Mode</span>
-            </div>
-            <span class="text-[10px] text-teal-600 font-bold uppercase tracking-wider">Suhu Optimal</span>
         </div>
 
         <!-- 3. JAM ATUR AC -->
