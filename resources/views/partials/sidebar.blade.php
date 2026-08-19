@@ -1,5 +1,5 @@
 <!-- Vertical Dark Sidebar Navigation -->
-<aside class="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between p-5 min-h-screen flex-shrink-0 border-r border-slate-800 shadow-xl">
+<aside class="w-64 h-screen bg-slate-900 text-slate-300 flex flex-col justify-between p-5 flex-shrink-0 border-r border-slate-800 shadow-xl overflow-y-auto z-50">
     
     <div class="space-y-8">
         <!-- BRAND & LOGO HEADER -->

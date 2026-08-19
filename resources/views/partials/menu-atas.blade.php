@@ -1,5 +1,5 @@
 <!-- Clean White Top Header Bar -->
-<header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
+<header class="h-16 flex-shrink-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
     <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-end space-x-3">
         
         <!-- MQTT Status Badge -->

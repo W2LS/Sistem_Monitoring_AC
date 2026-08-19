@@ -40,19 +40,19 @@
         }
     </style>
 </head>
-<body x-data="{ activeTab: 'dashboard', modalJadwalOpen: false }" class="text-slate-800 bg-slate-50 min-h-screen flex antialiased">
+<body x-data="{ activeTab: 'dashboard', modalJadwalOpen: false }" class="text-slate-800 bg-slate-50 h-screen w-screen overflow-hidden flex antialiased">
 
     <!-- 1. LEFT VERTICAL DARK SIDEBAR -->
     @include('partials.sidebar')
 
-    <!-- 2. RIGHT MAIN CONTENT AREA -->
-    <div class="flex-grow flex flex-col min-w-0 min-h-screen">
+    <!-- 2. RIGHT MAIN CONTENT AREA (FIXED WRAPPER) -->
+    <div class="flex-grow flex flex-col min-w-0 h-screen overflow-hidden">
         
-        <!-- TOP HEADER BAR -->
+        <!-- TOP HEADER BAR (FIXED AT TOP) -->
         @include('partials.menu-atas')
 
-        <!-- MAIN DYNAMIC CONTENT CONTAINER -->
-        <main class="flex-grow p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-8">
+        <!-- MAIN DYNAMIC CONTENT CONTAINER (ONLY THIS SCROLLS!) -->
+        <main class="flex-1 overflow-y-auto p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-8">
             
             <!-- ALERTS FEEDBACK NOTIFICATION -->
             @if(session('success'))
