@@ -103,15 +103,18 @@
                     <span class="font-outfit font-black text-lg text-slate-900 font-mono">
                         {{ \Illuminate\Support\Carbon::parse($schedules[0]->start_time)->format('H:i') }} - {{ \Illuminate\Support\Carbon::parse($schedules[0]->end_time)->format('H:i') }}
                     </span>
+                    <span class="text-[11px] font-semibold text-slate-500 block truncate mt-0.5">
+                        {{ $schedules[0]->label }}
+                    </span>
                 @else
-                    <span class="font-outfit font-black text-lg text-slate-900 font-mono">08:00 - 18:00</span>
+                    <span class="font-outfit font-black text-lg text-slate-900 font-mono">00:00 - 00:00</span>
+                    <span class="text-[11px] font-semibold text-slate-400 block truncate mt-0.5">
+                        Belum Diatur
+                    </span>
                 @endif
-                <span class="text-[11px] font-semibold text-slate-500 block truncate">
-                    @if(count($schedules) > 0) {{ $schedules[0]->label }} @else Jam Kantor Otomatis @endif
-                </span>
             </div>
-            <span class="text-[10px] text-teal-700 font-bold hover:underline">
-                Klik ikon ⚙️ untuk ubah &rarr;
+            <span class="text-[10px] {{ count($schedules) > 0 ? 'text-teal-600 font-bold' : 'text-slate-400 font-medium' }}">
+                {{ count($schedules) > 0 ? 'Jadwal Aktif' : 'Non-Aktif' }}
             </span>
         </div>
 
