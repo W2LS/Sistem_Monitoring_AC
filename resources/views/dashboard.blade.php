@@ -34,19 +34,287 @@
     
     <style>
         [x-cloak] { display: none !important; }
+        
+        #checkbox-input.checkbox-input {
+            display: none;
+        }
+
+        :root {
+            --bg--primary: hsl(203, 7%, 92%);
+            --bg--active: hsla(203, 86%, 93%, 0.7);
+            --bg--hover: hsl(200, 7%, 84%);
+            --bg--focus: hsl(203, 100%, 100%);
+            --gray--primary: hsl(200, 10%, 50%);
+            --gray--secondary: hsl(200, 14%, 30%);
+
+            --dark--primary: hsl(203, 13%, 14%);
+            --dark--secondary: hsl(203, 4%, 29%);
+
+            --accent--primary: hsl(206, 90%, 56%);
+            --accent--secondary: hsl(206, 79%, 58%);
+
+            --expanded: 16.875rem;
+            --collapsed: 3.25rem;
+            --svg: 1.125rem;
+            --item: 2.25rem;
+            --brad-outer: 0.75rem;
+            --frame-space: 0.5rem;
+            --brad-inner: calc(var(--brad-outer) - var(--frame-space));
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #F8FAFC; /* Clean soft light slate background */
+            background-color: #F1F5F9;
+        }
+
+        .vertical-sidebar {
+            display: flex;
+            inline-size: var(--expanded);
+            position: sticky;
+            top: 1.5rem;
+            height: calc(100vh - 3rem);
+            z-index: 40;
+            flex-shrink: 0;
+        }
+
+        .vertical-sidebar nav {
+            background: var(--bg--primary);
+            display: flex;
+            flex-flow: column;
+            min-width: var(--collapsed);
+            border-radius: var(--brad-outer);
+            flex: 0 0 auto;
+            transition: flex-basis 300ms ease-out;
+            will-change: flex-basis;
+            padding: var(--frame-space);
+            box-shadow: 0 3px 5px #1233, 0 5px 17px #0003;
+            height: 100%;
+        }
+
+        .vertical-sidebar :checked ~ nav {
+            flex-basis: var(--expanded);
+        }
+
+        .vertical-sidebar :not(:checked) ~ nav {
+            flex-basis: var(--collapsed);
+        }
+
+        .vertical-sidebar header {
+            display: flex;
+            flex-flow: column;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .sidebar__toggle-container {
+            block-size: var(--item);
+            display: flex;
+            justify-content: end;
+        }
+
+        .nav__toggle {
+            block-size: 100%;
+            background: none;
+            transition: all 233ms ease-in;
+            border-radius: var(--brad-inner);
+            outline: 2px solid transparent;
+            outline-offset: -2px;
+            overflow: hidden;
+        }
+
+        .toggle--icons {
+            block-size: inherit;
+            aspect-ratio: 1;
+            display: inline-grid;
+            place-content: center;
+            grid-template-areas: "svg";
+            z-index: 10;
+        }
+
+        .toggle-svg-icon {
+            grid-area: svg;
+            fill: var(--gray--primary);
+            transition: fill 233ms ease-in;
+        }
+
+        .nav__toggle:hover {
+            outline: 2px solid var(--accent--primary);
+        }
+
+        .toggle--icons:hover .toggle-svg-icon {
+            fill: var(--dark--primary);
+        }
+
+        .vertical-sidebar figure {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            container-type: inline-size;
+            gap: 0.375rem;
+        }
+
+        .vertical-sidebar figcaption {
+            text-align: center;
+        }
+
+        .user-id {
+            font-size: 1.0625rem;
+            font-weight: 500;
+            margin-block-end: 0.25rem;
+            color: var(--gray--secondary);
+        }
+
+        .user-role {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray--primary);
+        }
+
+        .sidebar__wrapper {
+            --list-gap: 0.5rem;
+            display: flex;
+            flex-flow: column;
+            gap: var(--list-gap);
+            margin-top: 0.5rem;
+        }
+
+        .sidebar__list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            display: flex;
+            flex-flow: column;
+            gap: 0.125rem;
+            overflow: hidden;
+        }
+
+        .sidebar__item {
+            block-size: var(--item);
+            border-radius: var(--brad-inner);
+        }
+
+        .item--heading {
+            display: flex;
+            align-items: end;
+        }
+
+        .sidebar__item--heading {
+            margin-block-end: 0.4rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.35px;
+            font-weight: 500;
+            color: var(--gray--primary);
+            transition: color 200ms ease-in;
+        }
+
+        .sidebar__list:has(.sidebar__link):hover .sidebar__item--heading {
+            color: var(--gray--secondary);
+        }
+
+        .sidebar__link {
+            display: flex;
+            text-decoration: none;
+            block-size: 100%;
+            align-items: center;
+            gap: 0.5rem;
+            outline: 2px solid transparent;
+            border-radius: inherit;
+            padding-inline: 0.5rem;
+        }
+
+        .sidebar__link .icon {
+            aspect-ratio: 1;
+            block-size: 100%;
+            display: inline-grid;
+        }
+
+        .sidebar__link .icon svg {
+            place-self: center;
+            inline-size: var(--svg);
+            block-size: var(--svg);
+            fill: var(--gray--primary);
+        }
+
+        .sidebar__link .text {
+            pointer-events: none;
+            color: var(--gray--secondary);
+            font-size: 0.875em;
+            font-weight: 500;
+            transition: color 266ms ease-out;
+            white-space: nowrap;
+        }
+
+        .sidebar__link:hover {
+            background: var(--bg--hover);
+        }
+
+        .sidebar__link:hover .icon svg {
+            fill: var(--accent--primary);
+        }
+
+        .sidebar__link:hover .text {
+            color: var(--dark--primary);
+        }
+
+        .sidebar__link:focus {
+            outline: 2px solid var(--accent--secondary);
+            outline-offset: -2px;
+            background: var(--bg--focus);
+        }
+
+        .sidebar__link:focus .icon svg {
+            fill: var(--accent--primary);
+        }
+
+        .sidebar__link:active {
+            background-color: var(--bg--active);
+        }
+
+        aside.vertical-sidebar:not(:has(:checked)) .toggle--open,
+        aside.vertical-sidebar:has(:checked) .toggle--close {
+            opacity: 0;
+        }
+
+        aside.vertical-sidebar:not(:has(:checked)) :where(figcaption, .item--heading) {
+            opacity: 0;
+        }
+
+        aside.vertical-sidebar:has(:checked) :where(figcaption, .item--heading) {
+            transition: opacity 300ms ease-in 200ms;
+        }
+
+        .vertical-sidebar [data-tooltip]::before {
+            content: attr(data-tooltip);
+            position: fixed;
+            translate: calc(var(--item) * 1.5) calc(var(--item) * 0.125);
+            border-radius: var(--brad-inner);
+            padding: 0.5rem 0.75rem;
+            color: #ddd;
+            background-color: hsl(198 16 30);
+            box-shadow: 0 6px 12px -6px #0003;
+            opacity: 0;
+            pointer-events: none;
+            scale: 0 0;
+            z-index: 999;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 350ms ease-out;
+        }
+
+        aside.vertical-sidebar:not(:has(:checked)) .sidebar__link:where(:hover, :focus-visible)[data-tooltip]::before {
+            opacity: 1;
+            scale: 1;
         }
     </style>
 </head>
-<body class="text-slate-800 bg-slate-50 min-h-screen flex flex-col antialiased">
+<body class="text-slate-800 bg-slate-100 min-h-screen flex antialiased p-4 md:p-6 gap-6">
 
-    <!-- Clean Header Bar -->
-    @include('partials.menu-atas')
+    <!-- VERTICAL SIDEBAR (SUBSTITUTE FOR TOP NAVBAR) -->
+    @include('partials.sidebar')
 
     <!-- Main Container -->
-    <main class="flex-grow max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
+    <main class="flex-grow max-w-6xl w-full space-y-6 overflow-x-hidden">
         
         <!-- Alerts Feedback Notification -->
         @if(session('success'))
@@ -70,23 +338,20 @@
             </div>
 
             <!-- GRID 2 KARTU AC -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="kontrol-ac">
                 @include('partials.kartu-ac', ['id' => 1, 'pin' => 18, 'name' => 'Lampu Panel Bawah (AC 1)', 'color' => 'teal', 'schedules' => $schedules])
                 @include('partials.kartu-ac', ['id' => 2, 'pin' => 19, 'name' => 'Lampu Panel Atas (AC 2)', 'color' => 'cyan', 'schedules' => $schedules])
             </div>
         </section>
 
         <!-- SECTION 2: GRAFIK TREN ARUS LISTRIK (AMPERE REAL-TIME) -->
-        <section>
+        <section id="grafik-telemetri">
             @include('partials.grafik-arus')
         </section>
 
-
-
+        <!-- Footer -->
+        @include('partials.footer-bawah')
     </main>
-
-    <!-- Footer -->
-    @include('partials.footer-bawah')
 
 
     <!-- Scripts Section -->
@@ -329,6 +594,20 @@
         // Run fetchRealtimeData immediately and poll every 3 seconds
         fetchRealtimeData();
         setInterval(fetchRealtimeData, 3000);
+
+        // Update sidebar live server clock
+        function updateSidebarClock() {
+            const clockEl = document.getElementById('sidebar-clock');
+            if (clockEl) {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                clockEl.innerText = `${hours}:${minutes}:${seconds} WIB`;
+            }
+        }
+        setInterval(updateSidebarClock, 1000);
+        updateSidebarClock();
     </script>
 </body>
 </html>
