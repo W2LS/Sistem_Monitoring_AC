@@ -591,9 +591,9 @@
                 .catch(err => console.error("Error fetching telemetry data:", err));
         }
 
-        // Run fetchRealtimeData immediately and poll every 3 seconds
-        fetchRealtimeData();
-        setInterval(fetchRealtimeData, 3000);
+        // [MODE DESAIN UI] Polling /api/logs di-pause sementara agar proses coding UI lebih cepat & ringan
+        // fetchRealtimeData();
+        // setInterval(fetchRealtimeData, 3000);
 
         // Update sidebar live server clock
         function updateSidebarClock() {
