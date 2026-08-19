@@ -31,3 +31,5 @@ Thumbs.db
 /extracted_media
 docx_content.txt
 xlsx_content.txt
+/graphify-out
+/.agents
