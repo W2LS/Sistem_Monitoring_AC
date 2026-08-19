@@ -25,69 +25,73 @@
             }
         }
     </script>
-    
-    <!-- Alpine.js CDN for interactive tabs & states -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        [x-cloak] { display: none !important; }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #E2E8F0; /* Soft pastel grayish-blue background */
+            background-color: #F8FAFC; /* Clean soft light slate background */
         }
     </style>
 </head>
-<body x-data="{ activeTab: 'home' }" class="text-slate-800 bg-slate-200 min-h-screen flex flex-col antialiased">
+<body class="text-slate-800 bg-slate-50 min-h-screen flex flex-col antialiased">
 
-    <!-- Header & Banner Navigation -->
+    <!-- Clean Header Bar -->
     @include('partials.menu-atas')
 
-    <!-- Main Container Container -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <!-- Main Container -->
+    <main class="flex-grow max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
         
         <!-- Alerts Feedback Notification -->
         @if(session('success'))
-            <div class="bg-teal-50 border border-teal-200 text-teal-700 px-4 py-3 rounded-2xl flex items-center justify-between shadow-sm" role="alert">
-                <span class="text-sm font-semibold">{{ session('success') }}</span>
+            <div class="bg-teal-50 border border-teal-200 text-teal-700 px-4 py-3.5 rounded-2xl flex items-center justify-between shadow-sm" role="alert">
+                <span class="text-sm font-bold flex items-center space-x-2">
+                    <span>✅</span>
+                    <span>{{ session('success') }}</span>
+                </span>
                 <button onclick="this.parentElement.remove()" class="text-teal-500 hover:text-teal-700 font-bold text-lg">&times;</button>
             </div>
         @endif
 
-        <!-- TAB 1: HOME (Sesuai Wireframe Gambar 1) -->
-        <div x-show="activeTab === 'home'" x-cloak class="space-y-6">
-            <!-- Grid Kartu Ruangan & Middle Status Pills -->
-            @include('partials.kartu-ruangan')
+        <!-- SECTION 1: KARTU KONTROL & MONITORING AC 1 DAN AC 2 -->
+        <section class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="font-outfit font-black text-xl text-slate-800 uppercase tracking-wide flex items-center space-x-2">
+                    <span class="text-teal-600 font-bold">⚡</span>
+                    <span>Status & Kontrol Unit AC</span>
+                </h2>
+                <span class="text-xs font-bold text-slate-400">2 Unit Terhubung</span>
+            </div>
 
-            <!-- Panel Kontrol Alat Kiri & Detail Alat Kanan -->
-            @include('partials.panel-detail-ac')
-        </div>
+            <!-- GRID 2 KARTU AC -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                @include('partials.kartu-ac', ['id' => 1, 'pin' => 18, 'name' => 'Lampu Panel Bawah (AC 1)', 'color' => 'teal', 'schedules' => $schedules])
+                @include('partials.kartu-ac', ['id' => 2, 'pin' => 19, 'name' => 'Lampu Panel Atas (AC 2)', 'color' => 'cyan', 'schedules' => $schedules])
+            </div>
+        </section>
 
-        <!-- TAB 2: GRAFIK ARUS (Sesuai Wireframe Gambar 2) -->
-        <div x-show="activeTab === 'grafik'" x-cloak class="space-y-6">
+        <!-- SECTION 2: GRAFIK TREN ARUS LISTRIK (AMPERE REAL-TIME) -->
+        <section>
             @include('partials.grafik-arus')
-            
-            <!-- Tampilkan Juga Panel Kontrol di bawah grafik sesuai wireframe -->
-            @include('partials.panel-detail-ac')
-        </div>
+        </section>
 
-        <!-- TAB 3: LOG REPORT (Sesuai Wireframe Gambar 3) -->
-        <div x-show="activeTab === 'log'" x-cloak class="space-y-6">
-            @include('partials.tabel-log-report')
-            
-            <!-- Tampilkan Juga Panel Kontrol di bawah log sesuai wireframe -->
-            @include('partials.panel-detail-ac')
-        </div>
+        <!-- SECTION 3: JAM ATUR AC (MANAJEMEN PENJADWALAN OTOMATIS) -->
+        <section class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="font-outfit font-black text-xl text-slate-800 uppercase tracking-wide flex items-center space-x-2">
+                    <span class="text-teal-600 font-bold">⏱️</span>
+                    <span>Pengaturan Jam Atur AC</span>
+                </h2>
+                <span class="text-xs font-bold text-slate-400">Penjadwalan Otomatis</span>
+            </div>
 
-        <!-- TAB 4: PENJADWALAN AC -->
-        <div x-show="activeTab === 'penjadwalan'" x-cloak class="space-y-6">
-            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 @include('partials.form-tambah-jadwal')
                 @include('partials.daftar-jadwal')
-            </section>
-        </div>
+            </div>
+        </section>
 
     </main>
 
@@ -120,7 +124,7 @@
             if (switchText) {
                 switchText.innerText = command;
                 switchText.className = command === 'ON'
-                    ? "text-xs font-black uppercase tracking-wider text-teal-400"
+                    ? "text-xs font-black uppercase tracking-wider text-teal-600"
                     : "text-xs font-black uppercase tracking-wider text-slate-400";
             }
             
@@ -161,7 +165,7 @@
                 labels: [],
                 datasets: [
                     {
-                        label: 'AC 1 (Panel Bawah)',
+                        label: 'Lampu Panel Bawah (AC 1)',
                         borderColor: '#0D9488',
                         backgroundColor: 'rgba(13, 148, 136, 0.05)',
                         borderWidth: 3,
@@ -172,7 +176,7 @@
                         data: []
                     },
                     {
-                        label: 'AC 2 (Panel Atas)',
+                        label: 'Lampu Panel Atas (AC 2)',
                         borderColor: '#0EA5E9',
                         backgroundColor: 'rgba(14, 165, 233, 0.05)',
                         borderWidth: 3,
@@ -219,13 +223,9 @@
             fetch("{{ route('api.logs') }}")
                 .then(response => response.json())
                 .then(data => {
-                    let totalAmpere = 0;
-
                     // 1. Update AC 1 Data
                     if (data.latest_ac1) {
                         const currentVal = parseFloat(data.latest_ac1.current_ampere).toFixed(4);
-                        totalAmpere += parseFloat(data.latest_ac1.current_ampere);
-
                         const ac1CurrEl = document.getElementById('ac1-current');
                         if (ac1CurrEl) ac1CurrEl.innerText = currentVal;
                         
@@ -246,30 +246,29 @@
                         if (lock.targetState === null) {
                             if (switchEl) switchEl.checked = isActive;
                             if (statusLabel) {
-                                statusLabel.innerText = isActive ? 'ONLINE (ACTIVE)' : 'OFFLINE (STANDBY)';
+                                statusLabel.innerText = isActive ? 'Online' : 'Offline';
                                 statusLabel.className = isActive 
-                                    ? 'font-extrabold text-teal-700 uppercase tracking-wider' 
-                                    : 'font-extrabold text-slate-500 uppercase tracking-wider';
+                                    ? 'px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider bg-teal-100 text-teal-800 border border-teal-300' 
+                                    : 'px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200';
                             }
                             if (switchText) {
                                 switchText.innerText = isActive ? 'ON' : 'OFF';
                                 switchText.className = isActive 
-                                    ? "text-xs font-black uppercase tracking-wider text-teal-400"
+                                    ? "text-xs font-black uppercase tracking-wider text-teal-600"
                                     : "text-xs font-black uppercase tracking-wider text-slate-400";
                             }
                         }
                         
                         const timeEl = document.getElementById('ac1-time');
                         if (timeEl && data.latest_ac1.recorded_at) {
-                            timeEl.innerText = data.latest_ac1.recorded_at.split(' ')[1];
+                            const raw = String(data.latest_ac1.recorded_at);
+                            timeEl.innerText = raw.includes(' ') ? raw.split(' ')[1] : (raw.includes('T') ? raw.split('T')[1].substring(0, 8) : raw);
                         }
                     }
 
                     // 2. Update AC 2 Data
                     if (data.latest_ac2) {
                         const currentVal = parseFloat(data.latest_ac2.current_ampere).toFixed(4);
-                        totalAmpere += parseFloat(data.latest_ac2.current_ampere);
-
                         const ac2CurrEl = document.getElementById('ac2-current');
                         if (ac2CurrEl) ac2CurrEl.innerText = currentVal;
                         
@@ -290,29 +289,24 @@
                         if (lock.targetState === null) {
                             if (switchEl) switchEl.checked = isActive;
                             if (statusLabel) {
-                                statusLabel.innerText = isActive ? 'ONLINE (ACTIVE)' : 'OFFLINE (STANDBY)';
+                                statusLabel.innerText = isActive ? 'Online' : 'Offline';
                                 statusLabel.className = isActive 
-                                    ? 'font-extrabold text-cyan-700 uppercase tracking-wider' 
-                                    : 'font-extrabold text-slate-500 uppercase tracking-wider';
+                                    ? 'px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider bg-cyan-100 text-cyan-800 border border-cyan-300' 
+                                    : 'px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200';
                             }
                             if (switchText) {
                                 switchText.innerText = isActive ? 'ON' : 'OFF';
                                 switchText.className = isActive 
-                                    ? "text-xs font-black uppercase tracking-wider text-teal-400"
+                                    ? "text-xs font-black uppercase tracking-wider text-cyan-600"
                                     : "text-xs font-black uppercase tracking-wider text-slate-400";
                             }
                         }
                         
                         const timeEl = document.getElementById('ac2-time');
                         if (timeEl && data.latest_ac2.recorded_at) {
-                            timeEl.innerText = data.latest_ac2.recorded_at.split(' ')[1];
+                            const raw = String(data.latest_ac2.recorded_at);
+                            timeEl.innerText = raw.includes(' ') ? raw.split(' ')[1] : (raw.includes('T') ? raw.split('T')[1].substring(0, 8) : raw);
                         }
-                    }
-
-                    // Update Middle Status Pill
-                    const totalPill = document.getElementById('total-current-pill');
-                    if (totalPill) {
-                        totalPill.innerText = `⚡ ${totalAmpere.toFixed(3)} A`;
                     }
 
                     // 3. Update Chart.js
