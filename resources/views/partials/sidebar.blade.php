@@ -1,4 +1,3 @@
-<!-- VERTICAL COLLAPSIBLE SIDEBAR PARADIGM -->
 <aside class="vertical-sidebar"> 
     <input type="checkbox" role="switch" id="checkbox-input" class="checkbox-input" checked />
     <nav>
@@ -15,90 +14,113 @@
                     </span> 
                 </label> 
             </div>
-            
             <figure> 
-                <div class="w-11 h-11 rounded-2xl bg-slate-900 text-white font-black text-xl flex items-center justify-center mx-auto shadow-md font-outfit">
+                <div class="w-10 h-10 rounded-2xl bg-slate-900 text-white font-black text-xl flex items-center justify-center mx-auto shadow-md font-outfit">
                     P
                 </div>
                 <figcaption>
                     <p class="user-id font-outfit font-black text-slate-800">PT PINDAD</p>
-                    <p class="user-role font-semibold text-slate-500">IoT Monitoring AC</p>
+                    <p class="user-role font-semibold text-slate-500">IoT Admin</p>
                 </figcaption>
             </figure>
         </header>
-
         <section class="sidebar__wrapper">
-            <!-- UTAMA -->
             <ul class="sidebar__list list--primary">
                 <li class="sidebar__item item--heading">
-                    <h2 class="sidebar__item--heading">Utama</h2>
+                    <h2 class="sidebar__item--heading">general</h2>
                 </li>
                 <li class="sidebar__item"> 
-                    <a class="sidebar__link" href="#" data-tooltip="Dashboard"> 
+                    <a class="sidebar__link" href="#" data-tooltip="Inbox"> 
                         <span class="icon"> 
-                            <svg width="16" height="16" fill="currentColor" class="bi bi-grid-1x2" viewBox="0 0 16 16">
-                                <path d="M6 1H1v14h5V1zm9 0h-5v5h5V1zm0 7h-5v7h5V8zM1.5 0A1.5 1.5 0 0 0 0 1.5v13A1.5 1.5 0 0 0 1.5 16h13a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 14.5 0h-13z"/>
+                            <svg width="16" height="16" fill="currentColor" class="bi bi-inbox" viewBox="0 0 16 16">
+                                <path d="M4.98 4a.5.5 0 0 0-.39.188L1.54 8H6a.5.5 0 0 1 .5.5 1.5 1.5 0 1 0 3 0A.5.5 0 0 1 10 8h4.46l-3.05-3.812A.5.5 0 0 0 11.02 4zm9.954 5H10.45a2.5 2.5 0 0 1-4.9 0H1.066l.32 2.562a.5.5 0 0 0 .497.438h12.234a.5.5 0 0 0 .496-.438zM3.809 3.563A1.5 1.5 0 0 1 4.981 3h6.038a1.5 1.5 0 0 1 1.172.563l3.7 4.625a.5.5 0 0 1 .105.374l-.39 3.124A1.5 1.5 0 0 1 14.117 13H1.883a1.5 1.5 0 0 1-1.489-1.314l-.39-3.124a.5.5 0 0 1 .106-.374z" />
                             </svg> 
                         </span> 
-                        <span class="text font-extrabold text-slate-800">Dashboard</span> 
+                        <span class="text">Inbox</span> 
                     </a> 
                 </li>
                 <li class="sidebar__item"> 
-                    <a class="sidebar__link" href="#kontrol-ac" data-tooltip="Kontrol AC"> 
+                    <a class="sidebar__link" href="#" data-tooltip="Favourite"> 
                         <span class="icon"> 
-                            <svg width="16" height="16" fill="currentColor" class="bi bi-toggle-on" viewBox="0 0 16 16">
-                                <path d="M5 3a5 5 0 0 0 0 10h6a5 5 0 0 0 0-10H5zm6 9a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/>
+                            <svg width="16" height="16" fill="currentColor" class="bi bi-star" viewBox="0 0 16 16">
+                                <path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957a.56.56 0 0 0-.163-.505L1.71 6.745l4.052-.576a.53.53 0 0 0 .393-.288L8 2.223l1.847 3.658a.53.53 0 0 0 .393.288l4.052.575-2.906 2.77a.56.56 0 0 0-.163.506l.694 3.957-3.686-1.894a.5.5 0 0 0-.461 0z" />
                             </svg> 
                         </span> 
-                        <span class="text">Kontrol AC</span> 
+                        <span class="text">Favourite</span> 
                     </a> 
                 </li>
                 <li class="sidebar__item"> 
-                    <a class="sidebar__link" href="#grafik-telemetri" data-tooltip="Grafik Arus"> 
+                    <a class="sidebar__link" href="#" data-tooltip="Sent"> 
                         <span class="icon"> 
-                            <svg width="16" height="16" fill="currentColor" class="bi bi-graph-up-arrow" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M0 0h1v15h15v1H0V0zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.564L13.293 4H10.5a.5.5 0 0 1-.5-.5z"/>
+                            <svg width="16" height="16" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
+                                <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z" />
                             </svg> 
                         </span> 
-                        <span class="text">Grafik Telemetri</span> 
+                        <span class="text">Sent</span> 
+                    </a> 
+                </li>
+                <li class="sidebar__item"> 
+                    <a class="sidebar__link" href="#" data-tooltip="Draft"> 
+                        <span class="icon"> 
+                            <svg width="16" height="16" fill="currentColor" class="bi bi-envelope-exclamation" viewBox="0 0 16 16">
+                                <path d="M2 2a2 2 0 0 0-2 2v8.01A2 2 0 0 0 2 14h5.5a.5.5 0 0 0 0-1H2a1 1 0 0 1-.966-.741l5.64-3.471L8 9.583l7-4.2V8.5a.5.5 0 0 0 1 0V4a2 2 0 0 0-2-2zm3.708 6.208L1 11.105V5.383zM1 4.217V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v.217l-7 4.2z" />
+                                <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m.5-5v1.5a.5.5 0 0 1-1 0V11a.5.5 0 0 1 1 0m0 3a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0" />
+                            </svg> 
+                        </span> 
+                        <span class="text">Draft</span> 
+                    </a> 
+                </li>
+                <li class="sidebar__item"> 
+                    <a class="sidebar__link" href="#" data-tooltip="Archive"> 
+                        <span class="icon"> 
+                            <svg width="16" height="16" fill="currentColor" class="bi bi-archive" viewBox="0 0 16 16">
+                                <path d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 12.5V5a1 1 0 0 1-1-1zm2 3v7.5A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5V5zm13-3H1v2h14zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
+                            </svg> 
+                        </span> 
+                        <span class="text">Archive</span> 
+                    </a> 
+                </li>
+                <li class="sidebar__item"> 
+                    <a class="sidebar__link" href="#" data-tooltip="Trash"> 
+                        <span class="icon"> 
+                            <svg width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                            </svg> 
+                        </span> 
+                        <span class="text">Trash</span> 
                     </a> 
                 </li>
             </ul>
-
-            <!-- SISTEM -->
             <ul class="sidebar__list list--secondary">
                 <li class="sidebar__item item--heading">
-                    <h2 class="sidebar__item--heading">Sistem</h2>
+                    <h2 class="sidebar__item--heading">general</h2>
                 </li>
                 <li class="sidebar__item"> 
-                    <a class="sidebar__link" href="#" data-tooltip="Status MQTT"> 
+                    <a class="sidebar__link" href="#" data-tooltip="Profile"> 
                         <span class="icon"> 
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse m-auto"></span>
-                        </span> 
-                        <span class="text font-bold text-emerald-700" id="sidebar-mqtt-label">MQTT Live</span> 
-                    </a> 
-                </li>
-                <li class="sidebar__item"> 
-                    <a class="sidebar__link" href="#" data-tooltip="Jam Server"> 
-                        <span class="icon"> 
-                            <svg width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
-                                <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022l-.074.997zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.122.342l-.356.933zM1.91 4.98a7.003 7.003 0 0 0-.299.985l-.976-.219c.086-.383.2-.76.342-1.122l.933.356zM8 4.5a.5.5 0 0 1 .5.5v3.086l2.146 2.147a.5.5 0 0 1-.708.708l-2.5-2.5A.5.5 0 0 1 7.5 8V5a.5.5 0 0 1 .5-.5z"/>
+                            <svg width="16" height="16" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
+                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1" />
                             </svg> 
                         </span> 
-                        <span class="text font-mono text-xs font-bold text-slate-700" id="sidebar-clock">00:00:00 WIB</span> 
+                        <span class="text">Profile</span> 
                     </a> 
                 </li>
                 <li class="sidebar__item"> 
-                    <a class="sidebar__link" href="#" data-tooltip="Pengaturan"> 
+                    <a class="sidebar__link" href="#" data-tooltip="Settings"> 
                         <span class="icon"> 
                             <svg width="16" height="16" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16">
-                                <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492M5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0"/>
-                                <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52z"/>
-                            </svg> 
-                        </span> 
-                        <span class="text">Pengaturan</span> 
-                    </a> 
-                </li>
+                                <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492M5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0" />
+                                <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115z" />
+                            </svg> </span> <span class="text">Settings</span> </a> </li>
+                <li class="sidebar__item"> 
+                    <a class="sidebar__link" href="#" data-tooltip="Logout"> 
+                        <span class="icon"> 
+                            <svg width="16" height="16" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z" />
+                                <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z" />
+                            </svg> </span> <span class="text">Logout</span> </a> </li>
             </ul>
         </section>
     </nav>
