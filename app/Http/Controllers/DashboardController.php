@@ -26,13 +26,15 @@ class DashboardController extends Controller
         $latestAc1 = AcLog::where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
         $latestAc2 = AcLog::where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
 
-        // Get recent logs for the Log Report tab
-        $recentLogs = AcLog::latest('recorded_at')->take(20)->get();
+        // Get recent logs separated for AC1 and AC2
+        $recentLogsAll = AcLog::latest('recorded_at')->take(50)->get();
+        $recentLogsAc1 = AcLog::where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->take(50)->get();
+        $recentLogsAc2 = AcLog::where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->take(50)->get();
 
         // Get all schedules
         $schedules = Schedule::orderBy('start_time')->get();
 
-        return view('dashboard', compact('latestAc1', 'latestAc2', 'recentLogs', 'schedules'));
+        return view('dashboard', compact('latestAc1', 'latestAc2', 'recentLogsAll', 'recentLogsAc1', 'recentLogsAc2', 'schedules'));
     }
 
     /**
@@ -194,5 +196,54 @@ class DashboardController extends Controller
         $schedule->delete();
 
         return redirect()->back()->with('success', 'Jadwal berhasil dihapus!');
+    }
+
+    /**
+     * Export telemetry logs to CSV format.
+     */
+    public function exportCsv(Request $request)
+    {
+        $unit = $request->query('unit', 'all'); // 'all', 'ac1', 'ac2'
+        
+        $query = AcLog::latest('recorded_at');
+        if ($unit === 'ac1') {
+            $query->where('active_ac', 'like', 'AC_1%');
+        } elseif ($unit === 'ac2') {
+            $query->where('active_ac', 'like', 'AC_2%');
+        }
+        
+        $logs = $query->take(500)->get();
+        
+        $fileName = 'PINDAD_AC_TELEMETRY_LOG_' . strtoupper($unit) . '_' . date('Ymd_His') . '.csv';
+        
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+        
+        $columns = ['ID Log', 'Nama Perangkat', 'Status Telemetri', 'Arus Listrik (Ampere)', 'Estimasi Beban (Watt)', 'Waktu Pencatatan'];
+        
+        $callback = function() use ($logs, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            
+            foreach ($logs as $log) {
+                $watt = round($log->current_ampere * 220, 2);
+                fputcsv($file, [
+                    $log->id,
+                    $log->device_id,
+                    $log->active_ac,
+                    number_format($log->current_ampere, 4),
+                    $watt . ' W',
+                    $log->recorded_at
+                ]);
+            }
+            fclose($file);
+        };
+        
+        return response()->stream($callback, 200, $headers);
     }
 }

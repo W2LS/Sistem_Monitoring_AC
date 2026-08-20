@@ -18,3 +18,7 @@ Route::post('/schedules', [DashboardController::class, 'storeSchedule'])->name('
 Route::patch('/schedules/{id}/toggle', [DashboardController::class, 'toggleSchedule'])->name('schedules.toggle');
 Route::delete('/schedules/{id}', [DashboardController::class, 'deleteSchedule'])->name('schedules.destroy');
 
+// Ekspor Log Telemetri CSV
+Route::get('/logs/export', [DashboardController::class, 'exportCsv'])->name('logs.export');
+
+
