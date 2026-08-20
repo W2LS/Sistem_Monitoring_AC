@@ -1,5 +1,5 @@
 <!-- SECTION 4: PROFIL AKUN & INFORMASI OPERATOR (PALETTE: #1D1616, #8E1616, #D84040, #EEEEEE) -->
-<div class="space-y-6 max-w-3xl mx-auto pb-24">
+<div class="space-y-6 w-full pb-24">
     
     <!-- HEADER -->
     <div class="border-b border-[#8E1616]/20 pb-4">

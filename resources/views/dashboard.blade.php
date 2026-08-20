@@ -47,8 +47,8 @@
         }
         /* Custom smooth scrollbar */
         ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
         }
         ::-webkit-scrollbar-track {
             background: #EEEEEE;
@@ -64,57 +64,58 @@
 </head>
 <body class="bg-[#EEEEEE] text-[#1D1616] min-h-screen antialiased flex flex-col justify-between selection:bg-[#D84040] selection:text-white">
 
-    <!-- MAIN WRAPPER CONTAINER (Centered Responsive Max-Width) -->
-    <div class="max-w-4xl w-full mx-auto px-4 sm:px-6 pt-10 pb-32 space-y-7">
+    <!-- MAIN RESPONSIVE WRAPPER CONTAINER (Melebar Dinamis di Layar Web / Desktop) -->
+    <div class="w-full max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 pt-8 sm:pt-12 pb-36 space-y-8">
         
-        <!-- ================= TOP HEADER ================= -->
-        <header class="flex items-center justify-between pt-4">
+        <!-- ================= TOP HEADER (Matching Reference Header Layout) ================= -->
+        <header class="flex items-center justify-between pt-2">
             <div>
-                <span class="text-[12px] font-extrabold uppercase tracking-widest text-[#8E1616] block">
-                    SISTEM KONTROL & MONITORING AC IOT
+                <span class="text-xs font-extrabold uppercase tracking-widest text-[#8E1616] flex items-center space-x-1.5">
+                    <span>☀️</span>
+                    <span>SISTEM KONTROL & MONITORING AC IOT</span>
                 </span>
-                <h1 class="text-3xl sm:text-4xl font-black text-[#1D1616] tracking-tight">
-                    PT PINDAD <span class="text-sm font-extrabold text-[#D84040] bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">(PERSERO)</span>
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-[#1D1616] tracking-tight mt-0.5">
+                    PT PINDAD <span class="text-sm font-extrabold text-[#D84040] bg-rose-50 px-3 py-1 rounded-full border border-rose-200 align-middle ml-1">(PERSERO)</span>
                 </h1>
-                <p class="text-xs font-semibold text-slate-500 mt-0.5">
-                    Ruang Server 1 • Divisi Sistem Informasi & Fasilitas
+                <p class="text-xs sm:text-sm font-semibold text-slate-500 mt-1">
+                    Ruang Server 1 • Divisi Sistem Informasi & Fasilitas Gedung
                 </p>
             </div>
 
             <!-- Right Profile Avatar with Red Notification Badge -->
-            <div @click="activeTab = 'akun'" class="relative cursor-pointer group" title="Buka Profil Akun">
-                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-[#1D1616] via-[#8E1616] to-[#D84040] text-white flex items-center justify-center font-black text-lg border-2 border-white shadow-md transition-transform group-hover:scale-105">
+            <div @click="activeTab = 'akun'" class="relative cursor-pointer group shrink-0" title="Buka Profil Akun">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-[#1D1616] via-[#8E1616] to-[#D84040] text-white flex items-center justify-center font-black text-xl border-2 border-white shadow-md transition-transform group-hover:scale-105">
                     D
                 </div>
                 <!-- 16px Coral Red Notification Badge -->
-                <span class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[#D84040] border-2 border-[#EEEEEE] rounded-full flex items-center justify-center">
-                    <span class="w-1.5 h-1.5 bg-white rounded-full animate-ping"></span>
+                <span class="absolute -bottom-0.5 -right-0.5 w-4.5 h-4.5 bg-[#D84040] border-2 border-[#EEEEEE] rounded-full flex items-center justify-center">
+                    <span class="w-2 h-2 bg-white rounded-full animate-ping"></span>
                 </span>
             </div>
         </header>
 
         <!-- ================= ALERTS NOTIFICATION ================= -->
         @if(session('success'))
-            <div class="bg-white rounded-[24px] border border-[#8E1616]/30 text-[#1D1616] shadow-[0_20px_50px_-12px_rgba(29,22,22,0.08)] px-5 py-4 flex items-center justify-between" role="alert">
-                <span class="text-xs font-black flex items-center space-x-2">
-                    <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs">✓</span>
+            <div class="bg-white rounded-[24px] border border-[#8E1616]/30 text-[#1D1616] shadow-[0_20px_50px_-12px_rgba(29,22,22,0.08)] px-6 py-4 flex items-center justify-between" role="alert">
+                <span class="text-xs sm:text-sm font-black flex items-center space-x-2.5">
+                    <span class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs font-bold">✓</span>
                     <span>{{ session('success') }}</span>
                 </span>
-                <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-[#D84040] font-bold text-xl cursor-pointer">&times;</button>
+                <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-[#D84040] font-bold text-2xl cursor-pointer">&times;</button>
             </div>
         @endif
 
         <!-- ================= HORIZONTAL SNAP SCROLL SELECTOR ================= -->
-        <div class="flex items-center space-x-3 overflow-x-auto pb-2 pt-1 no-scrollbar">
+        <div class="flex items-center space-x-3.5 overflow-x-auto pb-2 pt-1 no-scrollbar">
             
             <!-- Category 1: Home (Dashboard) -->
             <button 
                 @click="activeTab = 'home'"
                 type="button"
                 :class="activeTab === 'home' 
-                    ? 'w-44 bg-[#8E1616] text-white shadow-lg shadow-[#8E1616]/25' 
+                    ? 'w-48 bg-[#8E1616] text-white shadow-lg shadow-[#8E1616]/25' 
                     : 'w-14 bg-white text-[#1D1616]/60 border border-[#8E1616]/20 hover:border-[#8E1616]'"
-                class="h-14 rounded-[20px] p-2 flex items-center space-x-3 shrink-0 transition-all duration-300 cursor-pointer overflow-hidden">
+                class="h-14 rounded-[22px] p-2 flex items-center space-x-3 shrink-0 transition-all duration-300 cursor-pointer overflow-hidden">
                 <div class="w-10 h-10 rounded-full bg-[#D84040] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-xs">
                     🏠
                 </div>
@@ -129,9 +130,9 @@
                 @click="activeTab = 'search'"
                 type="button"
                 :class="activeTab === 'search' 
-                    ? 'w-44 bg-[#8E1616] text-white shadow-lg shadow-[#8E1616]/25' 
+                    ? 'w-48 bg-[#8E1616] text-white shadow-lg shadow-[#8E1616]/25' 
                     : 'w-14 bg-white text-[#1D1616]/60 border border-[#8E1616]/20 hover:border-[#8E1616]'"
-                class="h-14 rounded-[20px] p-2 flex items-center space-x-3 shrink-0 transition-all duration-300 cursor-pointer overflow-hidden">
+                class="h-14 rounded-[22px] p-2 flex items-center space-x-3 shrink-0 transition-all duration-300 cursor-pointer overflow-hidden">
                 <div class="w-10 h-10 rounded-full bg-[#D84040] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-xs">
                     🔍
                 </div>
@@ -146,9 +147,9 @@
                 @click="activeTab = 'book'"
                 type="button"
                 :class="activeTab === 'book' 
-                    ? 'w-44 bg-[#8E1616] text-white shadow-lg shadow-[#8E1616]/25' 
+                    ? 'w-48 bg-[#8E1616] text-white shadow-lg shadow-[#8E1616]/25' 
                     : 'w-14 bg-white text-[#1D1616]/60 border border-[#8E1616]/20 hover:border-[#8E1616]'"
-                class="h-14 rounded-[20px] p-2 flex items-center space-x-3 shrink-0 transition-all duration-300 cursor-pointer overflow-hidden">
+                class="h-14 rounded-[22px] p-2 flex items-center space-x-3 shrink-0 transition-all duration-300 cursor-pointer overflow-hidden">
                 <div class="w-10 h-10 rounded-full bg-[#D84040] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-xs">
                     📖
                 </div>
@@ -163,9 +164,9 @@
                 @click="activeTab = 'akun'"
                 type="button"
                 :class="activeTab === 'akun' 
-                    ? 'w-44 bg-[#8E1616] text-white shadow-lg shadow-[#8E1616]/25' 
+                    ? 'w-48 bg-[#8E1616] text-white shadow-lg shadow-[#8E1616]/25' 
                     : 'w-14 bg-white text-[#1D1616]/60 border border-[#8E1616]/20 hover:border-[#8E1616]'"
-                class="h-14 rounded-[20px] p-2 flex items-center space-x-3 shrink-0 transition-all duration-300 cursor-pointer overflow-hidden">
+                class="h-14 rounded-[22px] p-2 flex items-center space-x-3 shrink-0 transition-all duration-300 cursor-pointer overflow-hidden">
                 <div class="w-10 h-10 rounded-full bg-[#D84040] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-xs">
                     👤
                 </div>
@@ -180,36 +181,55 @@
         <!-- ================= MAIN DYNAMIC CONTENT TABS ================= -->
         <main class="space-y-8">
             
-            <!-- TAB 1: HOME (DASHBOARD KARTU AC1 & AC2 + SAKLAR ON/OFF LANGSUNG) -->
-            <div x-show="activeTab === 'home'" x-cloak class="space-y-7">
+            <!-- TAB 1: HOME (DASHBOARD HERO CARDS AC1 & AC2 MELEBAR DI LAYAR DESKTOP) -->
+            <div x-show="activeTab === 'home'" x-cloak class="space-y-8">
                 
-                <!-- KPI SUMMARY HERO WIDGET -->
-                <div class="bg-[#1D1616] rounded-[40px] p-6 text-white shadow-[0_20px_50px_-12px_rgba(29,22,22,0.35)] border border-[#8E1616]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <!-- SECTION HEADER (Like "Let's try this!" in the reference image) -->
+                <div class="flex items-center justify-between">
                     <div>
-                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#D84040] block">Status Beban Ruang Server</span>
-                        <div class="flex items-baseline space-x-2 mt-1">
-                            <span id="kpi-total-current" class="text-3xl sm:text-4xl font-black font-mono text-white">0.00 A</span>
-                            <span class="text-xs font-extrabold text-[#EEEEEE]/70">Total Konsumsi Listrik</span>
-                        </div>
-                        <span id="kpi-total-watt" class="text-xs font-bold text-[#D84040] block mt-0.5">0 Watt Daya Terpakai</span>
+                        <h2 class="text-xl sm:text-2xl font-black text-[#1D1616] tracking-tight">
+                            Kontrol & Telemetri Real-time
+                        </h2>
+                        <p class="text-xs font-semibold text-slate-500 mt-0.5">
+                            Status aktif, pemantauan arus listrik, dan saklar manual individual.
+                        </p>
                     </div>
 
-                    <div class="bg-white/10 backdrop-blur-md rounded-[24px] px-5 py-3 border border-white/10 flex items-center space-x-3 shrink-0">
-                        <span id="esp32-status-dot" class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <!-- Status Widget Badge -->
+                    <div class="hidden sm:flex items-center space-x-3 bg-white border border-[#8E1616]/20 px-4 py-2 rounded-full shadow-2xs">
+                        <span id="esp32-status-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="esp32-status-text" class="text-xs font-black text-[#1D1616]">ESP32 Online</span>
+                    </div>
+                </div>
+
+                <!-- KPI SUMMARY HERO WIDGET (Expands majestically on desktop) -->
+                <div class="bg-[#1D1616] rounded-[40px] p-7 sm:p-8 text-white shadow-[0_20px_50px_-12px_rgba(29,22,22,0.35)] border border-[#8E1616]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#D84040] block">Status Total Beban Daya Server</span>
+                        <div class="flex items-baseline space-x-3">
+                            <span id="kpi-total-current" class="text-3xl sm:text-5xl font-black font-mono text-white tracking-tight">0.00 A</span>
+                            <span class="text-sm font-extrabold text-[#EEEEEE]/80">Total Konsumsi Arus</span>
+                        </div>
+                        <span id="kpi-total-watt" class="text-xs sm:text-sm font-bold text-[#D84040] block">0 Watt Estimasi Beban Terpakai</span>
+                    </div>
+
+                    <div class="bg-white/10 backdrop-blur-md rounded-[28px] px-6 py-4 border border-white/10 flex items-center space-x-4 shrink-0">
+                        <span class="text-2xl">⚡</span>
                         <div>
-                            <span id="esp32-status-text" class="text-xs font-black text-white block">ESP32 Online</span>
-                            <span class="text-[10px] text-[#EEEEEE]/70 font-semibold">RTC DS3231 Terhubung</span>
+                            <span class="text-sm font-black text-white block">Sinkronisasi 30 Detik</span>
+                            <span class="text-xs text-[#EEEEEE]/70 font-semibold">Sensor ACS712 + RTC DS3231</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- DUAL HERO AC CARDS (AC 1 & AC 2 WITH DIRECT SWITCHES BENEATH) -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- DUAL HERO AC CARDS (GRID 2-KOLOM MELEBAR DI DESKTOP / STACKED DI MOBILE) -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     @include('partials.kartu-ac', [
                         'id' => 1, 
                         'pin' => 18, 
                         'name' => 'PANASONIC 1', 
-                        'location' => 'Lampu Panel Bawah (Shift Siang)', 
+                        'location' => 'Lampu Panel Bawah', 
+                        'shift' => 'Shift Siang (06:00 - 18:00 WIB)', 
                         'color' => 'red', 
                         'schedules' => $schedules
                     ])
@@ -217,7 +237,8 @@
                         'id' => 2, 
                         'pin' => 19, 
                         'name' => 'PANASONIC 2', 
-                        'location' => 'Lampu Panel Atas (Shift Malam)', 
+                        'location' => 'Lampu Panel Atas', 
+                        'shift' => 'Shift Malam (18:00 - 06:00 WIB)', 
                         'color' => 'maroon', 
                         'schedules' => $schedules
                     ])
@@ -365,17 +386,17 @@
                     const kpiCurrent = document.getElementById('kpi-total-current');
                     const kpiWatt = document.getElementById('kpi-total-watt');
                     if (kpiCurrent) kpiCurrent.innerText = `${data.total_current.toFixed(2)} A`;
-                    if (kpiWatt) kpiWatt.innerText = `${data.estimated_watt} Watt Daya Terpakai`;
+                    if (kpiWatt) kpiWatt.innerText = `${data.estimated_watt} Watt Estimasi Beban Terpakai`;
 
                     // 2. Update ESP32 Status Badge
                     const esp32Dot = document.getElementById('esp32-status-dot');
                     const esp32Text = document.getElementById('esp32-status-text');
                     if (esp32Dot && esp32Text) {
                         if (data.device_online) {
-                            esp32Dot.className = "w-3 h-3 rounded-full bg-emerald-400 animate-pulse";
+                            esp32Dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
                             esp32Text.innerText = "ESP32 Online";
                         } else {
-                            esp32Dot.className = "w-3 h-3 rounded-full bg-amber-400";
+                            esp32Dot.className = "w-2.5 h-2.5 rounded-full bg-amber-400";
                             esp32Text.innerText = "ESP32 Standby";
                         }
                     }

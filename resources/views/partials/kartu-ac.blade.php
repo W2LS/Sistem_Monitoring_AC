@@ -3,11 +3,12 @@
     'pin' => 18,
     'name' => 'PANASONIC 1',
     'location' => 'Lampu Panel Bawah',
+    'shift' => 'Shift Siang (06:00 - 18:00 WIB)',
     'color' => 'red',
     'schedules' => []
 ])
 
-<!-- KARTU INFORMASI UTAMA AC {{ $id }} (PALETTE: #1D1616, #8E1616, #D84040, #EEEEEE) -->
+<!-- HERO FEATURE CARD AC {{ $id }} (MATCHING SOPHISTICATED PLAYFUL REFERENCE CARD - 40px RADIUS) -->
 <div x-data="{ 
         showModal: false, 
         unitName: localStorage.getItem('ac_unit_name_{{ $id }}') || '{{ $name }}',
@@ -15,96 +16,121 @@
             localStorage.setItem('ac_unit_name_{{ $id }}', this.unitName);
         }
      }" 
-     class="bg-white rounded-[40px] p-7 shadow-[0_20px_50px_-12px_rgba(29,22,22,0.08)] border border-[#8E1616]/20 flex flex-col justify-between space-y-6 relative overflow-hidden transition-all hover:shadow-[0_25px_60px_-15px_rgba(142,22,22,0.12)]">
+     class="bg-white rounded-[40px] p-6 sm:p-8 lg:p-9 shadow-[0_20px_50px_-12px_rgba(29,22,22,0.06)] border border-[#8E1616]/20 flex flex-col justify-between space-y-6 relative overflow-hidden transition-all hover:shadow-[0_25px_60px_-15px_rgba(142,22,22,0.1)]">
     
-    <!-- Decorative subtle blob in top-right -->
-    <div class="absolute -top-10 -right-10 w-44 h-44 {{ $id === 1 ? 'bg-[#8E1616]/10' : 'bg-[#D84040]/10' }} rounded-full blur-2xl pointer-events-none"></div>
+    <!-- Decorative subtle blob in top-right (As seen in reference image) -->
+    <div class="absolute -top-12 -right-12 w-48 h-48 {{ $id === 1 ? 'bg-[#D84040]/8' : 'bg-[#8E1616]/8' }} rounded-full blur-2xl pointer-events-none"></div>
 
-    <!-- TOP HEADER: ICON HOLDER + UNIT NAME + SETTING -->
+    <!-- 1. TOP HEADER: 64x64 ICON HOLDER + UNIT NAME + BADGES + TRAILING CIRCULAR BUTTON -->
     <div class="flex items-start justify-between relative z-10">
-        <div class="flex items-center space-x-4">
-            <!-- 64x64px Icon Holder -->
-            <div class="w-16 h-16 rounded-[22px] bg-[#EEEEEE] border border-[#8E1616]/20 flex items-center justify-center text-2xl shadow-inner shrink-0">
+        <div class="flex items-center space-x-4 sm:space-x-5">
+            <!-- 64x64px Square Icon Holder -->
+            <div class="w-16 h-16 rounded-[24px] bg-[#EEEEEE] border border-[#8E1616]/20 flex items-center justify-center text-3xl shadow-inner shrink-0">
                 <span>❄️</span>
             </div>
             
-            <div>
-                <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">
-                    Ruang Server 1 • Pin GPIO {{ $pin }}
-                </span>
+            <div class="space-y-1">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-[10px] font-black uppercase tracking-widest bg-[#EEEEEE] text-[#8E1616] px-2.5 py-0.5 rounded-full border border-[#8E1616]/20">
+                        PIN GPIO {{ $pin }}
+                    </span>
+                    <span class="text-[10px] font-black uppercase tracking-widest bg-[#8E1616]/10 text-[#8E1616] px-2.5 py-0.5 rounded-full">
+                        {{ $location }}
+                    </span>
+                </div>
+                
                 <h3 @click="showModal = true" 
-                    class="text-2xl font-black text-[#1D1616] tracking-tight hover:text-[#D84040] transition cursor-pointer" 
+                    class="text-2xl sm:text-3xl font-black text-[#1D1616] tracking-tight hover:text-[#D84040] transition cursor-pointer" 
                     x-text="unitName" 
                     title="Klik untuk ubah nama unit">
                 </h3>
-                <p class="text-xs font-semibold text-slate-500 mt-0.5">{{ $location }}</p>
             </div>
         </div>
 
-        <!-- Setting Gear Button -->
-        <button @click="showModal = true" 
-                type="button" 
-                title="Atur Nama & Jadwal"
-                class="w-11 h-11 rounded-full bg-[#EEEEEE] hover:bg-[#8E1616] hover:text-white text-[#1D1616] border border-[#8E1616]/20 flex items-center justify-center transition-all cursor-pointer shadow-2xs hover:scale-105">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-            </svg>
-        </button>
+        <!-- Trailing Circular Action / Setting Button (Matching reference circular trailing item) -->
+        <div class="flex items-center space-x-2">
+            <button @click="showModal = true" 
+                    type="button" 
+                    title="Pengaturan & Penjadwalan Unit"
+                    class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#EEEEEE] hover:bg-[#8E1616] hover:text-white text-[#1D1616] border border-[#8E1616]/20 flex items-center justify-center transition-all cursor-pointer shadow-xs hover:scale-105">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+            </button>
+        </div>
     </div>
 
-    <!-- NESTED 2-COLUMN BENTO METRIC CARDS (16px Radius) -->
-    <div class="grid grid-cols-2 gap-3 relative z-10">
+    <!-- 2. NESTED 2-COLUMN METRIC BENTO CARDS (16px/20px Radius - Matching Reference Grid) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
         
         <!-- Bento 1: Arus Listrik (Ampere) -->
-        <div class="bg-[#EEEEEE]/80 backdrop-blur-md rounded-[16px] p-4 border border-[#8E1616]/15 flex flex-col justify-between shadow-2xs">
+        <div class="bg-[#EEEEEE]/80 backdrop-blur-md rounded-[20px] p-5 border border-[#8E1616]/15 flex flex-col justify-between shadow-2xs">
             <div class="flex items-center justify-between">
-                <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616]">Beban Arus</span>
-                <span class="w-6 h-6 rounded-full bg-[#D84040]/10 text-[#D84040] text-xs font-black flex items-center justify-center">⚡</span>
+                <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616]">BEBAN ARUS REAL-TIME</span>
+                <span class="w-7 h-7 rounded-full bg-[#D84040]/10 text-[#D84040] text-xs font-black flex items-center justify-center">⚡</span>
             </div>
-            <div class="my-1.5">
-                <span id="ac{{ $id }}-current" class="text-2xl font-black text-[#1D1616] font-mono tracking-tight">0.0000</span>
-                <span class="text-xs font-black text-[#8E1616] font-sans">A</span>
+            <div class="my-2 flex items-baseline space-x-1.5">
+                <span id="ac{{ $id }}-current" class="text-3xl font-black text-[#1D1616] font-mono tracking-tight">0.0000</span>
+                <span class="text-xs font-black text-[#8E1616] font-sans">Ampere</span>
             </div>
-            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
-                Log: <span id="ac{{ $id }}-time" class="font-mono">Live</span>
-            </span>
+            <div class="flex items-center justify-between text-[10px] text-slate-500 font-medium pt-1 border-t border-[#8E1616]/10">
+                <span>Sensor ACS712</span>
+                <span class="font-mono font-bold text-[#1D1616]" id="ac{{ $id }}-time">Live Telemetry</span>
+            </div>
         </div>
 
-        <!-- Bento 2: Estimasi Daya (Watt) & Slot Jadwal -->
-        <div class="bg-[#EEEEEE]/80 backdrop-blur-md rounded-[16px] p-4 border border-[#8E1616]/15 flex flex-col justify-between shadow-2xs">
+        <!-- Bento 2: Status Operasional & Slot Rotasi -->
+        <div class="bg-[#EEEEEE]/80 backdrop-blur-md rounded-[20px] p-5 border border-[#8E1616]/15 flex flex-col justify-between shadow-2xs">
             <div class="flex items-center justify-between">
-                <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616]">Status Operasi</span>
-                <span class="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-700 text-xs font-black flex items-center justify-center">⏱️</span>
+                <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616]">SIKLUS ROTASI SERVER</span>
+                <span class="w-7 h-7 rounded-full bg-emerald-500/10 text-emerald-700 text-xs font-black flex items-center justify-center">⏱️</span>
             </div>
-            <div class="my-1.5">
-                <span id="ac{{ $id }}-badge-label" class="text-sm font-black text-[#1D1616] uppercase tracking-wide block truncate">
+            <div class="my-2">
+                <span id="ac{{ $id }}-badge-label" class="text-base font-black text-[#1D1616] uppercase tracking-wide block truncate">
                     Standby OFF
                 </span>
-                <span class="text-[10px] text-slate-500 font-semibold block truncate">
-                    {{ $id === 1 ? 'Shift Siang (06:00 - 18:00)' : 'Shift Malam (18:00 - 06:00)' }}
+                <span class="text-xs text-slate-600 font-bold block truncate mt-0.5">
+                    {{ $shift }}
                 </span>
             </div>
-            <span class="text-[9px] font-bold text-emerald-700 uppercase tracking-wider">
-                ● Hardware Ready
-            </span>
+            <div class="flex items-center justify-between text-[10px] text-emerald-700 font-extrabold pt-1 border-t border-[#8E1616]/10">
+                <span>Hardware Relay</span>
+                <span>● Terkoneksi ESP32</span>
+            </div>
         </div>
 
     </div>
 
-    <!-- HIGH-IMPACT SAKLAR ON/OFF TOGGLE (DIRECTLY UNDER INFO CARDS) -->
-    <div class="bg-[#EEEEEE] rounded-[24px] p-4 border border-[#8E1616]/20 flex items-center justify-between relative z-10">
-        <div>
-            <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Saklar Relay AC {{ $id }}</span>
-            <span id="ac{{ $id }}-switch-text" class="text-sm font-black uppercase tracking-wider text-[#1D1616]">
-                OFF (MATI)
+    <!-- 3. INFO STRIP (Matching the preparation/info box at the bottom of reference card) -->
+    <div class="bg-[#EEEEEE]/60 rounded-[20px] p-4 border border-[#8E1616]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-600 relative z-10">
+        <div class="flex items-center space-x-2.5">
+            <span class="text-base">🛡️</span>
+            <span class="font-semibold">
+                Sistem rotasi aktif otomatis via <strong>RTC DS3231</strong>. Beban arus dipantau setiap 30 detik.
             </span>
+        </div>
+        <span class="text-[10px] font-black uppercase tracking-wider text-[#8E1616] bg-white px-3 py-1 rounded-full border border-[#8E1616]/20 shrink-0 shadow-2xs">
+            Beban Maks: 2.5A
+        </span>
+    </div>
+
+    <!-- 4. HIGH-IMPACT INTERACTIVE SAKLAR ON/OFF (DIRECTLY UNDER INFO BOX) -->
+    <div class="bg-[#EEEEEE] rounded-[24px] p-4 sm:p-5 border border-[#8E1616]/20 flex items-center justify-between relative z-10">
+        <div class="space-y-0.5">
+            <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Kontrol Manual Langsung</span>
+            <div class="flex items-center space-x-2">
+                <span id="ac{{ $id }}-switch-text" class="text-base font-black uppercase tracking-wider text-[#1D1616]">
+                    OFF (MATI)
+                </span>
+                <span class="text-xs text-slate-500 font-semibold hidden sm:inline">• Klik saklar untuk override</span>
+            </div>
         </div>
 
         <!-- Interactive Switch Slider (Checks to #D84040 Coral Red) -->
         <label class="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" id="ac{{ $id }}-switch" onchange="sendAcControlViaSwitch({{ $id }}, this)" class="sr-only peer">
-            <div class="w-16 h-9 bg-slate-300 rounded-full peer peer-focus:ring-2 peer-focus:ring-[#D84040]/30 transition-all peer-checked:bg-[#D84040] after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:rounded-full after:h-7 after:w-7 after:transition-all after:shadow-md peer-checked:after:translate-x-7"></div>
+            <div class="w-20 h-11 bg-slate-300 rounded-full peer peer-focus:ring-2 peer-focus:ring-[#D84040]/30 transition-all peer-checked:bg-[#D84040] after:content-[''] after:absolute after:top-[5px] after:left-[5px] after:bg-white after:rounded-full after:h-8 after:w-8 after:transition-all after:shadow-md peer-checked:after:translate-x-9"></div>
         </label>
     </div>
 
