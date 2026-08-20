@@ -255,11 +255,11 @@
             <div class="flex justify-between items-center border-b border-[#b7c6c2]/20 pb-4">
                 <div class="flex items-center space-x-3">
                     <div class="w-12 h-12 rounded-full bg-[#ca0013] text-white flex items-center justify-center font-black text-xl shadow-md">
-                        ⚡
+                        💡
                     </div>
                     <div>
-                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#b7c6c2]">Aksi Pintas Cepat</span>
-                        <h3 class="text-xl font-black text-[#171e19]">Emergency Quick Action</h3>
+                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#b7c6c2]">Kontrol Terintegrasi</span>
+                        <h3 class="text-xl font-black text-[#171e19]">Aksi Pintar Sistem</h3>
                     </div>
                 </div>
                 <button @click="modalFabOpen = false" class="text-slate-400 hover:text-slate-700 font-bold text-2xl cursor-pointer">&times;</button>
