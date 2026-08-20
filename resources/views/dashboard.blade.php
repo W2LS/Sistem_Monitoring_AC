@@ -37,9 +37,6 @@
 
     <!-- Alpine.js CDN -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
         [x-cloak] { display: none !important; }
@@ -183,7 +180,7 @@
         <!-- ================= MAIN DYNAMIC CONTENT TABS ================= -->
         <main class="space-y-8">
             
-            <!-- TAB 1: HOME (DASHBOARD KARTU AC1 & AC2 + SAKLAR ON/OFF + GRAFIK) -->
+            <!-- TAB 1: HOME (DASHBOARD KARTU AC1 & AC2 + SAKLAR ON/OFF LANGSUNG) -->
             <div x-show="activeTab === 'home'" x-cloak class="space-y-7">
                 
                 <!-- KPI SUMMARY HERO WIDGET -->
@@ -224,11 +221,6 @@
                         'color' => 'sage', 
                         'schedules' => $schedules
                     ])
-                </div>
-
-                <!-- REAL-TIME CURRENT CHART BENTO CARD -->
-                <div>
-                    @include('partials.grafik-arus')
                 </div>
 
             </div>
@@ -296,7 +288,7 @@
                 </button>
             </div>
 
-            <button @click="modalFabOpen = false" class="w-full py-3 text-xs font-black uppercase tracking-wider text-slate-400 hover:text-[#171e19] text-center">
+            <button @click="modalFabOpen = false" class="w-full py-3 text-xs font-black uppercase tracking-wider text-slate-400 hover:text-[#171e19] text-center cursor-pointer">
                 Tutup Menu
             </button>
         </div>
@@ -359,9 +351,6 @@
                 checkboxEl.checked = !checkboxEl.checked;
             });
         }
-
-        // Global Chart Instance Reference
-        let mainChartInstance = null;
 
         // --- Real-time AJAX Polling Engine (Every 30 Seconds / Instant Trigger) ---
         function pollTelemetryData() {
@@ -442,79 +431,12 @@
                             controlLocks[2].targetState = null;
                         }
                     }
-
-                    // 5. Update Chart Telemetry
-                    if (mainChartInstance && data.chart && data.chart.labels && data.chart.labels.length > 0) {
-                        mainChartInstance.data.labels = data.chart.labels;
-                        mainChartInstance.data.datasets[0].data = data.chart.ac1;
-                        mainChartInstance.data.datasets[1].data = data.chart.ac2;
-                        mainChartInstance.update('none');
-                    }
                 })
                 .catch(err => console.error("Telemetry polling error:", err));
         }
 
-        // --- Real-time Chart.js Setup with Sophisticated Neo-Card Palette ---
         document.addEventListener("DOMContentLoaded", function() {
-            const ctx = document.getElementById('currentChart');
-            if (ctx) {
-                mainChartInstance = new Chart(ctx.getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: ['--:--:--', '--:--:--', '--:--:--', '--:--:--', '--:--:--'],
-                        datasets: [
-                            {
-                                label: 'PANASONIC 1 (AC 1)',
-                                borderColor: '#ca0013', // Vibrant Red
-                                backgroundColor: 'rgba(202, 0, 19, 0.08)',
-                                borderWidth: 3.5,
-                                pointRadius: 4,
-                                pointBackgroundColor: '#ca0013',
-                                tension: 0.4,
-                                fill: true,
-                                data: [0, 0, 0, 0, 0]
-                            },
-                            {
-                                label: 'PANASONIC 2 (AC 2)',
-                                borderColor: '#171e19', // Charcoal Dark
-                                backgroundColor: 'rgba(23, 30, 25, 0.05)',
-                                borderWidth: 3,
-                                borderDash: [5, 5],
-                                pointRadius: 3,
-                                pointBackgroundColor: '#171e19',
-                                tension: 0.4,
-                                fill: true,
-                                data: [0, 0, 0, 0, 0]
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                labels: { 
-                                    color: '#171e19', 
-                                    font: { family: 'Nunito, sans-serif', weight: 800, size: 12 } 
-                                }
-                            }
-                        },
-                        scales: {
-                            x: { 
-                                grid: { color: 'rgba(183, 198, 194, 0.3)' }, 
-                                ticks: { color: '#171e19', font: { family: '"JetBrains Mono", monospace', size: 10, weight: 'bold' } } 
-                            },
-                            y: { 
-                                grid: { color: 'rgba(183, 198, 194, 0.3)' }, 
-                                ticks: { color: '#171e19', font: { family: '"JetBrains Mono", monospace', size: 10 } }, 
-                                title: { display: true, text: 'Arus Listrik (Ampere)', color: '#171e19', font: { family: 'Nunito, sans-serif', weight: 900, size: 12 } } 
-                            }
-                        }
-                    }
-                });
-            }
-
-            // Start first immediate poll and recurring every 30 seconds
+            // Start immediate poll and recurring every 30 seconds
             pollTelemetryData();
             setInterval(pollTelemetryData, 30000);
         });
