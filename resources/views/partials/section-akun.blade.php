@@ -38,27 +38,37 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-2">
                 <div class="bg-white p-4 rounded-2xl border border-[#8E1616]/15">
                     <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Nama Pengguna</span>
-                    <span class="font-black text-[#1D1616] text-sm block mt-0.5">Dicky Akbar Syahputra</span>
+                    <span class="font-black text-[#1D1616] text-sm block mt-0.5">{{ session('user_name', 'Dicky Akbar Syahputra') }}</span>
                 </div>
                 <div class="bg-white p-4 rounded-2xl border border-[#8E1616]/15">
-                    <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">ID / NIP</span>
-                    <span class="font-mono font-black text-[#D84040] text-sm block mt-0.5">PINDAD-IOT-2026</span>
+                    <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">ID / NIP Operator</span>
+                    <span class="font-mono font-black text-[#D84040] text-sm block mt-0.5">{{ session('user_nip', 'PINDAD-IOT-2026') }}</span>
                 </div>
                 <div class="bg-white p-4 rounded-2xl border border-[#8E1616]/15">
                     <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Divisi</span>
-                    <span class="font-bold text-[#1D1616] block mt-0.5">Divisi Sistem Informasi & Fasilitas Gedung</span>
+                    <span class="font-bold text-[#1D1616] block mt-0.5">{{ session('user_division', 'Divisi Sistem Informasi & Fasilitas Gedung') }}</span>
                 </div>
                 <div class="bg-white p-4 rounded-2xl border border-[#8E1616]/15">
                     <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Posisi / Peran</span>
-                    <span class="font-bold text-[#1D1616] block mt-0.5">Operator Monitoring & Kontrol AC</span>
+                    <span class="font-bold text-[#1D1616] block mt-0.5">{{ session('user_role', 'Operator Monitoring & Kontrol AC') }}</span>
                 </div>
             </div>
-            <div class="bg-white p-4 rounded-2xl border border-[#8E1616]/15 text-xs flex justify-between items-center">
+
+            <div class="bg-white p-4 rounded-2xl border border-[#8E1616]/15 text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
-                    <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Kontak Email</span>
-                    <span class="font-black text-[#1D1616] font-mono">dicky.akbar@pindad.com</span>
+                    <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Waktu Sesi Login</span>
+                    <span class="font-black text-[#1D1616] font-mono">{{ session('login_time', now()->format('d M Y, H:i:s WIB')) }}</span>
                 </div>
-                <span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold text-[10px]">Active Session</span>
+
+                <!-- FORM LOGOUT -->
+                <form action="{{ route('logout') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin keluar dari sesi operator?')">
+                    @csrf
+                    <button type="submit" 
+                            class="px-5 py-2.5 rounded-2xl bg-[#D84040] hover:bg-[#8E1616] text-white text-xs font-black uppercase tracking-wider shadow-md shadow-[#D84040]/30 transition cursor-pointer flex items-center space-x-2">
+                        <span>🚪</span>
+                        <span>Keluar / Logout</span>
+                    </button>
+                </form>
             </div>
         </div>
     </div>
