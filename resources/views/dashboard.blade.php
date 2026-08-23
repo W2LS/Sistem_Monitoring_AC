@@ -222,8 +222,8 @@
                     </div>
                 </div>
 
-                <!-- DUAL HERO AC CARDS (2 COLUMNS ON ALL SCREENS: MOBILE, IPAD & DESKTOP MATCHING REFERENCE) -->
-                <div class="grid grid-cols-2 gap-3 sm:gap-6 lg:gap-8">
+                <!-- DUAL HERO AC CARDS (1 COLUMN ON MOBILE & IPAD, 2 COLUMNS ON DESKTOP) -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                     @include('partials.kartu-ac', [
                         'id' => 1, 
                         'pin' => 18, 
