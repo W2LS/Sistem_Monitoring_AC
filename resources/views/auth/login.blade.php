@@ -140,28 +140,20 @@
                         @csrf
 
                         <div class="mb-3">
-                            <label for="nip" class="form-label fs-7 font-semibold text-secondary mb-1">NIP / Username</label>
-                            <input type="text" class="form-control py-2 fs-7 rounded-3" name="nip" id="nip" value="{{ old('nip', 'PINDAD-IOT-2026') }}" placeholder="PINDAD-IOT-2026" required>
+                            <label for="nip" class="form-label fs-7 font-semibold text-secondary mb-1">NIP / Username Operator</label>
+                            <input type="text" class="form-control py-2 fs-7 rounded-3" name="nip" id="nip" value="{{ old('nip') }}" placeholder="Masukkan NIP Operator" required autofocus>
                         </div>
 
                         <div class="mb-3">
-                            <label for="password" class="form-label fs-7 font-semibold text-secondary mb-1">Password</label>
-                            <input type="password" class="form-control py-2 fs-7 rounded-3" name="password" id="password" value="pindad123" placeholder="Password" required>
+                            <label for="password" class="form-label fs-7 font-semibold text-secondary mb-1">Kata Sandi (Password)</label>
+                            <input type="password" class="form-control py-2 fs-7 rounded-3" name="password" id="password" value="" placeholder="Masukkan Kata Sandi" required>
                         </div>
 
-                        <div class="form-check mb-3">
+                        <div class="form-check mb-4">
                             <input class="form-check-input" type="checkbox" value="1" name="remember" id="remember" checked>
                             <label class="form-check-label text-secondary fs-7" for="remember">
                                 Ingat Sesi Operator
                             </label>
-                        </div>
-
-                        <!-- DEFAULT CREDENTIAL HELPER -->
-                        <div class="bg-light p-2 rounded-3 border text-xs mb-3">
-                            <span class="fw-bold text-danger d-block">💡 Kredensial Default Operator:</span>
-                            <div class="font-monospace text-dark fw-bold">
-                                NIP: <span class="text-danger">PINDAD-IOT-2026</span> | Pass: <span class="text-danger">pindad123</span>
-                            </div>
                         </div>
 
                         <div class="d-grid mb-2">
