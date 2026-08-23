@@ -83,9 +83,9 @@
             </div>
 
             <!-- Right Profile Avatar with Red Notification Badge -->
-            <div @click="activeTab = 'akun'" class="relative cursor-pointer group shrink-0" title="Buka Profil Akun">
+            <div @click="activeTab = 'akun'" class="relative cursor-pointer group shrink-0" title="Buka Informasi Sistem">
                 <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-[#1D1616] via-[#8E1616] to-[#D84040] text-white flex items-center justify-center font-black text-xl border-2 border-white shadow-md transition-transform group-hover:scale-105">
-                    D
+                    ⚙️
                 </div>
                 <!-- 16px Coral Red Notification Badge -->
                 <span class="absolute -bottom-0.5 -right-0.5 w-4.5 h-4.5 bg-[#D84040] border-2 border-[#EEEEEE] rounded-full flex items-center justify-center">
@@ -155,11 +155,11 @@
                 </div>
                 <div class="text-left truncate pr-2" x-show="activeTab === 'book'">
                     <span class="text-[9px] font-bold uppercase tracking-widest text-[#EEEEEE]/80 block">MODUL 3</span>
-                    <span class="text-xs font-black text-white leading-none block">Log AC</span>
+                    <span class="text-xs font-black text-[#EEEEEE] leading-none block">Log AC</span>
                 </div>
             </button>
 
-            <!-- Category 4: User (Akun Admin) -->
+            <!-- Category 4: Info Sistem -->
             <button 
                 @click="activeTab = 'akun'"
                 type="button"
@@ -168,11 +168,11 @@
                     : 'w-14 bg-white text-[#1D1616]/60 border border-[#8E1616]/20 hover:border-[#8E1616]'"
                 class="h-14 rounded-[22px] p-2 flex items-center space-x-3 shrink-0 transition-all duration-300 cursor-pointer overflow-hidden">
                 <div class="w-10 h-10 rounded-full bg-[#D84040] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-xs">
-                    👤
+                    ⚙️
                 </div>
                 <div class="text-left truncate pr-2" x-show="activeTab === 'akun'">
                     <span class="text-[9px] font-bold uppercase tracking-widest text-[#EEEEEE]/80 block">MODUL 4</span>
-                    <span class="text-xs font-black text-white leading-none block">Akun Admin</span>
+                    <span class="text-xs font-black text-white leading-none block">Info Sistem</span>
                 </div>
             </button>
 
