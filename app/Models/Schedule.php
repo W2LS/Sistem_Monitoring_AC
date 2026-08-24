@@ -2,14 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\Model;
 
 class Schedule extends Model
 {
+    protected $connection = 'mongodb';
+    protected $collection = 'schedules';
+
     protected $fillable = [
         'label',
         'start_time',
         'end_time',
         'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 }
