@@ -60,24 +60,20 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #1D1616;
         }
-        /* Animasi Detak Arus Santai & Dinamis (Gentle Living Heartbeat) */
-        @keyframes liveCurrentBreathing {
+        /* Animasi Kedap-Kedip Memudar Santai (Smooth Opacity Fade, Warna Asli & Tanpa Berubah Ukuran) */
+        @keyframes smoothFadePulse {
             0%, 100% {
                 opacity: 1;
-                transform: scale(1);
-                filter: drop-shadow(0 0 0px rgba(216, 64, 64, 0));
             }
             50% {
-                opacity: 0.78;
-                transform: scale(1.025);
-                filter: drop-shadow(0 2px 8px rgba(216, 64, 64, 0.28));
+                opacity: 0.35;
             }
         }
         .live-current-active {
-            animation: liveCurrentBreathing 2.4s ease-in-out infinite;
+            animation: smoothFadePulse 2.2s ease-in-out infinite;
             display: inline-block;
-            color: #D84040 !important;
-            will-change: transform, opacity;
+            color: #1D1616 !important;
+            will-change: opacity;
         }
     </style>
 </head>
