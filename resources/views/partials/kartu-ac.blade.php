@@ -69,7 +69,7 @@
                 <span class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#D84040]/10 text-[#D84040] text-xs font-black flex items-center justify-center shrink-0">⚡</span>
             </div>
             <div class="my-2 flex items-baseline space-x-1.5 flex-wrap">
-                <span id="ac{{ $id }}-current" class="text-2xl sm:text-3xl font-black text-[#1D1616] font-mono tracking-tight">0.0000</span>
+                <span id="ac{{ $id }}-current" class="text-2xl sm:text-3xl font-black text-[#1D1616] font-mono tracking-tight transition-all duration-300">0.0000</span>
                 <span class="text-xs font-black text-[#8E1616] font-sans shrink-0">Ampere</span>
             </div>
             <div class="flex items-center justify-between text-[9px] sm:text-[10px] text-slate-500 font-medium pt-1.5 border-t border-[#8E1616]/10">

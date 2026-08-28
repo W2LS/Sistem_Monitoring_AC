@@ -60,6 +60,25 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #1D1616;
         }
+        /* Animasi Detak Arus Santai & Dinamis (Gentle Living Heartbeat) */
+        @keyframes liveCurrentBreathing {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+                filter: drop-shadow(0 0 0px rgba(216, 64, 64, 0));
+            }
+            50% {
+                opacity: 0.78;
+                transform: scale(1.025);
+                filter: drop-shadow(0 2px 8px rgba(216, 64, 64, 0.28));
+            }
+        }
+        .live-current-active {
+            animation: liveCurrentBreathing 2.4s ease-in-out infinite;
+            display: inline-block;
+            color: #D84040 !important;
+            will-change: transform, opacity;
+        }
     </style>
 </head>
 <body class="bg-[#EEEEEE] text-[#1D1616] min-h-screen antialiased flex flex-col justify-between selection:bg-[#D84040] selection:text-white">
@@ -385,7 +404,14 @@
                     // 1. Update KPI Hero Widget
                     const kpiCurrent = document.getElementById('kpi-total-current');
                     const kpiWatt = document.getElementById('kpi-total-watt');
-                    if (kpiCurrent) kpiCurrent.innerText = `${data.total_current.toFixed(2)} A`;
+                    if (kpiCurrent) {
+                        kpiCurrent.innerText = `${data.total_current.toFixed(2)} A`;
+                        if (data.total_current > 0.01) {
+                            kpiCurrent.classList.add('live-current-active');
+                        } else {
+                            kpiCurrent.classList.remove('live-current-active');
+                        }
+                    }
                     if (kpiWatt) kpiWatt.innerText = `${data.estimated_watt} Watt Estimasi Beban Terpakai`;
 
                     // 2. Update ESP32 Status Badge
@@ -394,10 +420,10 @@
                     if (esp32Dot && esp32Text) {
                         if (data.device_online) {
                             esp32Dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
-                            esp32Text.innerText = "ESP32 Online";
+                            esp32Text.innerText = "Raspberry Pi 3B+ Online";
                         } else {
                             esp32Dot.className = "w-2.5 h-2.5 rounded-full bg-amber-400";
-                            esp32Text.innerText = "ESP32 Standby";
+                            esp32Text.innerText = "Raspberry Pi 3B+ Standby";
                         }
                     }
 
@@ -409,7 +435,14 @@
                         const ac1Switch = document.getElementById('ac1-switch');
                         const ac1SwitchText = document.getElementById('ac1-switch-text');
 
-                        if (ac1Cur) ac1Cur.innerText = data.latest_ac1.current_ampere.toFixed(4);
+                        if (ac1Cur) {
+                            ac1Cur.innerText = data.latest_ac1.current_ampere.toFixed(4);
+                            if (data.latest_ac1.current_ampere > 0.01) {
+                                ac1Cur.classList.add('live-current-active');
+                            } else {
+                                ac1Cur.classList.remove('live-current-active');
+                            }
+                        }
                         if (ac1Time) ac1Time.innerText = data.latest_ac1.recorded_at;
                         if (ac1Badge) {
                             ac1Badge.innerText = data.latest_ac1.is_on ? "Aktif ON" : "Standby OFF";
@@ -435,7 +468,14 @@
                         const ac2Switch = document.getElementById('ac2-switch');
                         const ac2SwitchText = document.getElementById('ac2-switch-text');
 
-                        if (ac2Cur) ac2Cur.innerText = data.latest_ac2.current_ampere.toFixed(4);
+                        if (ac2Cur) {
+                            ac2Cur.innerText = data.latest_ac2.current_ampere.toFixed(4);
+                            if (data.latest_ac2.current_ampere > 0.01) {
+                                ac2Cur.classList.add('live-current-active');
+                            } else {
+                                ac2Cur.classList.remove('live-current-active');
+                            }
+                        }
                         if (ac2Time) ac2Time.innerText = data.latest_ac2.recorded_at;
                         if (ac2Badge) {
                             ac2Badge.innerText = data.latest_ac2.is_on ? "Aktif ON" : "Standby OFF";
