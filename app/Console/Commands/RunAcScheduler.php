@@ -40,7 +40,18 @@ class RunAcScheduler extends Command
                         $isInsideWindow = ($nowTime >= $start || $nowTime <= $end);
                     }
 
-                    $this->line("[{$nowTime}] Rule '{$schedule->label}' ({$start} - {$end}): " . ($isInsideWindow ? 'ACTIVE_WINDOW (ON)' : 'OUTSIDE_WINDOW (OFF)'));
+                    $command = $isInsideWindow ? 'ON' : 'OFF';
+                    $targetAc = $schedule->target_ac ?? 'all';
+
+                    $this->line("[{$nowTime}] Rule '{$schedule->label}' (Target: {$targetAc}) ({$start} - {$end}): " . ($isInsideWindow ? 'ACTIVE_WINDOW (ON)' : 'OUTSIDE_WINDOW (OFF)'));
+
+                    // Send MQTT execution
+                    if ($targetAc === '1' || $targetAc === 'all') {
+                        $mqttService->publish('pindad/ac/schedule', json_encode(['relay' => 1, 'command' => $command]));
+                    }
+                    if ($targetAc === '2' || $targetAc === 'all') {
+                        $mqttService->publish('pindad/ac/schedule', json_encode(['relay' => 2, 'command' => $command]));
+                    }
                 }
             } catch (\Exception $e) {
                 $this->error("Scheduler evaluation error: " . $e->getMessage());

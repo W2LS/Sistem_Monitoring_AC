@@ -24,18 +24,20 @@
     <!-- 2 VISUAL ROTATION PRESETS HERO (40px Radius) -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         
-        <!-- Shift Siang Card -->
+        <!-- Shift Siang Card (AC 1) -->
         <div class="bg-white rounded-[40px] p-6 shadow-[0_20px_50px_-12px_rgba(29,22,22,0.08)] border border-[#8E1616]/20 space-y-4 relative overflow-hidden">
             <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#D84040]/10 rounded-full blur-xl pointer-events-none"></div>
             
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
                     <div class="w-12 h-12 rounded-[20px] bg-[#EEEEEE] text-[#D84040] font-black text-xl flex items-center justify-center">
-                        ☀️
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
                     </div>
                     <div>
-                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616]">Siklus Utama</span>
-                        <h3 class="text-lg font-black text-[#1D1616]">Shift Siang (AC 1)</h3>
+                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616]">Jadwal Aktif AC 1</span>
+                        <h3 class="text-lg font-black text-[#1D1616]">Panasonic 1 (Lampu Bawah)</h3>
                     </div>
                 </div>
                 <span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-[11px] font-black uppercase">
@@ -45,31 +47,33 @@
 
             <div class="bg-[#EEEEEE] rounded-[24px] p-4 flex items-center justify-between border border-[#8E1616]/15">
                 <div>
-                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Jam Operasional</span>
-                    <span class="text-xl font-black text-[#1D1616] font-mono">06:00 - 18:00 WIB</span>
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Aturan Jadwal Aktif</span>
+                    <span class="text-base sm:text-lg font-black text-[#1D1616] font-mono">{{ $shiftAc1 ?? 'Shift Siang (06:00 - 18:00 WIB)' }}</span>
                 </div>
-                <span class="text-xs font-bold text-[#8E1616] bg-white px-3 py-1 rounded-[12px] shadow-2xs">
-                    Durasi: 12 Jam
+                <span class="text-xs font-bold text-[#8E1616] bg-white px-3 py-1 rounded-[12px] shadow-2xs shrink-0">
+                    AC 1
                 </span>
             </div>
             
             <p class="text-[11px] text-slate-500 font-medium">
-                Target: <strong>Panasonic 1 (Relay Pin 18)</strong> bertugas mendinginkan server di siang hari.
+                Target: <strong>Panasonic 1 (GPIO 17)</strong> mendinginkan server sesuai jadwal aktif.
             </p>
         </div>
 
-        <!-- Shift Malam Card -->
+        <!-- Shift Malam Card (AC 2) -->
         <div class="bg-white rounded-[40px] p-6 shadow-[0_20px_50px_-12px_rgba(29,22,22,0.08)] border border-[#8E1616]/20 space-y-4 relative overflow-hidden">
             <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#8E1616]/10 rounded-full blur-xl pointer-events-none"></div>
             
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
                     <div class="w-12 h-12 rounded-[20px] bg-[#EEEEEE] text-[#8E1616] font-black text-xl flex items-center justify-center">
-                        🌙
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
                     </div>
                     <div>
-                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616]">Siklus Bergantian</span>
-                        <h3 class="text-lg font-black text-[#1D1616]">Shift Malam (AC 2)</h3>
+                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616]">Jadwal Aktif AC 2</span>
+                        <h3 class="text-lg font-black text-[#1D1616]">Panasonic 2 (Lampu Atas)</h3>
                     </div>
                 </div>
                 <span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-[11px] font-black uppercase">
@@ -79,16 +83,16 @@
 
             <div class="bg-[#EEEEEE] rounded-[24px] p-4 flex items-center justify-between border border-[#8E1616]/15">
                 <div>
-                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Jam Operasional</span>
-                    <span class="text-xl font-black text-[#1D1616] font-mono">18:00 - 06:00 WIB</span>
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Aturan Jadwal Aktif</span>
+                    <span class="text-base sm:text-lg font-black text-[#1D1616] font-mono">{{ $shiftAc2 ?? 'Shift Malam (18:00 - 06:00 WIB)' }}</span>
                 </div>
-                <span class="text-xs font-bold text-[#8E1616] bg-white px-3 py-1 rounded-[12px] shadow-2xs">
-                    Durasi: 12 Jam
+                <span class="text-xs font-bold text-[#8E1616] bg-white px-3 py-1 rounded-[12px] shadow-2xs shrink-0">
+                    AC 2
                 </span>
             </div>
             
             <p class="text-[11px] text-slate-500 font-medium">
-                Target: <strong>Panasonic 2 (Relay Pin 19)</strong> bertugas mendinginkan server di malam hari.
+                Target: <strong>Panasonic 2 (GPIO 27)</strong> mendinginkan server sesuai jadwal aktif.
             </p>
         </div>
 
@@ -109,6 +113,7 @@
                     <tr class="bg-[#EEEEEE] text-slate-600 text-[10px] font-black uppercase tracking-wider rounded-[16px]">
                         <th class="py-3.5 px-4 rounded-l-[16px]">No.</th>
                         <th class="py-3.5 px-4">Nama Label Jadwal</th>
+                        <th class="py-3.5 px-4">Target AC</th>
                         <th class="py-3.5 px-4">Status</th>
                         <th class="py-3.5 px-4">Jam Mulai (ON)</th>
                         <th class="py-3.5 px-4">Jam Selesai (OFF)</th>
@@ -121,6 +126,21 @@
                             <td class="py-4 px-4 font-mono opacity-50">{{ $index + 1 }}</td>
                             <td class="py-4 px-4 font-black text-sm">
                                 {{ $schedule->label }}
+                            </td>
+                            <td class="py-4 px-4">
+                                @if(($schedule->target_ac ?? 'all') === '1')
+                                    <span class="inline-flex items-center px-2.5 py-1 font-bold bg-rose-50 text-[#D84040] border border-rose-200 rounded-full text-[10px]">
+                                        🔵 Panasonic 1
+                                    </span>
+                                @elseif(($schedule->target_ac ?? 'all') === '2')
+                                    <span class="inline-flex items-center px-2.5 py-1 font-bold bg-rose-50 text-[#8E1616] border border-rose-200 rounded-full text-[10px]">
+                                        🔴 Panasonic 2
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-1 font-bold bg-slate-100 text-[#1D1616] rounded-full text-[10px]">
+                                        ⚡ Semua AC
+                                    </span>
+                                @endif
                             </td>
                             <td class="py-4 px-4">
                                 @if($schedule->is_active)
@@ -161,7 +181,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center py-8 text-slate-400 italic">
+                            <td colspan="7" class="text-center py-8 text-slate-400 italic">
                                 Belum ada aturan jadwal. Klik tombol "+ Tambah Aturan Jadwal" di atas.
                             </td>
                         </tr>
@@ -195,6 +215,16 @@
                     <label for="modal_label" class="block text-[11px] font-extrabold uppercase tracking-wider mb-1.5 text-[#1D1616]">Nama / Label Jadwal</label>
                     <input type="text" id="modal_label" name="label" required placeholder="Contoh: Shift Pagi (06:00 - 18:00)" 
                            class="w-full bg-[#EEEEEE] border border-[#8E1616]/30 rounded-[20px] text-[#1D1616] text-sm px-4 py-3 placeholder-slate-400 focus:outline-none focus:border-[#D84040] font-bold">
+                </div>
+
+                <div>
+                    <label for="modal_target_ac" class="block text-[11px] font-extrabold uppercase tracking-wider mb-1.5 text-[#1D1616]">Target Unit Pendingin</label>
+                    <select id="modal_target_ac" name="target_ac" required
+                            class="w-full bg-[#EEEEEE] border border-[#8E1616]/30 rounded-[20px] text-[#1D1616] text-sm px-4 py-3 font-bold focus:outline-none focus:border-[#D84040]">
+                        <option value="1">🔵 Panasonic 1 (AC 1 / Lampu Bawah)</option>
+                        <option value="2">🔴 Panasonic 2 (AC 2 / Lampu Atas)</option>
+                        <option value="all">⚡ Keduanya (Semua Unit AC)</option>
+                    </select>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">

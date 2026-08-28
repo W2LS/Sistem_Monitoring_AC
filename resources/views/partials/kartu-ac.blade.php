@@ -88,13 +88,13 @@
                 <span id="ac{{ $id }}-badge-label" class="text-sm sm:text-base font-black text-[#1D1616] uppercase tracking-wide block truncate">
                     Standby OFF
                 </span>
-                <span class="text-xs text-slate-600 font-bold block truncate mt-0.5">
+                <span id="ac{{ $id }}-shift-text" class="text-xs text-slate-600 font-bold block truncate mt-0.5">
                     {{ $shift }}
                 </span>
             </div>
             <div class="flex items-center justify-between text-[9px] sm:text-[10px] text-emerald-700 font-extrabold pt-1.5 border-t border-[#8E1616]/10">
                 <span class="truncate">Relay Hardware</span>
-                <span class="truncate">● ESP32</span>
+                <span class="truncate">● Raspberry Pi 3B+</span>
             </div>
         </div>
 

@@ -250,19 +250,19 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                     @include('partials.kartu-ac', [
                         'id' => 1, 
-                        'pin' => 18, 
+                        'pin' => 17, 
                         'name' => 'PANASONIC 1', 
                         'location' => 'Lampu Panel Bawah', 
-                        'shift' => 'Shift Siang (06:00 - 18:00 WIB)', 
+                        'shift' => $shiftAc1, 
                         'color' => 'red', 
                         'schedules' => $schedules
                     ])
                     @include('partials.kartu-ac', [
                         'id' => 2, 
-                        'pin' => 19, 
+                        'pin' => 27, 
                         'name' => 'PANASONIC 2', 
                         'location' => 'Lampu Panel Atas', 
-                        'shift' => 'Shift Malam (18:00 - 06:00 WIB)', 
+                        'shift' => $shiftAc2, 
                         'color' => 'maroon', 
                         'schedules' => $schedules
                     ])
@@ -497,6 +497,10 @@
                         if (ac1Badge) {
                             ac1Badge.innerText = data.latest_ac1.is_on ? "Aktif ON" : "Standby OFF";
                         }
+                        const ac1Shift = document.getElementById('ac1-shift-text');
+                        if (ac1Shift && data.shift_ac1) {
+                            ac1Shift.innerText = data.shift_ac1;
+                        }
 
                         // Sync switch state if not actively locked
                         const isLocked1 = controlLocks[1].targetState !== null && (now - controlLocks[1].lastToggled < LOCK_TIMEOUT_MS);
@@ -529,6 +533,10 @@
                         if (ac2Time) ac2Time.innerText = data.latest_ac2.recorded_at;
                         if (ac2Badge) {
                             ac2Badge.innerText = data.latest_ac2.is_on ? "Aktif ON" : "Standby OFF";
+                        }
+                        const ac2Shift = document.getElementById('ac2-shift-text');
+                        if (ac2Shift && data.shift_ac2) {
+                            ac2Shift.innerText = data.shift_ac2;
                         }
 
                         // Sync switch state if not actively locked

@@ -18,6 +18,27 @@ class DashboardController extends Controller
     }
 
     /**
+     * Get active shift description for a specific AC unit.
+     */
+    private function getActiveShiftText(int $acNum): string
+    {
+        $activeSchedule = Schedule::where('is_active', true)
+            ->where(function($q) use ($acNum) {
+                $q->where('target_ac', (string) $acNum)
+                  ->orWhere('target_ac', 'all')
+                  ->orWhereNull('target_ac');
+            })
+            ->orderBy('start_time')
+            ->first();
+
+        if ($activeSchedule) {
+            return "{$activeSchedule->label} ({$activeSchedule->start_time} - {$activeSchedule->end_time} WIB)";
+        }
+
+        return $acNum === 1 ? "Shift Siang (06:00 - 18:00 WIB)" : "Shift Malam (18:00 - 06:00 WIB)";
+    }
+
+    /**
      * Display the dashboard page.
      */
     public function index()
@@ -33,8 +54,13 @@ class DashboardController extends Controller
 
         // Get all schedules
         $schedules = Schedule::orderBy('start_time')->get();
+        $shiftAc1 = $this->getActiveShiftText(1);
+        $shiftAc2 = $this->getActiveShiftText(2);
 
-        return view('dashboard', compact('latestAc1', 'latestAc2', 'recentLogsAll', 'recentLogsAc1', 'recentLogsAc2', 'schedules'));
+        return view('dashboard', compact(
+            'latestAc1', 'latestAc2', 'recentLogsAll', 'recentLogsAc1', 'recentLogsAc2', 
+            'schedules', 'shiftAc1', 'shiftAc2'
+        ));
     }
 
     /**
@@ -101,6 +127,8 @@ class DashboardController extends Controller
                 'recorded_at' => Carbon::parse($latestAc2->recorded_at)->format('H:i:s'),
                 'is_on' => str_contains($latestAc2->active_ac, 'ON'),
             ] : null,
+            'shift_ac1' => $this->getActiveShiftText(1),
+            'shift_ac2' => $this->getActiveShiftText(2),
             'total_current' => $totalCurrent,
             'estimated_watt' => $estimatedWatt,
             'device_online' => $isDeviceOnline,
@@ -133,7 +161,7 @@ class DashboardController extends Controller
 
         // Record the updated state immediately into the database
         AcLog::create([
-            'device_id' => 'ESP32_PINDAD_ROOM_1',
+            'device_id' => 'RPI3B_PINDAD_ROOM_1',
             'active_ac' => "AC_{$relay}_{$command}",
             'current_ampere' => ($command === 'ON' ? 2.1500 : 0.0000),
             'recorded_at' => Carbon::now(),
@@ -163,14 +191,19 @@ class DashboardController extends Controller
             'label' => 'required|string|max:100',
             'start_time' => 'required',
             'end_time' => 'required',
+            'target_ac' => 'nullable|string|in:1,2,all',
         ]);
 
         Schedule::create([
             'label' => $request->input('label'),
             'start_time' => $request->input('start_time'),
             'end_time' => $request->input('end_time'),
+            'target_ac' => $request->input('target_ac', 'all'),
             'is_active' => true
         ]);
+
+        return redirect()->back()->with('success', 'Jadwal baru berhasil disimpan!');
+    }
 
         return redirect()->back()->with('success', 'Jadwal baru berhasil disimpan!');
     }

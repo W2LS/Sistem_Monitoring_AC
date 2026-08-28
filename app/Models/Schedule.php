@@ -13,6 +13,7 @@ class Schedule extends Model
         'label',
         'start_time',
         'end_time',
+        'target_ac',
         'is_active',
     ];
 
