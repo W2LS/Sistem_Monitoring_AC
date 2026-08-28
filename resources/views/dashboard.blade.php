@@ -356,6 +356,31 @@
             if (switchText) {
                 switchText.innerText = checkboxEl.checked ? 'ON (AKTIF)' : 'OFF (MATI)';
             }
+
+            // INSTANT ZERO-DELAY OPTIMISTIC UPDATE
+            const targetCurElem = document.getElementById(`ac${relayNum}-current`);
+            const targetBadge = document.getElementById(`ac${relayNum}-badge-label`);
+            if (targetBadge) {
+                targetBadge.innerText = checkboxEl.checked ? 'Aktif ON' : 'Standby OFF';
+            }
+            if (targetCurElem) {
+                if (checkboxEl.checked) {
+                    targetCurElem.innerText = (relayNum === 1 ? '2.1500' : '2.0800');
+                    targetCurElem.classList.add('live-current-active');
+                } else {
+                    targetCurElem.innerText = '0.0000';
+                    targetCurElem.classList.remove('live-current-active');
+                }
+            }
+            
+            // Recalculate KPI total instantly
+            const cur1 = parseFloat(document.getElementById('ac1-current')?.innerText || 0);
+            const cur2 = parseFloat(document.getElementById('ac2-current')?.innerText || 0);
+            const total = cur1 + cur2;
+            const kpiCur = document.getElementById('kpi-total-current');
+            const kpiWatt = document.getElementById('kpi-total-watt');
+            if (kpiCur) kpiCur.innerText = `${total.toFixed(2)} A`;
+            if (kpiWatt) kpiWatt.innerText = `${Math.round(total * 220)} Watt Estimasi Beban Terpakai`;
             
             fetch("{{ route('ac.control') }}", {
                 method: "POST",
@@ -372,12 +397,13 @@
             .then(data => {
                 if(data.status === 'success') {
                     console.log(`MQTT Command for AC ${relayNum} sent successfully!`);
-                    // Immediate poll to refresh telemetry right after command execution
-                    setTimeout(pollTelemetryData, 1500);
+                    // Immediate fast poll to sync telemetry with MongoDB
+                    setTimeout(pollTelemetryData, 400);
                 } else {
                     alert('Gagal mengirim perintah: ' + data.message);
                     controlLocks[relayNum].targetState = null;
                     checkboxEl.checked = !checkboxEl.checked;
+                    pollTelemetryData();
                 }
             })
             .catch(error => {
@@ -385,6 +411,7 @@
                 alert("Kesalahan koneksi mengirim perintah.");
                 controlLocks[relayNum].targetState = null;
                 checkboxEl.checked = !checkboxEl.checked;
+                pollTelemetryData();
             });
         }
 
