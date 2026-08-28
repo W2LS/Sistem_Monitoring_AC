@@ -401,16 +401,12 @@
 
                     const now = Date.now();
 
-                    // 1. Update KPI Hero Widget
+                    // 1. Update KPI Hero Widget (Tetap Putih Solid & Bersih Tanpa Kedip)
                     const kpiCurrent = document.getElementById('kpi-total-current');
                     const kpiWatt = document.getElementById('kpi-total-watt');
                     if (kpiCurrent) {
                         kpiCurrent.innerText = `${data.total_current.toFixed(2)} A`;
-                        if (data.total_current > 0.01) {
-                            kpiCurrent.classList.add('live-current-active');
-                        } else {
-                            kpiCurrent.classList.remove('live-current-active');
-                        }
+                        kpiCurrent.classList.remove('live-current-active');
                     }
                     if (kpiWatt) kpiWatt.innerText = `${data.estimated_watt} Watt Estimasi Beban Terpakai`;
 
