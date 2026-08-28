@@ -205,9 +205,6 @@ class DashboardController extends Controller
         return redirect()->back()->with('success', 'Jadwal baru berhasil disimpan!');
     }
 
-        return redirect()->back()->with('success', 'Jadwal baru berhasil disimpan!');
-    }
-
     /**
      * Toggle the status of a schedule.
      */
