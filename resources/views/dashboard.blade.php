@@ -149,7 +149,7 @@
                     : 'w-14 bg-white text-[#1D1616]/60 border border-[#8E1616]/20 hover:border-[#8E1616]'"
                 class="h-14 rounded-[22px] p-2 flex items-center space-x-3 shrink-0 transition-all duration-300 cursor-pointer overflow-hidden">
                 <div class="w-10 h-10 rounded-full bg-[#D84040] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-xs">
-                    🔍
+                    ⏱️
                 </div>
                 <div class="text-left truncate pr-2" x-show="activeTab === 'search'">
                     <span class="text-[9px] font-bold uppercase tracking-widest text-[#EEEEEE]/80 block">MODUL 2</span>

@@ -15,14 +15,14 @@
             <span class="text-[9px] font-black uppercase tracking-wider mt-0.5" :class="activeTab === 'home' ? 'text-[#D84040]' : 'text-[#EEEEEE]/50'">Home</span>
         </button>
 
-        <!-- 2. SEARCH ICON (PENJADWALAN) -->
+        <!-- 2. CLOCK ICON (PENJADWALAN) -->
         <button 
             @click="activeTab = 'search'" 
             type="button"
             class="w-12 h-12 rounded-full flex flex-col items-center justify-center transition-all cursor-pointer group"
             :class="activeTab === 'search' ? 'text-white' : 'text-[#EEEEEE]/50 hover:text-white'">
             <svg class="w-6 h-6 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span class="text-[9px] font-black uppercase tracking-wider mt-0.5" :class="activeTab === 'search' ? 'text-[#D84040]' : 'text-[#EEEEEE]/50'">Jadwal</span>
         </button>
