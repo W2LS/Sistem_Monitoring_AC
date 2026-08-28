@@ -303,24 +303,24 @@
 
             <div class="space-y-3">
                 <button type="button" 
-                        onclick="sendAcControlViaSwitch(1, { checked: true }); sendAcControlViaSwitch(2, { checked: true });" 
-                        class="w-full bg-[#1D1616] hover:bg-black text-white p-4 rounded-[20px] text-left flex items-center justify-between font-black text-xs uppercase tracking-wider transition cursor-pointer">
+                        @click="smartActionTurnAll(true); modalFabOpen = false" 
+                        class="w-full bg-[#1D1616] hover:bg-black text-white p-4 rounded-[20px] text-left flex items-center justify-between font-black text-xs uppercase tracking-wider transition cursor-pointer active:scale-98 shadow-md">
                     <span>❄️ Nyalakan Semua AC (Full Cooling ON)</span>
-                    <span class="text-[#D84040] font-bold">➔</span>
+                    <span class="text-[#D84040] font-bold text-base">➔</span>
                 </button>
 
                 <button type="button" 
-                        onclick="sendAcControlViaSwitch(1, { checked: false }); sendAcControlViaSwitch(2, { checked: false });" 
-                        class="w-full bg-[#D84040] hover:bg-[#8E1616] text-white p-4 rounded-[20px] text-left flex items-center justify-between font-black text-xs uppercase tracking-wider shadow-lg shadow-[#D84040]/30 transition cursor-pointer">
+                        @click="smartActionTurnAll(false); modalFabOpen = false" 
+                        class="w-full bg-[#D84040] hover:bg-[#8E1616] text-white p-4 rounded-[20px] text-left flex items-center justify-between font-black text-xs uppercase tracking-wider shadow-lg shadow-[#D84040]/30 transition cursor-pointer active:scale-98">
                     <span>🛑 Matikan Semua AC (Shutdown All)</span>
-                    <span class="text-white font-bold">➔</span>
+                    <span class="text-white font-bold text-base">➔</span>
                 </button>
 
                 <button type="button" 
-                        @click="modalFabOpen = false; activeTab = 'search'" 
-                        class="w-full bg-[#EEEEEE] hover:bg-slate-200 text-[#1D1616] p-4 rounded-[20px] text-left flex items-center justify-between font-black text-xs uppercase tracking-wider transition cursor-pointer">
+                        @click="activeTab = 'search'; modalFabOpen = false" 
+                        class="w-full bg-[#EEEEEE] hover:bg-slate-200 text-[#1D1616] p-4 rounded-[20px] text-left flex items-center justify-between font-black text-xs uppercase tracking-wider transition cursor-pointer active:scale-98 border border-[#8E1616]/10">
                     <span>⏱️ Buka Manajemen Penjadwalan 12 Jam</span>
-                    <span class="text-[#8E1616] font-bold">➔</span>
+                    <span class="text-[#8E1616] font-bold text-base">➔</span>
                 </button>
             </div>
 
@@ -343,6 +343,26 @@
             2: { targetState: null, lastToggled: 0 }
         };
         const LOCK_TIMEOUT_MS = 25000;
+
+        // Smart Action: Batch control all AC units simultaneously
+        function smartActionTurnAll(turnOn) {
+            const sw1 = document.getElementById('ac1-switch');
+            const sw2 = document.getElementById('ac2-switch');
+            
+            if (sw1) {
+                sw1.checked = turnOn;
+                sendAcControlViaSwitch(1, sw1);
+            } else {
+                sendAcControlViaSwitch(1, { checked: turnOn });
+            }
+            
+            if (sw2) {
+                sw2.checked = turnOn;
+                sendAcControlViaSwitch(2, sw2);
+            } else {
+                sendAcControlViaSwitch(2, { checked: turnOn });
+            }
+        }
 
         // Function triggered when switch toggles are clicked
         function sendAcControlViaSwitch(relayNum, checkboxEl) {
