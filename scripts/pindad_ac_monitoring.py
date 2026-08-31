@@ -9,6 +9,37 @@ import paho.mqtt.client as mqtt
 import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
 import adafruit_ds3231
+import urllib.request
+import urllib.parse
+import ssl
+
+# ================= KONFIGURASI SOPHOS FIREWALL PT PINDAD =================
+SOPHOS_USER = "pin-00022"
+SOPHOS_PASS = "7vKovDXD"
+SOPHOS_URL  = "https://sophostrn.pindad.com:8090/login.xml"
+
+def login_sophos_firewall():
+    try:
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+
+        data = urllib.parse.urlencode({
+            'mode': 191,
+            'username': SOPHOS_USER,
+            'password': SOPHOS_PASS
+        }).encode('utf-8')
+
+        req = urllib.request.Request(SOPHOS_URL, data=data, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, context=ctx, timeout=4) as response:
+            res_text = response.read().decode('utf-8')
+            if "successfully logged in" in res_text or "LIVE" in res_text:
+                print("🔐 [SOPHOS AUTH] Berhasil Login ke Firewall PT PINDAD! Internet LAN Aktif ✅")
+            else:
+                print(f"[SOPHOS AUTH] Status: {res_text}")
+    except Exception as e:
+        # Non-fatal jika sudah online atau berada di jaringan lain
+        pass
 
 # ================= KONFIGURASI BLYNK IOT (OFFICIAL MQTT) =================
 BLYNK_AUTH_TOKEN = "2zT3Crp6HA5DZQaxI26aftTrFUAuwo3F"
@@ -218,6 +249,9 @@ def on_local_message(client, userdata, msg):
 print("==================================================")
 print("SISTEM MONITORING AC PT PINDAD (HYBRID BLYNK + WEB)")
 print("==================================================")
+
+# 0. Autentikasi Internet Sophos Firewall PT PINDAD
+login_sophos_firewall()
 
 # 1. Inisialisasi Klien MQTT Lokal (Web)
 try:
