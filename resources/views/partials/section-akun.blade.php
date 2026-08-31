@@ -269,6 +269,53 @@
                             </div>
                         </div>
                     </div>
+                <!-- Auto-Start Systemd Service Guide -->
+                <div class="bg-white p-5 rounded-2xl border-2 border-rose-300 shadow-xs space-y-4">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-rose-100 text-rose-800 flex items-center justify-center font-black text-base shrink-0">
+                            🔌
+                        </div>
+                        <div>
+                            <h4 class="font-black text-sm text-[#1D1616]">Konfigurasi Auto-Start Service (Jalan Otomatis Saat Booting / Listrik Pulih)</h4>
+                            <p class="text-xs text-slate-500">Agar Raspberry Pi baru otomatis menjalankan program saat dicolokkan ke listrik (persis seperti unit Alex):</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 text-xs">
+                        <!-- Step 1 -->
+                        <div class="bg-slate-900 text-slate-200 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+                            <span class="text-emerald-400 font-bold block text-xs font-sans">1. Buat file service Linux systemd:</span>
+                            <code class="block font-mono text-[11px] bg-black/40 p-2 rounded-lg text-slate-100 select-all">sudo nano /etc/systemd/system/pindad-iot.service</code>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="bg-slate-900 text-slate-200 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+                            <span class="text-amber-400 font-bold block text-xs font-sans">2. Paste konfigurasi service ini (Tekan Ctrl+O &rarr; Enter &rarr; Ctrl+X):</span>
+                            <pre class="text-[10.5px] leading-tight text-slate-300 bg-black/40 p-3 rounded-lg overflow-x-auto font-mono">[Unit]
+Description=PINDAD IoT Node Controller Daemon
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /home/pi/Sistem_Monitoring_AC/scripts/pindad_universal_node.py
+WorkingDirectory=/home/pi/Sistem_Monitoring_AC/scripts
+Restart=always
+RestartSec=5
+User=pi
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target</pre>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="bg-slate-900 text-slate-200 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+                            <span class="text-sky-400 font-bold block text-xs font-sans">3. Aktifkan dan jalankan service otomatis:</span>
+                            <code class="block font-mono text-[11px] bg-black/40 p-2 rounded-lg text-slate-100 select-all">sudo systemctl daemon-reload && sudo systemctl enable pindad-iot.service && sudo systemctl start pindad-iot.service</code>
+                            <p class="text-[11px] text-slate-400 font-sans mt-1">Cek status service kapan saja dengan: <code class="text-emerald-400 font-mono">sudo systemctl status pindad-iot.service</code></p>
+                        </div>
+                    </div>
                 </div>
 
             </div>
