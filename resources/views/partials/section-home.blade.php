@@ -532,27 +532,7 @@
                         </p>
                     </div>
 
-                    <div class="flex items-center gap-2.5 shrink-0">
-                        <!-- Modern Tactile Toggle Switch for Schedule -->
-                        <form action="{{ route('schedules.toggle', $sch->id) }}" method="POST" class="inline-flex items-center">
-                            @csrf
-                            @method('PATCH')
-                            <button type="submit" 
-                                    title="{{ $sch->is_active ? 'Matikan Jadwal Ini' : 'Aktifkan Jadwal Ini' }}"
-                                    class="group relative inline-flex items-center h-7 w-16 rounded-full transition-all duration-300 p-0.5 cursor-pointer select-none shadow-xs active:scale-95 {{ $sch->is_active ? 'bg-gradient-to-r from-emerald-500 to-teal-600 ring-2 ring-emerald-400/40' : 'bg-gradient-to-r from-slate-300 to-slate-400' }}">
-                                
-                                <!-- Switch Text Label Inside -->
-                                <span class="w-full text-center text-[9px] font-black uppercase font-mono tracking-wider transition-all {{ $sch->is_active ? 'text-white pr-4' : 'text-slate-600 pl-4' }}">
-                                    {{ $sch->is_active ? 'ON' : 'OFF' }}
-                                </span>
-
-                                <!-- Sliding Circular Knob -->
-                                <span class="absolute top-0.5 left-0.5 bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 flex items-center justify-center {{ $sch->is_active ? 'translate-x-9' : 'translate-x-0' }}">
-                                    <span class="w-2 h-2 rounded-full transition-colors {{ $sch->is_active ? 'bg-emerald-500 ring-1 ring-emerald-200' : 'bg-slate-400' }}"></span>
-                                </span>
-                            </button>
-                        </form>
-
+                    <div class="flex items-center gap-2 shrink-0">
                         <!-- Edit Schedule Button (Pencil Icon) -->
                         <button @click="openEditSchedule({
                             id: '{{ $sch->id }}',
@@ -562,7 +542,7 @@
                             end_time: '{{ $sch->end_time }}'
                         })" 
                         type="button" 
-                        class="p-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-800 transition cursor-pointer text-xs font-bold flex items-center justify-center shrink-0 active:scale-95 shadow-xs" 
+                        class="p-2.5 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-800 transition cursor-pointer text-xs font-bold flex items-center justify-center shrink-0 active:scale-95 shadow-xs" 
                         title="Edit Jam & Pengaturan Jadwal">
                             ✏️
                         </button>
@@ -571,7 +551,7 @@
                         <form action="{{ route('schedules.destroy', $sch->id) }}" method="POST" onsubmit="return confirm('Hapus aturan jadwal ini?')">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="p-2 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 transition cursor-pointer text-xs font-bold flex items-center justify-center shrink-0 active:scale-95 shadow-xs" title="Hapus Jadwal">
+                            <button type="submit" class="p-2.5 rounded-2xl bg-rose-100 hover:bg-rose-200 text-rose-700 transition cursor-pointer text-xs font-bold flex items-center justify-center shrink-0 active:scale-95 shadow-xs" title="Hapus Jadwal">
                                 🗑️
                             </button>
                         </form>
