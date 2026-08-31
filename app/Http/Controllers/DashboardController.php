@@ -413,6 +413,8 @@ class DashboardController extends Controller
         $cleanId = strtoupper(preg_replace('/[^A-Z0-9_]/', '_', $rawId));
         $cleanId = trim(preg_replace('/_+/', '_', $cleanId), '_');
 
+        $template = Template::find($request->input('template_id'));
+
         Device::create([
             'device_id' => $cleanId,
             'template_id' => $request->input('template_id'),
@@ -421,7 +423,7 @@ class DashboardController extends Controller
             'icon' => $template->icon ?? '⚡',
             'location' => $request->input('location'),
             'ip_address' => $request->input('ip_address', '192.168.196.x'),
-            'hardware_type' => $request->input('hardware_type', 'Raspberry Pi 3B+'),
+            'hardware_type' => $template->hardware_type ?? $request->input('hardware_type', 'Raspberry Pi 3B+'),
             'status' => 'standby',
             'auth_token' => Str::random(32),
             'num_ac' => $request->input('num_ac', 2),
