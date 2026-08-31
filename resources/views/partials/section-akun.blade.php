@@ -195,6 +195,8 @@
                             <code class="block font-mono text-slate-100 text-[11px] select-all bg-black/40 p-2 rounded-lg">
                                 pip3 install paho-mqtt adafruit-circuitpython-ads1x15 adafruit-circuitpython-ds3231 RPi.GPIO --break-system-packages
                             </code>
+                        </div>
+
                         <!-- Step C -->
                         <div class="bg-slate-900 text-slate-200 p-3 rounded-xl border border-slate-800 space-y-1">
                             <div class="flex items-center justify-between text-[11px]">
@@ -293,6 +295,8 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
                 <!-- Auto-Start Systemd Service Guide -->
                 <div class="bg-white p-5 rounded-2xl border-2 border-rose-300 shadow-xs space-y-4">
                     <div class="flex items-center gap-2.5">
