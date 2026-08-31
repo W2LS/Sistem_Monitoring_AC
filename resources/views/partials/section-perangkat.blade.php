@@ -3,7 +3,7 @@
      x-transition:enter="transition ease-out duration-300 transform opacity-0 scale-98"
      x-transition:enter-start="opacity-0 scale-98"
      x-transition:enter-end="opacity-100 scale-100"
-     class="space-y-8 pb-16"
+     class="space-y-6 sm:space-y-7 -mt-2 pb-16"
      x-data="{ 
         modalTambah: false, 
         modalEdit: false,
@@ -11,38 +11,38 @@
      }">
 
     <!-- ================= HERO HEADER: DEVICE FLEET PLATFORM ================= -->
-    <div class="bg-[#1D1616] rounded-[36px] p-6 sm:p-8 lg:p-10 shadow-[0_25px_60px_-15px_rgba(29,22,22,0.35)] border border-[#8E1616]/30 text-white relative overflow-hidden">
+    <div class="bg-[#1D1616] rounded-[36px] p-6 sm:p-8 lg:p-8 px-6 sm:px-8 lg:px-10 shadow-[0_25px_60px_-15px_rgba(29,22,22,0.35)] border border-[#8E1616]/30 text-white relative overflow-hidden">
         <!-- Ambient Decorative Glows -->
         <div class="absolute -right-20 -top-20 w-80 h-80 bg-[#8E1616]/25 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-[#D84040]/15 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div class="relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
+        <div class="relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5 sm:gap-6">
             <!-- Left Info -->
-            <div class="space-y-3">
-                <div class="flex flex-wrap items-center gap-2.5">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-[#D84040] bg-[#D84040]/15 px-3 py-1 rounded-full border border-[#D84040]/30">
+            <div class="space-y-2 sm:space-y-2.5">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#D84040] bg-[#D84040]/15 px-2.5 py-0.5 rounded-full border border-[#D84040]/30">
                         IoT Fleet Console
                     </span>
-                    <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/25 flex items-center gap-1.5">
+                    <span class="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/25 flex items-center gap-1.5">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                         Blynk IoT Standard
                     </span>
                 </div>
                 
-                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white">
+                <h2 class="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-white">
                     Manajemen Armada Perangkat IoT
                 </h2>
                 
-                <p class="text-xs sm:text-sm text-[#EEEEEE]/70 max-w-2xl leading-relaxed">
+                <p class="text-xs text-[#EEEEEE]/70 max-w-2xl leading-relaxed">
                     Daftarkan node kontroler baru, pantau kesehatan koneksi secara terpusat, dan beralih kontrol antar ruangan server PT PINDAD secara <i>real-time</i>.
                 </p>
             </div>
 
             <!-- Right Action Buttons -->
-            <div class="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
                 <button @click="modalTambah = true" 
                         type="button"
-                        class="px-5 py-3 rounded-2xl bg-gradient-to-r from-[#D84040] to-[#8E1616] hover:from-[#8E1616] hover:to-[#D84040] text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-[#D84040]/30 hover:shadow-xl transition-all transform active:scale-95 flex items-center gap-2 cursor-pointer">
+                        class="px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl bg-gradient-to-r from-[#D84040] to-[#8E1616] hover:from-[#8E1616] hover:to-[#D84040] text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-[#D84040]/30 hover:shadow-xl transition-all transform active:scale-95 flex items-center gap-2 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
                     </svg>
@@ -50,13 +50,13 @@
                 </button>
 
                 <!-- Master Controls -->
-                <div class="flex items-center gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/10">
+                <div class="flex items-center gap-1.5 bg-white/5 p-1 rounded-2xl border border-white/10">
                     <form action="{{ route('devices.masterControl') }}" method="POST" class="inline">
                         @csrf
                         <input type="hidden" name="command" value="ON">
                         <button type="submit" 
                                 onclick="return confirm('Nyalakan SELURUH unit AC di semua node perangkat?')"
-                                class="px-3.5 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold text-xs uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer"
+                                class="px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer"
                                 title="Nyalakan Seluruh AC di Semua Ruangan">
                             <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
                             <span>Master ON</span>
@@ -68,7 +68,7 @@
                         <input type="hidden" name="command" value="OFF">
                         <button type="submit" 
                                 onclick="return confirm('Matikan SELURUH unit AC di semua node perangkat?')"
-                                class="px-3.5 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold text-xs uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer"
+                                class="px-3 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer"
                                 title="Matikan Seluruh AC di Semua Ruangan">
                             <span class="w-2 h-2 rounded-full bg-rose-400"></span>
                             <span>Master OFF</span>
@@ -79,32 +79,32 @@
         </div>
 
         <!-- ================= FLEET SUMMARY STATS TILES ================= -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 mt-8 pt-6 border-t border-white/10">
-            <div class="bg-white/5 rounded-2xl p-4 border border-white/10 flex flex-col justify-between">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-6 pt-5 border-t border-white/10">
+            <div class="bg-white/5 rounded-2xl p-3.5 sm:p-4 border border-white/10 flex flex-col justify-between">
                 <span class="text-[10px] font-black uppercase tracking-wider text-[#EEEEEE]/50">Total Perangkat IoT</span>
-                <div class="text-2xl sm:text-3xl font-black text-white mt-1">
+                <div class="text-xl sm:text-2xl font-black text-white mt-1">
                     {{ count($devices) }} <span class="text-xs text-[#EEEEEE]/50 font-normal">Node</span>
                 </div>
             </div>
 
-            <div class="bg-white/5 rounded-2xl p-4 border border-white/10 flex flex-col justify-between">
+            <div class="bg-white/5 rounded-2xl p-3.5 sm:p-4 border border-white/10 flex flex-col justify-between">
                 <span class="text-[10px] font-black uppercase tracking-wider text-[#EEEEEE]/50">Node Online Aktif</span>
-                <div class="text-2xl sm:text-3xl font-black text-emerald-400 mt-1 flex items-center gap-2">
+                <div class="text-xl sm:text-2xl font-black text-emerald-400 mt-1 flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span>1</span> <span class="text-xs text-emerald-400/60 font-normal">Live Node</span>
                 </div>
             </div>
 
-            <div class="bg-white/5 rounded-2xl p-4 border border-white/10 flex flex-col justify-between">
+            <div class="bg-white/5 rounded-2xl p-3.5 sm:p-4 border border-white/10 flex flex-col justify-between">
                 <span class="text-[10px] font-black uppercase tracking-wider text-[#EEEEEE]/50">Kapasitas Pendingin</span>
-                <div class="text-2xl sm:text-3xl font-black text-[#D84040] mt-1">
+                <div class="text-xl sm:text-2xl font-black text-[#D84040] mt-1">
                     {{ $devices->sum('num_ac') }} <span class="text-xs text-[#EEEEEE]/50 font-normal">Unit AC</span>
                 </div>
             </div>
 
-            <div class="bg-white/5 rounded-2xl p-4 border border-white/10 flex flex-col justify-between">
+            <div class="bg-white/5 rounded-2xl p-3.5 sm:p-4 border border-white/10 flex flex-col justify-between">
                 <span class="text-[10px] font-black uppercase tracking-wider text-[#EEEEEE]/50">Total Beban Terukur</span>
-                <div class="text-2xl sm:text-3xl font-black text-amber-400 mt-1">
+                <div class="text-xl sm:text-2xl font-black text-amber-400 mt-1">
                     935 <span class="text-xs text-amber-400/60 font-normal">Watt</span>
                 </div>
             </div>
