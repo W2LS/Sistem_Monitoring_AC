@@ -18,8 +18,11 @@ class RunAcScheduler extends Command
      */
     public function handle(MqttService $mqttService)
     {
-        $this->info("Starting AC Scheduler Automation Worker...");
-        $this->info("Checking active schedule rules every 10 seconds...");
+        $this->info("Starting AC Scheduler Automation Worker (Edge-Triggered)...");
+        $this->info("Checking active schedule rules every 5 seconds...");
+
+        $lastAc1State = null;
+        $lastAc2State = null;
 
         while (true) {
             try {
@@ -49,18 +52,27 @@ class RunAcScheduler extends Command
                         if ($targetAc === '1' || $targetAc === 'all') $ac1DesiredOn = true;
                         if ($targetAc === '2' || $targetAc === 'all') $ac2DesiredOn = true;
                     }
-
-                    $this->line("[{$nowTime} WIB] Aturan '{$schedule->label}' (Target: {$targetAc}) ({$start} - {$end}): " . ($isInsideWindow ? 'AKTIF ON' : 'STANDBY OFF'));
                 }
 
-                // Dispatch state to Raspberry Pi via MQTT
-                $mqttService->publish('pindad/ac/schedule', json_encode(['relay' => 1, 'command' => $ac1DesiredOn ? 'ON' : 'OFF', 'source' => 'schedule']));
-                $mqttService->publish('pindad/ac/schedule', json_encode(['relay' => 2, 'command' => $ac2DesiredOn ? 'ON' : 'OFF', 'source' => 'schedule']));
+                // ONLY publish when state changes (Edge-Triggered)
+                if ($ac1DesiredOn !== $lastAc1State) {
+                    $lastAc1State = $ac1DesiredOn;
+                    $cmd = $ac1DesiredOn ? 'ON' : 'OFF';
+                    $mqttService->publish('pindad/ac/schedule', json_encode(['relay' => 1, 'command' => $cmd, 'source' => 'schedule']));
+                    $this->info("[{$nowTime} WIB] Sinyal Transisi Terkirim -> AC 1: {$cmd}");
+                }
+
+                if ($ac2DesiredOn !== $lastAc2State) {
+                    $lastAc2State = $ac2DesiredOn;
+                    $cmd = $ac2DesiredOn ? 'ON' : 'OFF';
+                    $mqttService->publish('pindad/ac/schedule', json_encode(['relay' => 2, 'command' => $cmd, 'source' => 'schedule']));
+                    $this->info("[{$nowTime} WIB] Sinyal Transisi Terkirim -> AC 2: {$cmd}");
+                }
             } catch (\Exception $e) {
                 $this->error("Scheduler evaluation error: " . $e->getMessage());
             }
 
-            sleep(10);
+            sleep(5);
         }
     }
 }
