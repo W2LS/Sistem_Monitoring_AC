@@ -1,6 +1,6 @@
 <!-- ================= MODUL 4: PUSAT INFORMASI AKUN & SISTEM IOT ================= -->
 <div class="space-y-6 pb-20" x-data="{ 
-    openItem: 'akun',
+    openItem: 'tutorial',
     modalPassword: false,
 }">
     
@@ -14,12 +14,102 @@
             Akun Operator & Informasi Sistem
         </h2>
         <p class="text-xs font-semibold text-slate-500 mt-1">
-            Kelola kredensial operator, tinjau spesifikasi web engine, status koneksi database, dan SOP PT PINDAD.
+            Panduan lengkap penggunaan sistem, manajemen kredensial operator, dan spesifikasi arsitektur IoT PT PINDAD.
         </p>
     </div>
 
     <!-- 2. ACCORDIONS SECTION -->
     <div class="space-y-4">
+
+        <!-- ITEM 0: TUTORIAL & PANDUAN PENGGUNAAN SISTEM (STEP-BY-STEP SOP) -->
+        <div class="bg-white rounded-[32px] border-2 border-[#D84040]/40 shadow-md overflow-hidden transition-all duration-300">
+            <button @click="openItem = openItem === 'tutorial' ? null : 'tutorial'" 
+                    type="button" 
+                    class="w-full p-5 sm:p-6 text-left flex items-center justify-between hover:bg-slate-50 transition cursor-pointer bg-gradient-to-r from-rose-50/50 to-white">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-[#D84040] text-white flex items-center justify-center font-black text-xl shrink-0 shadow-md shadow-[#D84040]/30">
+                        📖
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-base font-black text-[#1D1616]">Tutorial & Panduan Penggunaan Platform</h3>
+                            <span class="bg-[#D84040] text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full">PENTING</span>
+                        </div>
+                        <p class="text-xs font-semibold text-slate-500">Panduan langkah demi langkah dari membuat template hingga mengontrol AC di ruangan</p>
+                    </div>
+                </div>
+                <div class="w-8 h-8 rounded-full bg-[#EEEEEE] flex items-center justify-center text-slate-600 font-bold text-sm transition-transform duration-300 shrink-0 ml-2"
+                     :class="openItem === 'tutorial' ? 'rotate-90 bg-[#8E1616] text-white' : ''">
+                    ➔
+                </div>
+            </button>
+
+            <!-- ACCORDION CONTENT: STEP BY STEP GUIDE -->
+            <div x-show="openItem === 'tutorial'" x-cloak x-transition class="px-5 sm:px-6 pb-6 pt-4 border-t border-[#8E1616]/10 space-y-4 bg-slate-50/70">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    
+                    <!-- Step 1: DevZone -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2 relative overflow-hidden">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-7 h-7 rounded-xl bg-[#8E1616] text-white flex items-center justify-center font-black text-xs shrink-0">1</span>
+                            <h4 class="font-black text-sm text-[#1D1616]">Rancang Template di DevZone (Modul 2)</h4>
+                        </div>
+                        <p class="text-slate-600 leading-relaxed">
+                            Buka menu <b>DevZone</b> untuk membuat atau memilih blueprint hardware (misal <i>Raspberry Pi 3B+</i>). Konfigurasikan saluran <b>Virtual Pin (Datastreams)</b> seperti <code class="bg-slate-100 px-1 py-0.5 rounded font-bold text-[#8E1616]">V0</code> untuk Relay AC 1, <code class="bg-slate-100 px-1 py-0.5 rounded font-bold text-[#8E1616]">V1</code> untuk Relay AC 2, dan <code class="bg-slate-100 px-1 py-0.5 rounded font-bold text-[#8E1616]">V2</code> untuk Sensor Arus.
+                        </p>
+                    </div>
+
+                    <!-- Step 2: Tambah Device -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2 relative overflow-hidden">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-7 h-7 rounded-xl bg-[#8E1616] text-white flex items-center justify-center font-black text-xs shrink-0">2</span>
+                            <h4 class="font-black text-sm text-[#1D1616]">Tambahkan Perangkat Baru di Home (Modul 1)</h4>
+                        </div>
+                        <p class="text-slate-600 leading-relaxed">
+                            Di halaman <b>Home</b>, klik tombol <b>`+ Tambah Perangkat Baru`</b>. Pilih Template yang sudah dibuat, tentukan Nama Ruangan (misal <i>Ruang Server Internet</i>), dan masukkan <b>Device ID</b> unik (misal <code class="bg-slate-100 px-1 py-0.5 rounded font-bold text-[#1D1616]">RPI3B_RUANG_INTERNET</code>).
+                        </p>
+                    </div>
+
+                    <!-- Step 3: Setup Hardware -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2 relative overflow-hidden">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-7 h-7 rounded-xl bg-[#8E1616] text-white flex items-center justify-center font-black text-xs shrink-0">3</span>
+                            <h4 class="font-black text-sm text-[#1D1616]">Jalankan Skrip di Raspberry Pi Ruangan</h4>
+                        </div>
+                        <p class="text-slate-600 leading-relaxed">
+                            Di Raspberry Pi fisik ruangan tersebut, copy folder <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">scripts/</code>, isi file <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">node_config.json</code> dengan Device ID yang cocok, lalu jalankan:
+                            <code class="block mt-1 bg-[#1D1616] text-emerald-400 p-2 rounded-lg font-mono text-[11px]">python3 pindad_universal_node.py</code>
+                            Perangkat akan otomatis terhubung ke MQTT dan lampu status di web menjadi <b>🟢 Online</b>.
+                        </p>
+                    </div>
+
+                    <!-- Step 4: Kontrol & Jadwal -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2 relative overflow-hidden">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-7 h-7 rounded-xl bg-[#8E1616] text-white flex items-center justify-center font-black text-xs shrink-0">4</span>
+                            <h4 class="font-black text-sm text-[#1D1616]">Kontrol Saklar & Atur Jadwal Shift</h4>
+                        </div>
+                        <p class="text-slate-600 leading-relaxed">
+                            Di kartu perangkat ruangan, klik <b>`Buka Kontrol & Jadwal ➔`</b>. Anda dapat menyalakan/mematikan AC secara manual atau mengatur <b>Jadwal Rotasi Shift 12 Jam Otomatis</b> berbasis RTC DS3231 tanpa khawatir padam listrik.
+                        </p>
+                    </div>
+
+                </div>
+
+                <!-- Summary Tips Banner -->
+                <div class="bg-gradient-to-r from-[#1D1616] to-[#8E1616] text-white p-4 rounded-2xl flex items-center gap-3 text-xs">
+                    <span class="text-2xl">💡</span>
+                    <div>
+                        <span class="font-black block text-sm">Hubungan Template vs Device:</span>
+                        <p class="text-slate-200 text-[11px] mt-0.5">
+                            <b>Template</b> adalah cetak biru spesifikasi hardware (dibuat sekali di DevZone). <b>Device</b> adalah wujud fisik alat yang terpasang di masing-masing ruangan gedung PT PINDAD.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
         
         <!-- ITEM 1: INFORMASI AKUN & PROFIL OPERATOR -->
         <div class="bg-white rounded-[32px] border border-[#8E1616]/20 shadow-xs overflow-hidden transition-all duration-300">
