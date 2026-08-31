@@ -195,8 +195,6 @@
                             <code class="block font-mono text-slate-100 text-[11px] select-all bg-black/40 p-2 rounded-lg">
                                 pip3 install paho-mqtt adafruit-circuitpython-ads1x15 adafruit-circuitpython-ds3231 RPi.GPIO --break-system-packages
                             </code>
-                        </div>
-
                         <!-- Step C -->
                         <div class="bg-slate-900 text-slate-200 p-3 rounded-xl border border-slate-800 space-y-1">
                             <div class="flex items-center justify-between text-[11px]">
@@ -206,6 +204,69 @@
                             <code class="block font-mono text-slate-100 text-[11px] select-all bg-black/40 p-2 rounded-lg">
                                 git clone https://github.com/W2LS/Sistem_Monitoring_AC.git && cd Sistem_Monitoring_AC/scripts && python3 pindad_universal_node.py
                             </code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3 Easy Deployment Methods -->
+                <div class="bg-white p-5 rounded-2xl border-2 border-amber-300 shadow-xs space-y-4">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-black text-base shrink-0">
+                            🚀
+                        </div>
+                        <div>
+                            <h4 class="font-black text-sm text-[#1D1616]">3 Cara Termudah Menjalankan Program di Raspberry Pi Baru</h4>
+                            <p class="text-xs text-slate-500">Pilih salah satu cara di bawah ini (Tidak perlu copy-paste manual via nano):</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                        <!-- Option 1: Git Clone -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 flex flex-col justify-between">
+                            <div class="space-y-1">
+                                <span class="font-black text-xs text-[#1D1616] flex items-center gap-1.5">
+                                    <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">1</span>
+                                    <span>Cara 1: Git Clone (3 Detik)</span>
+                                </span>
+                                <p class="text-[11px] text-slate-600 leading-relaxed">Download folder lengkap dari repo resmi:</p>
+                            </div>
+                            <code class="block font-mono text-[10.5px] bg-slate-900 text-emerald-400 p-2.5 rounded-lg select-all overflow-x-auto leading-tight">
+                                git clone https://github.com/W2LS/Sistem_Monitoring_AC.git<br>
+                                cd Sistem_Monitoring_AC/scripts<br>
+                                python3 pindad_universal_node.py
+                            </code>
+                        </div>
+
+                        <!-- Option 2: Wget Direct -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 flex flex-col justify-between">
+                            <div class="space-y-1">
+                                <span class="font-black text-xs text-[#1D1616] flex items-center gap-1.5">
+                                    <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px]">2</span>
+                                    <span>Cara 2: Wget Download</span>
+                                </span>
+                                <p class="text-[11px] text-slate-600 leading-relaxed">Download 2 file langsung dari web dashboard:</p>
+                            </div>
+                            <code class="block font-mono text-[10.5px] bg-slate-900 text-blue-300 p-2.5 rounded-lg select-all overflow-x-auto leading-tight">
+                                wget http://IP-SERVER:8000/scripts/download/node -O node.py<br>
+                                wget http://IP-SERVER:8000/scripts/download/config -O node_config.json<br>
+                                python3 node.py
+                            </code>
+                        </div>
+
+                        <!-- Option 3: Flashdisk -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 flex flex-col justify-between">
+                            <div class="space-y-1">
+                                <span class="font-black text-xs text-[#1D1616] flex items-center gap-1.5">
+                                    <span class="w-5 h-5 rounded-full bg-purple-600 text-white flex items-center justify-center text-[10px]">3</span>
+                                    <span>Cara 3: Flashdisk (Offline)</span>
+                                </span>
+                                <p class="text-[11px] text-slate-600 leading-relaxed">Copy folder scripts dari laptop ke USB drive:</p>
+                            </div>
+                            <div class="bg-slate-900 text-slate-200 p-2.5 rounded-lg text-[10.5px] leading-tight space-y-1">
+                                <p>1. Copy folder <code class="text-amber-400">scripts/</code> ke Flashdisk.</p>
+                                <p>2. Colok Flashdisk ke Raspberry Pi.</p>
+                                <p>3. Buka terminal & jalankan <code class="text-emerald-400">python3 pindad_universal_node.py</code></p>
+                            </div>
                         </div>
                     </div>
                 </div>
