@@ -411,22 +411,6 @@
             </div>
         </div>
 
-        <!-- 4. GRAFIK TELEMETRI ARUS LISTRIK (ACS712) -->
-        <div class="bg-white rounded-[40px] p-6 sm:p-8 shadow-[0_20px_50px_-12px_rgba(29,22,22,0.08)] border border-[#8E1616]/20 space-y-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-lg font-black text-[#1D1616] tracking-tight">Grafik Pemantauan Arus Real-Time (Ampere)</h3>
-                    <p class="text-xs font-medium text-slate-500">Data telemetri pembacaan sensor arus ACS712 secara langsung.</p>
-                </div>
-                <div class="flex items-center space-x-4 text-xs font-bold">
-                    <span class="flex items-center space-x-1 text-[#D84040]"><span class="w-3 h-3 rounded-full bg-[#D84040]"></span><span>AC 1</span></span>
-                    <span class="flex items-center space-x-1 text-[#8E1616]"><span class="w-3 h-3 rounded-full bg-[#8E1616]"></span><span>AC 2</span></span>
-                </div>
-            </div>
-            <div class="h-64 sm:h-72 w-full pt-4">
-                <canvas id="currentChart"></canvas>
-            </div>
-        </div>
 
         <!-- 5. PUSAT PENJADWALAN SHIFT 12 JAM KHUSUS RUANGAN INI -->
         <div class="bg-white rounded-[40px] p-6 sm:p-8 shadow-[0_20px_50px_-12px_rgba(29,22,22,0.08)] border border-[#8E1616]/20 space-y-6">
