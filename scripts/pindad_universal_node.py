@@ -183,11 +183,15 @@ def on_local_message(client, userdata, msg):
         if source == "manual":
             is_turbo_cooling_active = False # Release lock
 
-        # Parse AC commands: AC_1_ON, AC_2_OFF, MASTER_ON, MASTER_OFF
+        # Parse AC commands: AC_1_ON, AC_2_OFF, MASTER_ON, MASTER_OFF, or direct command & ac_number/relay
         if "MASTER_ON" in cmd:
             for r in RELAYS: switch_relay(r["ac_number"], True)
         elif "MASTER_OFF" in cmd:
             for r in RELAYS: switch_relay(r["ac_number"], False)
+        elif cmd in ["ON", "OFF"]:
+            ac_num = payload.get("ac_number") or payload.get("relay")
+            if ac_num is not None:
+                switch_relay(int(ac_num), cmd == "ON")
         elif cmd.startswith("AC_"):
             parts = cmd.split("_") # ['AC', '1', 'ON']
             if len(parts) >= 3:

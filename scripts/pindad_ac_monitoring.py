@@ -277,6 +277,11 @@ def on_local_message(client, userdata, msg):
         print(f"\n⚡ [WEB KONTROL DITERIMA] Topik: {msg.topic} -> {payload_str}")
         
         data = json.loads(payload_str)
+        # Device Isolation Guard: Abaikan perintah jika pesan ditujukan untuk device ruangan lain
+        target_dev = data.get("device_id")
+        if target_dev and target_dev not in ["RPI3B_PINDAD_ROOM_1", "all"]:
+            return
+
         if "relay" in data and "command" in data:
             relay_num = int(data["relay"])
             command   = str(data["command"]).upper()

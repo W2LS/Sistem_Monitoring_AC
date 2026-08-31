@@ -75,14 +75,18 @@ class DashboardController extends Controller
         $selectedDeviceId = $request->query('device_id', $devices->first()->device_id ?? 'RPI3B_PINDAD_ROOM_1');
         $currentDevice = $devices->firstWhere('device_id', $selectedDeviceId) ?? $devices->first();
 
-        // 2. Fetch Latest Telemetry for AC 1 and AC 2
-        $latestAc1 = AcLog::where('device_id', $selectedDeviceId)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
-        if (!$latestAc1) {
-            $latestAc1 = AcLog::where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
-        }
-        $latestAc2 = AcLog::where('device_id', $selectedDeviceId)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
-        if (!$latestAc2) {
-            $latestAc2 = AcLog::where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
+        // 2. Fetch Latest Telemetry for AC 1 and AC 2 with Strict Device Isolation
+        if ($selectedDeviceId === 'RPI3B_PINDAD_ROOM_1') {
+            $latestAc1 = AcLog::where(function($q) {
+                $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
+            })->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
+
+            $latestAc2 = AcLog::where(function($q) {
+                $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
+            })->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
+        } else {
+            $latestAc1 = AcLog::where('device_id', $selectedDeviceId)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
+            $latestAc2 = AcLog::where('device_id', $selectedDeviceId)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
         }
 
         // 3. Fetch Recent Telemetry Logs for Charts & Tables
@@ -90,20 +94,27 @@ class DashboardController extends Controller
         
         $queryLogs = AcLog::query();
         if ($filterDevice && $filterDevice !== 'all') {
-            $queryLogs->where('device_id', $filterDevice);
+            if ($filterDevice === 'RPI3B_PINDAD_ROOM_1') {
+                $queryLogs->where(function($q) {
+                    $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
+                });
+            } else {
+                $queryLogs->where('device_id', $filterDevice);
+            }
         }
         $recentLogsAll = $queryLogs->latest('recorded_at')->take(50)->get();
-        if ($recentLogsAll->isEmpty()) {
-            $recentLogsAll = AcLog::latest('recorded_at')->take(50)->get();
-        }
 
-        $recentLogsAc1 = AcLog::where('device_id', $selectedDeviceId)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->take(50)->get();
-        if ($recentLogsAc1->isEmpty()) {
-            $recentLogsAc1 = AcLog::where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->take(50)->get();
-        }
-        $recentLogsAc2 = AcLog::where('device_id', $selectedDeviceId)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->take(50)->get();
-        if ($recentLogsAc2->isEmpty()) {
-            $recentLogsAc2 = AcLog::where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->take(50)->get();
+        if ($selectedDeviceId === 'RPI3B_PINDAD_ROOM_1') {
+            $recentLogsAc1 = AcLog::where(function($q) {
+                $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
+            })->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->take(50)->get();
+
+            $recentLogsAc2 = AcLog::where(function($q) {
+                $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
+            })->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->take(50)->get();
+        } else {
+            $recentLogsAc1 = AcLog::where('device_id', $selectedDeviceId)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->take(50)->get();
+            $recentLogsAc2 = AcLog::where('device_id', $selectedDeviceId)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->take(50)->get();
         }
 
         // 4. Calculate Fleet Real-Time Summary Stats
@@ -113,13 +124,18 @@ class DashboardController extends Controller
         $onlineCount = 0;
 
         foreach ($devices as $dev) {
-            $devLast = AcLog::where('device_id', $dev->device_id)->latest('recorded_at')->first();
+            $devLast = null;
+            if ($dev->device_id === 'RPI3B_PINDAD_ROOM_1') {
+                $devLast = AcLog::where(function($q) {
+                    $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
+                })->latest('recorded_at')->first();
+            } else {
+                $devLast = AcLog::where('device_id', $dev->device_id)->latest('recorded_at')->first();
+            }
+
             $isDevOnline = false;
             if ($devLast && $devLast->recorded_at) {
                 $isDevOnline = Carbon::parse($devLast->recorded_at)->diffInSeconds(now()) <= 60;
-            } elseif ($dev->device_id === 'RPI3B_PINDAD_ROOM_1') {
-                $anyLast = AcLog::latest('recorded_at')->first();
-                $isDevOnline = $anyLast && Carbon::parse($anyLast->recorded_at)->diffInSeconds(now()) <= 60;
             } elseif ($dev->type === 'smart_lighting' || $dev->status === 'online') {
                 $isDevOnline = true;
             }
@@ -128,8 +144,20 @@ class DashboardController extends Controller
                 $onlineCount++;
             }
 
-            $devAc1 = AcLog::where('device_id', $dev->device_id)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
-            $devAc2 = AcLog::where('device_id', $dev->device_id)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
+            $devAc1 = null;
+            $devAc2 = null;
+            if ($dev->device_id === 'RPI3B_PINDAD_ROOM_1') {
+                $devAc1 = AcLog::where(function($q) {
+                    $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
+                })->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
+                $devAc2 = AcLog::where(function($q) {
+                    $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
+                })->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
+            } else {
+                $devAc1 = AcLog::where('device_id', $dev->device_id)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
+                $devAc2 = AcLog::where('device_id', $dev->device_id)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
+            }
+
             $c1 = $devAc1 ? (float)$devAc1->current_ampere : ($dev->current_values['V2'] ?? 0.0);
             $c2 = $devAc2 ? (float)$devAc2->current_ampere : ($dev->current_values['V3'] ?? 0.0);
             $w = $dev->current_values['V4'] ?? round(($c1 + $c2) * 220);
@@ -171,23 +199,34 @@ class DashboardController extends Controller
     public function apiLogs(Request $request)
     {
         $deviceId = $request->query('device_id', 'RPI3B_PINDAD_ROOM_1');
+        $dev = Device::where('device_id', $deviceId)->first();
 
-        $latestAc1 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
-        if (!$latestAc1) {
-            $latestAc1 = AcLog::where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
-        }
-        $latestAc2 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
-        if (!$latestAc2) {
-            $latestAc2 = AcLog::where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
-        }
+        $latestAc1 = null;
+        $latestAc2 = null;
+        $logsAc1 = collect();
+        $logsAc2 = collect();
 
-        $logsAc1 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->take(10)->get()->reverse();
-        if ($logsAc1->isEmpty()) {
-            $logsAc1 = AcLog::where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->take(10)->get()->reverse();
-        }
-        $logsAc2 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->take(10)->get()->reverse();
-        if ($logsAc2->isEmpty()) {
-            $logsAc2 = AcLog::where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->take(10)->get()->reverse();
+        if ($deviceId === 'RPI3B_PINDAD_ROOM_1') {
+            $latestAc1 = AcLog::where(function($q) {
+                $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
+            })->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
+
+            $latestAc2 = AcLog::where(function($q) {
+                $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
+            })->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
+
+            $logsAc1 = AcLog::where(function($q) {
+                $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
+            })->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->take(10)->get()->reverse();
+
+            $logsAc2 = AcLog::where(function($q) {
+                $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
+            })->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->take(10)->get()->reverse();
+        } else {
+            $latestAc1 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
+            $latestAc2 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
+            $logsAc1 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->take(10)->get()->reverse();
+            $logsAc2 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->take(10)->get()->reverse();
         }
 
         $chartLabels = [];
@@ -206,11 +245,32 @@ class DashboardController extends Controller
         $isLive = false;
         if ($latestAc1 && $latestAc1->recorded_at) {
             $isLive = Carbon::parse($latestAc1->recorded_at)->diffInSeconds(now()) <= 30;
+        } elseif ($dev && $dev->status === 'online') {
+            $isLive = true;
         }
 
-        $c1 = $latestAc1 ? (float)$latestAc1->current_ampere : 0.0;
-        $c2 = $latestAc2 ? (float)$latestAc2->current_ampere : 0.0;
-        $totalCurrent = round($c1 + $c2, 4);
+        // Resolve Status & Current with virtual pin fallback if no telemetry yet
+        $ac1Status = 'OFF';
+        $ac1Current = 0.0;
+        if ($latestAc1) {
+            $ac1Status = str_contains($latestAc1->active_ac, 'ON') ? 'ON' : 'OFF';
+            $ac1Current = (float)$latestAc1->current_ampere;
+        } elseif ($dev && isset($dev->current_values['V0'])) {
+            $ac1Status = $dev->current_values['V0'] == 1 ? 'ON' : 'OFF';
+            $ac1Current = (float)($dev->current_values['V2'] ?? 0.0);
+        }
+
+        $ac2Status = 'OFF';
+        $ac2Current = 0.0;
+        if ($latestAc2) {
+            $ac2Status = str_contains($latestAc2->active_ac, 'ON') ? 'ON' : 'OFF';
+            $ac2Current = (float)$latestAc2->current_ampere;
+        } elseif ($dev && isset($dev->current_values['V1'])) {
+            $ac2Status = $dev->current_values['V1'] == 1 ? 'ON' : 'OFF';
+            $ac2Current = (float)($dev->current_values['V3'] ?? 0.0);
+        }
+
+        $totalCurrent = round($ac1Current + $ac2Current, 4);
         $totalWatt = round($totalCurrent * 220);
 
         return response()->json([
@@ -218,18 +278,18 @@ class DashboardController extends Controller
             'is_live' => $isLive,
             'device_id' => $deviceId,
             'ac1' => [
-                'current' => $latestAc1 ? (float)$latestAc1->current_ampere : 0.0,
-                'status' => ($latestAc1 && str_contains($latestAc1->active_ac, 'ON')) ? 'ON' : 'OFF',
-                'raw_active_ac' => $latestAc1 ? $latestAc1->active_ac : 'AC_1_OFF',
-                'watt' => round(($latestAc1 ? (float)$latestAc1->current_ampere : 0.0) * 220),
+                'current' => $ac1Current,
+                'status' => $ac1Status,
+                'raw_active_ac' => $latestAc1 ? $latestAc1->active_ac : "AC_1_{$ac1Status}",
+                'watt' => round($ac1Current * 220),
                 'shift' => $this->getActiveShiftText(1),
                 'timestamp' => $latestAc1 ? Carbon::parse($latestAc1->recorded_at)->setTimezone('Asia/Jakarta')->format('d M Y - H:i:s WIB') : '-',
             ],
             'ac2' => [
-                'current' => $latestAc2 ? (float)$latestAc2->current_ampere : 0.0,
-                'status' => ($latestAc2 && str_contains($latestAc2->active_ac, 'ON')) ? 'ON' : 'OFF',
-                'raw_active_ac' => $latestAc2 ? $latestAc2->active_ac : 'AC_2_OFF',
-                'watt' => round(($latestAc2 ? (float)$latestAc2->current_ampere : 0.0) * 220),
+                'current' => $ac2Current,
+                'status' => $ac2Status,
+                'raw_active_ac' => $latestAc2 ? $latestAc2->active_ac : "AC_2_{$ac2Status}",
+                'watt' => round($ac2Current * 220),
                 'shift' => $this->getActiveShiftText(2),
                 'timestamp' => $latestAc2 ? Carbon::parse($latestAc2->recorded_at)->setTimezone('Asia/Jakarta')->format('d M Y - H:i:s WIB') : '-',
             ],
@@ -272,10 +332,15 @@ class DashboardController extends Controller
 
         $jsonPayload = json_encode($payload);
 
-        // Publish to multiple topics for 100% backward & forward compatibility across all scripts
-        $this->mqttService->publish("pindad/ac/schedule", $jsonPayload);
-        $this->mqttService->publish("pindad/ac/control", $jsonPayload);
+        // Publish with strict device routing
+        if ($deviceId === 'RPI3B_PINDAD_ROOM_1') {
+            // Ruang Server 1 legacy script listens to pindad/ac/schedule
+            $this->mqttService->publish("pindad/ac/schedule", $jsonPayload);
+        }
+        
+        // Universal and multi-room fleet topics
         $this->mqttService->publish("pindad/devices/{$deviceId}/control", $jsonPayload);
+        $this->mqttService->publish("pindad/ac/control", $jsonPayload);
 
         // Update virtual pin in Device model
         $dev = Device::where('device_id', $deviceId)->first();

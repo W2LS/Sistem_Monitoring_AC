@@ -282,16 +282,24 @@
                 <span class="text-xs font-bold text-[#D84040] block">⚡ Sumber: Sensor Arus ACS712 & Relai Industri</span>
             </div>
 
+            @php
+                $isSelectedDevOnline = $fleetStats[$selectedDeviceId]['is_online'] ?? false;
+            @endphp
             <div class="bg-white/10 backdrop-blur-md rounded-[28px] px-6 py-3.5 border border-white/10 flex items-center space-x-4 shrink-0">
-                <span class="text-2xl animate-pulse">🟢</span>
+                <span class="text-2xl {{ $isSelectedDevOnline ? 'animate-pulse' : '' }}">
+                    {{ $isSelectedDevOnline ? '🟢' : '⚪' }}
+                </span>
                 <div>
-                    <span class="text-sm font-black text-white block">Node Online (Live Telemetri)</span>
-                    <span class="text-xs text-[#EEEEEE]/70 font-semibold">Sinkronisasi 5 Detik</span>
+                    <span class="text-sm font-black text-white block">
+                        {{ $isSelectedDevOnline ? 'Node Online (Live Telemetri)' : 'Node Standby (Menunggu Sinyal)' }}
+                    </span>
+                    <span class="text-xs text-[#EEEEEE]/70 font-semibold">
+                        {{ $isSelectedDevOnline ? 'Sinkronisasi 5 Detik' : 'Perangkat Belum Terhubung' }}
+                    </span>
                 </div>
             </div>
         </div>
 
-        <!-- 3. DUAL AC KONTROL SAKLAR & ARUS (PANASONIC 1 VS PANASONIC 2) -->
         <!-- 3. DUAL AC KONTROL SAKLAR & ARUS (PANASONIC 1 VS PANASONIC 2) -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6"
              x-data="{
