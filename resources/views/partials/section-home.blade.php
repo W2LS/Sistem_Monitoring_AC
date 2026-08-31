@@ -123,7 +123,7 @@
                 <span class="text-xs text-slate-500">Klik <b>"Buka Detail & Jadwal"</b> untuk mengontrol perangkat</span>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 @foreach($devices as $dev)
                 @php
                     $devStat = $fleetStats[$dev->device_id] ?? ['is_online' => false, 'total_watt' => 0, 'total_current' => 0, 'last_seen' => 'Standby'];
@@ -149,7 +149,7 @@
                                 </div>
                             </div>
 
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 {{ $devStat['is_online'] ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-slate-100 text-slate-600 border border-slate-200' }}">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 {{ $devStat['is_online'] ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-slate-100 text-slate-600 border border-slate-200' }}">
                                 <span class="w-2 h-2 rounded-full {{ $devStat['is_online'] ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400' }}"></span>
                                 <span>{{ $devStat['is_online'] ? 'Online' : 'Standby' }}</span>
                             </span>
@@ -158,15 +158,15 @@
                         <!-- 2x2 Clean Telemetry Info -->
                         <div class="grid grid-cols-2 gap-2.5">
                             <div class="bg-slate-50 rounded-2xl p-3 border border-slate-100">
-                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Beban Terukur</span>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Beban Daya</span>
                                 <span class="text-xs font-black text-emerald-600 mt-0.5 block">
-                                    {{ $devStat['total_watt'] }} Watt <span class="text-[10px] text-slate-400 font-normal">({{ $devStat['total_current'] }} A)</span>
+                                    {{ $devStat['total_watt'] }} W <span class="text-[10px] text-slate-400 font-normal">({{ $devStat['total_current'] }} A)</span>
                                 </span>
                             </div>
 
                             <div class="bg-slate-50 rounded-2xl p-3 border border-slate-100">
-                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Kapasitas / Tipe</span>
-                                <span class="text-xs font-black text-[#D84040] mt-0.5 block">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Kapasitas</span>
+                                <span class="text-xs font-black text-[#D84040] mt-0.5 block truncate">
                                     {{ $isAcType ? ($dev->num_ac . ' Unit AC') : ($dev->hardware_type) }}
                                 </span>
                             </div>
@@ -174,12 +174,12 @@
                             <div class="bg-slate-50 rounded-2xl p-3 border border-slate-100">
                                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Alamat IP</span>
                                 <span class="text-[11px] font-bold text-slate-700 mt-0.5 block font-mono">
-                                    {{ $dev->ip_address ?? '192.168.x.x' }}
+                                    {{ $dev->ip_address ?? '192.168.197.64' }}
                                 </span>
                             </div>
 
                             <div class="bg-slate-50 rounded-2xl p-3 border border-slate-100">
-                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">ID Perangkat</span>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">ID MQTT</span>
                                 <span class="text-[10px] font-mono font-bold text-[#1D1616] mt-0.5 block break-all" title="{{ $dev->device_id }}">
                                     {{ $dev->device_id }}
                                 </span>
@@ -556,14 +556,19 @@
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
                             <label class="block text-xs font-black uppercase text-slate-700 tracking-wider">ID Perangkat (MQTT) *</label>
-                            <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">⚡ Otomatis</span>
+                            <span class="text-[9px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span>Auto-Generated</span>
+                            </span>
                         </div>
                         <input type="text" 
                                name="device_id" 
                                x-model="devId"
+                               readonly
                                required 
-                               placeholder="RPI3B_MONITORING_AC_RUANG_SERVER_2" 
-                               class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono uppercase bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#D84040] outline-none">
+                               placeholder="Otomatis terisi saat nama diketik..." 
+                               class="w-full px-4 py-3 rounded-2xl border-2 border-dashed border-slate-300 text-xs sm:text-sm font-mono uppercase bg-slate-100/90 text-slate-700 font-bold cursor-not-allowed select-all outline-none">
+                        <p class="text-[10px] text-slate-400 mt-1">Dibuat otomatis dari nama ruangan untuk keamanan jalur MQTT.</p>
                     </div>
                 </div>
 
