@@ -3,7 +3,18 @@
     viewMode: localStorage.getItem('pindad_home_view') || 'fleet', // 'fleet' or 'detail'
     modalNewDevice: false,
     modalSchedule: false,
-    editScheduleData: { id: '', label: '', target_ac: 'all', start_time: '', end_time: '' },
+    modalEditSchedule: false,
+    editScheduleData: { id: '', label: '', target_ac: 'all', start_time: '06:00', end_time: '18:00' },
+    openEditSchedule(sch) {
+        this.editScheduleData = {
+            id: sch.id,
+            label: sch.label,
+            target_ac: sch.target_ac || 'all',
+            start_time: sch.start_time ? sch.start_time.substring(0, 5) : '06:00',
+            end_time: sch.end_time ? sch.end_time.substring(0, 5) : '18:00'
+        };
+        this.modalEditSchedule = true;
+    },
     setView(mode) {
         this.viewMode = mode;
         localStorage.setItem('pindad_home_view', mode);
@@ -521,19 +532,46 @@
                         </p>
                     </div>
 
-                    <div class="flex items-center gap-2 shrink-0">
-                        <form action="{{ route('schedules.toggle', $sch->id) }}" method="POST">
+                    <div class="flex items-center gap-2.5 shrink-0">
+                        <!-- Modern Tactile Toggle Switch for Schedule -->
+                        <form action="{{ route('schedules.toggle', $sch->id) }}" method="POST" class="inline-flex items-center">
                             @csrf
                             @method('PATCH')
-                            <button type="submit" class="px-3 py-1.5 rounded-xl text-[11px] font-bold uppercase transition cursor-pointer {{ $sch->is_active ? 'bg-amber-100 hover:bg-amber-200 text-amber-800' : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800' }}">
-                                {{ $sch->is_active ? 'Matikan' : 'Aktifkan' }}
+                            <button type="submit" 
+                                    title="{{ $sch->is_active ? 'Matikan Jadwal Ini' : 'Aktifkan Jadwal Ini' }}"
+                                    class="group relative inline-flex items-center h-7 w-16 rounded-full transition-all duration-300 p-0.5 cursor-pointer select-none shadow-xs active:scale-95 {{ $sch->is_active ? 'bg-gradient-to-r from-emerald-500 to-teal-600 ring-2 ring-emerald-400/40' : 'bg-gradient-to-r from-slate-300 to-slate-400' }}">
+                                
+                                <!-- Switch Text Label Inside -->
+                                <span class="w-full text-center text-[9px] font-black uppercase font-mono tracking-wider transition-all {{ $sch->is_active ? 'text-white pr-4' : 'text-slate-600 pl-4' }}">
+                                    {{ $sch->is_active ? 'ON' : 'OFF' }}
+                                </span>
+
+                                <!-- Sliding Circular Knob -->
+                                <span class="absolute top-0.5 left-0.5 bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 flex items-center justify-center {{ $sch->is_active ? 'translate-x-9' : 'translate-x-0' }}">
+                                    <span class="w-2 h-2 rounded-full transition-colors {{ $sch->is_active ? 'bg-emerald-500 ring-1 ring-emerald-200' : 'bg-slate-400' }}"></span>
+                                </span>
                             </button>
                         </form>
 
-                        <form action="{{ route('schedules.destroy', $sch->id) }}" method="POST" onsubmit="return confirm('Hapus jadwal ini?')">
+                        <!-- Edit Schedule Button (Pencil Icon) -->
+                        <button @click="openEditSchedule({
+                            id: '{{ $sch->id }}',
+                            label: '{{ addslashes($sch->label) }}',
+                            target_ac: '{{ $sch->target_ac }}',
+                            start_time: '{{ $sch->start_time }}',
+                            end_time: '{{ $sch->end_time }}'
+                        })" 
+                        type="button" 
+                        class="p-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-800 transition cursor-pointer text-xs font-bold flex items-center justify-center shrink-0 active:scale-95 shadow-xs" 
+                        title="Edit Jam & Pengaturan Jadwal">
+                            ✏️
+                        </button>
+
+                        <!-- Delete Schedule Button -->
+                        <form action="{{ route('schedules.destroy', $sch->id) }}" method="POST" onsubmit="return confirm('Hapus aturan jadwal ini?')">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="p-1.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 transition cursor-pointer" title="Hapus Jadwal">
+                            <button type="submit" class="p-2 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 transition cursor-pointer text-xs font-bold flex items-center justify-center shrink-0 active:scale-95 shadow-xs" title="Hapus Jadwal">
                                 🗑️
                             </button>
                         </form>
@@ -707,6 +745,85 @@
                 <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
                     <button @click="modalSchedule = false" type="button" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
                     <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-[#8E1616] to-[#1D1616] text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Simpan Jadwal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 3: EDIT ATURAN JADWAL SHIFT & ROTASI -->
+    <!-- ========================================================================= -->
+    <div x-show="modalEditSchedule" 
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100">
+        
+        <div @click.away="modalEditSchedule = false" 
+             class="bg-white rounded-[40px] p-7 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 space-y-5 relative max-h-[90vh] overflow-y-auto">
+            
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-[20px] bg-amber-100 text-amber-800 flex items-center justify-center font-black text-xl">
+                        ✏️
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-black text-[#1D1616]">Edit Jadwal Shift AC</h4>
+                        <p class="text-xs text-slate-500">Ubah jam mulai, jam berakhir, atau unit target</p>
+                    </div>
+                </div>
+                <button @click="modalEditSchedule = false" class="text-slate-400 hover:text-amber-800 text-2xl font-bold cursor-pointer">&times;</button>
+            </div>
+
+            <form :action="'/schedules/' + editScheduleData.id" method="POST" class="space-y-4">
+                @csrf
+                @method('PUT')
+
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Label / Nama Shift *</label>
+                    <input type="text" 
+                           name="label" 
+                           x-model="editScheduleData.label"
+                           required 
+                           placeholder="Contoh: Shift Siang (Panasonic 1)" 
+                           class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Target Unit AC *</label>
+                    <select name="target_ac" 
+                            x-model="editScheduleData.target_ac"
+                            class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#8E1616] outline-none">
+                        <option value="1">Panasonic 1 (Lampu Bawah • Pin GPIO 17)</option>
+                        <option value="2">Panasonic 2 (Lampu Atas • Pin GPIO 27)</option>
+                        <option value="all">Kedua Unit AC Sekaligus</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Jam Mulai (WIB) *</label>
+                        <input type="time" 
+                               name="start_time" 
+                               x-model="editScheduleData.start_time"
+                               required 
+                               class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Jam Berakhir (WIB) *</label>
+                        <input type="time" 
+                               name="end_time" 
+                               x-model="editScheduleData.end_time"
+                               required 
+                               class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
+                    </div>
+                </div>
+
+                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+                    <button @click="modalEditSchedule = false" type="button" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Perbarui Jadwal</button>
                 </div>
             </form>
         </div>
