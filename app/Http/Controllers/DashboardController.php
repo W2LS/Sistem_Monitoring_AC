@@ -18,21 +18,41 @@ class DashboardController extends Controller
     }
 
     /**
-     * Get active shift description for a specific AC unit.
+     * Get active shift description for a specific AC unit based on current time.
      */
     private function getActiveShiftText(int $acNum): string
     {
-        $activeSchedule = Schedule::where('is_active', true)
+        $nowTime = Carbon::now('Asia/Jakarta')->format('H:i');
+        
+        $schedules = Schedule::where('is_active', true)
             ->where(function($q) use ($acNum) {
                 $q->where('target_ac', (string) $acNum)
                   ->orWhere('target_ac', 'all')
                   ->orWhereNull('target_ac');
             })
-            ->orderBy('start_time')
-            ->first();
+            ->get();
 
-        if ($activeSchedule) {
-            return "{$activeSchedule->label} ({$activeSchedule->start_time} - {$activeSchedule->end_time} WIB)";
+        foreach ($schedules as $s) {
+            $start = Carbon::parse($s->start_time)->format('H:i');
+            $end = Carbon::parse($s->end_time)->format('H:i');
+
+            $isInside = false;
+            if ($start <= $end) {
+                $isInside = ($nowTime >= $start && $nowTime < $end);
+            } else {
+                $isInside = ($nowTime >= $start || $nowTime < $end);
+            }
+
+            if ($isInside) {
+                return "{$s->label} ({$start} - {$end} WIB)";
+            }
+        }
+
+        $upcoming = $schedules->first();
+        if ($upcoming) {
+            $start = Carbon::parse($upcoming->start_time)->format('H:i');
+            $end = Carbon::parse($upcoming->end_time)->format('H:i');
+            return "Standby: {$upcoming->label} ({$start} - {$end} WIB)";
         }
 
         return $acNum === 1 ? "Shift Siang (06:00 - 18:00 WIB)" : "Shift Malam (18:00 - 06:00 WIB)";
