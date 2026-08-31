@@ -516,7 +516,16 @@
                 <button @click="modalNewDevice = false" class="text-slate-400 hover:text-[#D84040] text-2xl font-bold cursor-pointer">&times;</button>
             </div>
 
-            <form action="{{ route('devices.store') }}" method="POST" class="space-y-4">
+            <form action="{{ route('devices.store') }}" method="POST" class="space-y-4" 
+                  x-data="{ 
+                      devName: '', 
+                      devId: '', 
+                      generateId() {
+                          if (!this.devName) { this.devId = ''; return; }
+                          let clean = this.devName.toUpperCase().replace(/[^A-Z0-9]/g, '_').replace(/_+/g, '_').replace(/^_+|_+$/g, '');
+                          this.devId = 'RPI3B_' + clean;
+                      }
+                  }">
                 @csrf
                 
                 <div>
@@ -530,17 +539,31 @@
 
                 <div>
                     <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Nama Perangkat / Ruangan *</label>
-                    <input type="text" name="name" required placeholder="Contoh: Monitoring AC Ruang Server Lt. 2" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                    <input type="text" 
+                           name="name" 
+                           x-model="devName"
+                           @input="generateId()"
+                           required 
+                           placeholder="Contoh: Monitoring AC Ruang Server 2" 
+                           class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Lokasi / Gedung *</label>
-                        <input type="text" name="location" required placeholder="Gedung Divisi Rekayasa" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                        <input type="text" name="location" required placeholder="Gedung TIK" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">ID Perangkat (MQTT) *</label>
-                        <input type="text" name="device_id" required placeholder="RPI3B_PINDAD_ROOM_2" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono uppercase focus:ring-2 focus:ring-[#D84040] outline-none">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-black uppercase text-slate-700 tracking-wider">ID Perangkat (MQTT) *</label>
+                            <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">⚡ Otomatis</span>
+                        </div>
+                        <input type="text" 
+                               name="device_id" 
+                               x-model="devId"
+                               required 
+                               placeholder="RPI3B_MONITORING_AC_RUANG_SERVER_2" 
+                               class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono uppercase bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#D84040] outline-none">
                     </div>
                 </div>
 

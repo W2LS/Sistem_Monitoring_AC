@@ -409,10 +409,12 @@ class DashboardController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $template = Template::find($request->input('template_id'));
+        $rawId = $request->input('device_id') ?: ('RPI3B_' . Str::slug($request->input('name'), '_'));
+        $cleanId = strtoupper(preg_replace('/[^A-Z0-9_]/', '_', $rawId));
+        $cleanId = trim(preg_replace('/_+/', '_', $cleanId), '_');
 
         Device::create([
-            'device_id' => strtoupper(Str::slug($request->input('device_id'), '_')),
+            'device_id' => $cleanId,
             'template_id' => $request->input('template_id'),
             'name' => $request->input('name'),
             'type' => $request->input('type') ?? ($template ? ($template->name === 'Smart Industrial Lighting' ? 'smart_lighting' : 'ac_monitoring') : 'general_iot'),
@@ -427,7 +429,7 @@ class DashboardController extends Controller
             'current_values' => ['V0' => 0, 'V1' => 0, 'V2' => 0, 'V3' => 0, 'V4' => 0],
         ]);
 
-        return redirect()->route('dashboard')->with('success', "Node perangkat {$request->input('name')} berhasil didaftarkan!");
+        return redirect()->route('dashboard')->with('success', "Node perangkat {$request->input('name')} ({$cleanId}) berhasil didaftarkan!");
     }
 
     /**
