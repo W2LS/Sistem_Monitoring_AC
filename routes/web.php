@@ -27,6 +27,12 @@ Route::middleware('auth.session')->group(function () {
     Route::patch('/schedules/{id}/toggle', [DashboardController::class, 'toggleSchedule'])->name('schedules.toggle');
     Route::delete('/schedules/{id}', [DashboardController::class, 'deleteSchedule'])->name('schedules.destroy');
 
+    // CRUD Manajemen Perangkat IoT (Blynk Fleet-Style)
+    Route::post('/devices', [DashboardController::class, 'storeDevice'])->name('devices.store');
+    Route::put('/devices/{id}', [DashboardController::class, 'updateDevice'])->name('devices.update');
+    Route::delete('/devices/{id}', [DashboardController::class, 'deleteDevice'])->name('devices.destroy');
+    Route::post('/devices/master-control', [DashboardController::class, 'masterControl'])->name('devices.masterControl');
+
     // Ekspor Log Telemetri CSV
     Route::get('/logs/export', [DashboardController::class, 'exportCsv'])->name('logs.export');
 

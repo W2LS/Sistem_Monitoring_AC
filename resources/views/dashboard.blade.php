@@ -200,6 +200,25 @@
                 </div>
             </button>
 
+            <!-- Category 5: Fleet & Perangkat (Blynk-Style Console) -->
+            <button 
+                @click="activeTab = 'perangkat'"
+                type="button"
+                :class="activeTab === 'perangkat' 
+                    ? 'w-48 bg-[#8E1616] text-white shadow-lg shadow-[#8E1616]/25' 
+                    : 'w-14 bg-white text-[#1D1616]/60 border border-[#8E1616]/20 hover:border-[#8E1616]'"
+                class="h-14 rounded-[22px] p-2 flex items-center space-x-3 shrink-0 transition-all duration-300 cursor-pointer overflow-hidden">
+                <div class="w-10 h-10 rounded-full bg-[#D84040] text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                </div>
+                <div class="text-left truncate pr-2" x-show="activeTab === 'perangkat'">
+                    <span class="text-[9px] font-bold uppercase tracking-widest text-[#EEEEEE]/80 block">MODUL 5</span>
+                    <span class="text-xs font-black text-white leading-none block">Perangkat IoT</span>
+                </div>
+            </button>
+
         </div>
 
         <!-- ================= MAIN DYNAMIC CONTENT TABS ================= -->
@@ -222,14 +241,14 @@
                     <!-- Status Widget Badge -->
                     <div class="hidden sm:flex items-center space-x-3 bg-white border border-[#8E1616]/20 px-4 py-2 rounded-full shadow-2xs">
                         <span id="esp32-status-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span id="esp32-status-text" class="text-xs font-black text-[#1D1616]">ESP32 Online</span>
+                        <span id="esp32-status-text" class="text-xs font-black text-[#1D1616]">{{ $currentDevice->hardware_type ?? 'Raspberry Pi 3B+' }} Online</span>
                     </div>
                 </div>
 
                 <!-- KPI SUMMARY HERO WIDGET (Expands majestically on desktop) -->
                 <div class="bg-[#1D1616] rounded-[40px] p-7 sm:p-8 text-white shadow-[0_20px_50px_-12px_rgba(29,22,22,0.35)] border border-[#8E1616]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                     <div class="space-y-1">
-                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#D84040] block">Status Total Beban Daya Server</span>
+                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#D84040] block">Status Total Beban Daya: {{ $currentDevice->name ?? 'Ruang Server' }}</span>
                         <div class="flex items-baseline space-x-3">
                             <span id="kpi-total-current" class="text-3xl sm:text-5xl font-black font-mono text-white tracking-tight">0.00 A</span>
                             <span class="text-sm font-extrabold text-[#EEEEEE]/80">Total Konsumsi Arus</span>
@@ -285,6 +304,11 @@
                 @include('partials.section-akun')
             </div>
 
+            <!-- TAB 5: PERANGKAT (MANAJEMEN ARMADA IOT FLEET BLYNK-STYLE) -->
+            <div x-show="activeTab === 'perangkat'" x-cloak>
+                @include('partials.section-perangkat')
+            </div>
+
         </main>
 
     </div>
@@ -313,6 +337,13 @@
             </div>
 
             <div class="space-y-3">
+                <button type="button" 
+                        @click="activeTab = 'perangkat'; modalFabOpen = false" 
+                        class="w-full bg-slate-100 hover:bg-slate-200 text-[#1D1616] p-4 rounded-[20px] text-left flex items-center justify-between font-black text-xs uppercase tracking-wider transition cursor-pointer active:scale-98 border border-slate-200">
+                    <span class="flex items-center gap-2"><span>📡</span><span>Kelola Armada Perangkat IoT (Fleet)</span></span>
+                    <span class="text-[#8E1616] font-bold text-base">➔</span>
+                </button>
+
                 <button type="button" 
                         @click="smartActionTurnAll(true); modalFabOpen = false" 
                         class="w-full bg-[#1D1616] hover:bg-black text-white p-4 rounded-[20px] text-left flex items-center justify-between font-black text-xs uppercase tracking-wider transition cursor-pointer active:scale-98 shadow-md">
@@ -421,7 +452,8 @@
                 },
                 body: JSON.stringify({
                     relay: relayNum,
-                    command: command
+                    command: command,
+                    device_id: '{{ $selectedDeviceId }}'
                 })
             })
             .then(response => response.json())
@@ -448,7 +480,7 @@
 
         // --- Real-time AJAX Polling Engine (Every 30 Seconds / Instant Trigger) ---
         function pollTelemetryData() {
-            fetch("{{ route('api.logs') }}")
+            fetch("{{ route('api.logs') }}?device_id={{ $selectedDeviceId }}")
                 .then(response => response.json())
                 .then(data => {
                     if (data.status !== 'success') return;

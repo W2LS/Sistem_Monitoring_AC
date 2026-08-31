@@ -1,4 +1,4 @@
-<!-- FLOATING BOTTOM NAVIGATION BAR (PINDAD INDUSTRIAL PALETTE: #1D1616, #8E1616, #D84040, #EEEEEE) -->
+    <!-- FLOATING BOTTOM NAVIGATION BAR (PINDAD INDUSTRIAL PALETTE: #1D1616, #8E1616, #D84040, #EEEEEE) -->
 <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md">
     
     <div class="bg-[#1D1616] h-16 rounded-[32px] px-4 flex items-center justify-between shadow-[0_20px_50px_-12px_rgba(29,22,22,0.5)] border border-[#8E1616]/30 relative">
