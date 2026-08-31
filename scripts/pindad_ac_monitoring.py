@@ -14,8 +14,8 @@ import urllib.parse
 import ssl
 
 # ================= KONFIGURASI SOPHOS FIREWALL PT PINDAD =================
-SOPHOS_USER = "pin-00022"
-SOPHOS_PASS = "7vKovDXD"
+SOPHOS_USER = "pin-00020"
+SOPHOS_PASS = "5uiFS4eE"
 SOPHOS_URL  = "https://sophostrn.pindad.com:8090/login.xml"
 
 def login_sophos_firewall():
@@ -24,22 +24,32 @@ def login_sophos_firewall():
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
 
-        data = urllib.parse.urlencode({
+        # 1. Reset Sesi Lama (Logout)
+        logout_data = urllib.parse.urlencode({'mode': 192, 'username': SOPHOS_USER}).encode('utf-8')
+        req_out = urllib.request.Request(SOPHOS_URL, data=logout_data, headers={'User-Agent': 'Mozilla/5.0'})
+        try:
+            urllib.request.urlopen(req_out, context=ctx, timeout=3)
+        except Exception:
+            pass
+
+        time.sleep(0.5)
+
+        # 2. Login Sesi Baru untuk Raspberry Pi
+        login_data = urllib.parse.urlencode({
             'mode': 191,
             'username': SOPHOS_USER,
             'password': SOPHOS_PASS
         }).encode('utf-8')
 
-        req = urllib.request.Request(SOPHOS_URL, data=data, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, context=ctx, timeout=4) as response:
+        req_in = urllib.request.Request(SOPHOS_URL, data=login_data, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req_in, context=ctx, timeout=4) as response:
             res_text = response.read().decode('utf-8')
             if "successfully logged in" in res_text or "LIVE" in res_text:
                 print("🔐 [SOPHOS AUTH] Berhasil Login ke Firewall PT PINDAD! Internet LAN Aktif ✅")
             else:
                 print(f"[SOPHOS AUTH] Status: {res_text}")
     except Exception as e:
-        # Non-fatal jika sudah online atau berada di jaringan lain
-        pass
+        print(f"[SOPHOS AUTH NOTE] Status: {e}")
 
 # ================= KONFIGURASI BLYNK IOT (OFFICIAL MQTT) =================
 BLYNK_AUTH_TOKEN = "2zT3Crp6HA5DZQaxI26aftTrFUAuwo3F"
