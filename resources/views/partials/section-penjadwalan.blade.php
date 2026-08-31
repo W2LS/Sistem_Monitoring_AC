@@ -1,5 +1,18 @@
-<!-- SECTION 2: PUSAT PENJADWALAN & ROTASI OTOMATIS AC 1 & AC 2 (PALETTE: #1D1616, #8E1616, #D84040, #EEEEEE) -->
-<div class="space-y-6 pb-24" x-data="{ modalTambah: false }">
+<div class="space-y-6 pb-24" x-data="{ 
+    modalTambah: false, 
+    modalEdit: false, 
+    editData: { id: '', label: '', target_ac: 'all', start_time: '', end_time: '' },
+    openEdit(item) {
+        this.editData = {
+            id: item.id,
+            label: item.label,
+            target_ac: item.target_ac || 'all',
+            start_time: item.start_time,
+            end_time: item.end_time
+        };
+        this.modalEdit = true;
+    }
+}">
     
     <!-- PAGE HEADER & ACTION BUTTON -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#8E1616]/20 pb-4">
@@ -161,6 +174,12 @@
                             </td>
                             <td class="py-4 px-4">
                                 <div class="flex items-center justify-center space-x-3">
+                                    <button type="button" 
+                                            @click="openEdit({ id: '{{ $schedule->id }}', label: '{{ addslashes($schedule->label) }}', target_ac: '{{ $schedule->target_ac ?? 'all' }}', start_time: '{{ $schedule->start_time }}', end_time: '{{ $schedule->end_time }}' })"
+                                            class="text-xs text-blue-600 hover:text-blue-800 font-black underline cursor-pointer">
+                                        ✏️ Edit
+                                    </button>
+
                                     <form action="{{ route('schedules.toggle', $schedule->id) }}" method="POST">
                                         @csrf
                                         @method('PATCH')
@@ -248,6 +267,71 @@
                     <button type="submit" 
                             class="w-2/3 py-3.5 font-black text-xs uppercase tracking-wider bg-[#D84040] hover:bg-[#8E1616] text-white rounded-[20px] shadow-lg shadow-[#D84040]/30 transition cursor-pointer">
                         + Simpan Aturan Jadwal
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- MODAL EDIT JADWAL -->
+    <div x-show="modalEdit" x-cloak 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+         @keydown.escape.window="modalEdit = false">
+        
+        <div class="bg-white rounded-[40px] text-[#1D1616] font-sans border border-[#8E1616]/30 max-w-lg w-full p-8 shadow-2xl space-y-6 transform transition-all"
+             @click.away="modalEdit = false">
+            
+            <div class="border-b border-[#8E1616]/20 pb-4 flex justify-between items-center">
+                <div>
+                    <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Formulir Edit Jadwal</span>
+                    <h3 class="text-2xl font-black text-[#1D1616]">
+                        Ubah Waktu Operasional
+                    </h3>
+                </div>
+                <button @click="modalEdit = false" class="text-slate-400 hover:text-[#D84040] font-bold text-2xl cursor-pointer">&times;</button>
+            </div>
+
+            <form :action="'/schedules/' + editData.id" method="POST" class="space-y-4">
+                @csrf
+                @method('PUT')
+                <div>
+                    <label for="edit_label" class="block text-[11px] font-extrabold uppercase tracking-wider mb-1.5 text-[#1D1616]">Nama / Label Jadwal</label>
+                    <input type="text" id="edit_label" name="label" required x-model="editData.label"
+                           class="w-full bg-[#EEEEEE] border border-[#8E1616]/30 rounded-[20px] text-[#1D1616] text-sm px-4 py-3 placeholder-slate-400 focus:outline-none focus:border-[#D84040] font-bold">
+                </div>
+
+                <div>
+                    <label for="edit_target_ac" class="block text-[11px] font-extrabold uppercase tracking-wider mb-1.5 text-[#1D1616]">Target Unit Pendingin</label>
+                    <select id="edit_target_ac" name="target_ac" required x-model="editData.target_ac"
+                            class="w-full bg-[#EEEEEE] border border-[#8E1616]/30 rounded-[20px] text-[#1D1616] text-sm px-4 py-3 font-bold focus:outline-none focus:border-[#D84040]">
+                        <option value="1">🔵 Panasonic 1 (AC 1 / Lampu Bawah)</option>
+                        <option value="2">🔴 Panasonic 2 (AC 2 / Lampu Atas)</option>
+                        <option value="all">⚡ Keduanya (Semua Unit AC)</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="edit_start" class="block text-[11px] font-extrabold uppercase tracking-wider mb-1.5 text-[#1D1616]">Jam Mulai (ON)</label>
+                        <input type="time" id="edit_start" name="start_time" required x-model="editData.start_time"
+                               class="w-full bg-[#EEEEEE] border border-[#8E1616]/30 rounded-[20px] text-[#1D1616] text-sm px-4 py-3 font-mono font-bold focus:outline-none focus:border-[#D84040]">
+                    </div>
+                    <div>
+                        <label for="edit_end" class="block text-[11px] font-extrabold uppercase tracking-wider mb-1.5 text-[#1D1616]">Jam Selesai (OFF)</label>
+                        <input type="time" id="edit_end" name="end_time" required x-model="editData.end_time"
+                               class="w-full bg-[#EEEEEE] border border-[#8E1616]/30 rounded-[20px] text-[#1D1616] text-sm px-4 py-3 font-mono font-bold focus:outline-none focus:border-[#D84040]">
+                    </div>
+                </div>
+
+                <div class="flex space-x-3 pt-3">
+                    <button type="button" @click="modalEdit = false" 
+                            class="w-1/3 py-3.5 font-black text-xs uppercase tracking-wider bg-[#EEEEEE] hover:bg-slate-200 text-[#1D1616] rounded-[20px] transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" 
+                            class="w-2/3 py-3.5 font-black text-xs uppercase tracking-wider bg-[#8E1616] hover:bg-black text-white rounded-[20px] shadow-lg shadow-[#8E1616]/30 transition cursor-pointer">
+                        ✓ Simpan Perubahan
                     </button>
                 </div>
             </form>

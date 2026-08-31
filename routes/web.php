@@ -23,6 +23,7 @@ Route::middleware('auth.session')->group(function () {
 
     // CRUD Penjadwalan
     Route::post('/schedules', [DashboardController::class, 'storeSchedule'])->name('schedules.store');
+    Route::put('/schedules/{id}', [DashboardController::class, 'updateSchedule'])->name('schedules.update');
     Route::patch('/schedules/{id}/toggle', [DashboardController::class, 'toggleSchedule'])->name('schedules.toggle');
     Route::delete('/schedules/{id}', [DashboardController::class, 'deleteSchedule'])->name('schedules.destroy');
 

@@ -206,6 +206,29 @@ class DashboardController extends Controller
     }
 
     /**
+     * Update an existing schedule.
+     */
+    public function updateSchedule(Request $request, $id)
+    {
+        $request->validate([
+            'label' => 'required|string|max:100',
+            'start_time' => 'required',
+            'end_time' => 'required',
+            'target_ac' => 'nullable|string|in:1,2,all',
+        ]);
+
+        $schedule = Schedule::findOrFail($id);
+        $schedule->update([
+            'label' => $request->input('label'),
+            'start_time' => $request->input('start_time'),
+            'end_time' => $request->input('end_time'),
+            'target_ac' => $request->input('target_ac', 'all'),
+        ]);
+
+        return redirect()->back()->with('success', 'Aturan jadwal berhasil diperbarui!');
+    }
+
+    /**
      * Toggle the status of a schedule.
      */
     public function toggleSchedule($id)
