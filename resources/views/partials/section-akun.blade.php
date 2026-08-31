@@ -108,6 +108,47 @@
                     </div>
                 </div>
 
+                <!-- Hardware Node Multi-Room Guide (2-Channel vs 4-Channel Relay) -->
+                <div class="bg-white p-5 rounded-2xl border-2 border-indigo-200 shadow-xs space-y-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-base shrink-0">
+                            ⚙️
+                        </div>
+                        <div>
+                            <h4 class="font-black text-sm text-[#1D1616]">Konfigurasi Hardware Multi-Ruangan (2-Channel vs 4-Channel)</h4>
+                            <p class="text-xs text-slate-500">Program Python <b>100% SAMA PERSIS</b> di seluruh Raspberry Pi. Cukup ubah file <code class="bg-slate-100 px-1 py-0.5 rounded font-mono font-bold text-indigo-600">node_config.json</code> di masing-masing alat:</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] font-mono">
+                        <!-- Server A (2 Relay) -->
+                        <div class="bg-slate-900 text-slate-200 p-3.5 rounded-xl border border-slate-800 space-y-1">
+                            <span class="text-emerald-400 font-bold font-sans block text-xs">📌 Ruang Server A (Relay 2 Channel):</span>
+                            <pre class="text-[10.5px] leading-tight text-slate-300 overflow-x-auto">{
+  "device_id": "RPI3B_SERVER_A",
+  "relays": [
+    {"ac_number": 1, "gpio_pin": 17, "name": "AC 1"},
+    {"ac_number": 2, "gpio_pin": 27, "name": "AC 2"}
+  ]
+}</pre>
+                        </div>
+
+                        <!-- Server B (4 Relay) -->
+                        <div class="bg-slate-900 text-slate-200 p-3.5 rounded-xl border border-slate-800 space-y-1">
+                            <span class="text-amber-400 font-bold font-sans block text-xs">📌 Ruang Server B (Relay 4 Channel):</span>
+                            <pre class="text-[10.5px] leading-tight text-slate-300 overflow-x-auto">{
+  "device_id": "RPI3B_SERVER_B",
+  "relays": [
+    {"ac_number": 1, "gpio_pin": 17, "name": "AC 1"},
+    {"ac_number": 2, "gpio_pin": 27, "name": "AC 2"},
+    {"ac_number": 3, "gpio_pin": 22, "name": "AC 3"},
+    {"ac_number": 4, "gpio_pin": 23, "name": "AC 4"}
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
         
