@@ -333,20 +333,33 @@
                 </div>
 
                 <!-- Toggle Switch AC 1 -->
+                @php
+                    $isAc1On = ($latestAc1 && str_contains($latestAc1->active_ac, 'ON'));
+                @endphp
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
                     <div>
-                        <span class="text-xs font-black text-[#1D1616] block">Kontrol Manual Langsung</span>
-                        <span class="text-[10px] text-slate-400 font-semibold">Bypass jadwal otomatis RTC</span>
+                        <span class="text-xs font-black text-[#1D1616] block">Saklar Manual AC 1</span>
+                        <span class="text-[10px] text-slate-400 font-semibold">Klik saklar untuk ON/OFF langsung</span>
                     </div>
 
                     <form action="{{ route('ac.control') }}" method="POST">
                         @csrf
                         <input type="hidden" name="ac_number" value="1">
                         <input type="hidden" name="device_id" value="{{ $selectedDeviceId }}">
-                        <input type="hidden" name="state" value="{{ ($latestAc1 && str_contains($latestAc1->active_ac, 'ON')) ? 'OFF' : 'ON' }}">
+                        <input type="hidden" name="state" value="{{ $isAc1On ? 'OFF' : 'ON' }}">
                         <button type="submit" 
-                                class="px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition-all shadow-md flex items-center space-x-2 cursor-pointer {{ ($latestAc1 && str_contains($latestAc1->active_ac, 'ON')) ? 'bg-[#D84040] text-white hover:bg-[#8E1616]' : 'bg-emerald-600 text-white hover:bg-emerald-700' }}">
-                            <span>{{ ($latestAc1 && str_contains($latestAc1->active_ac, 'ON')) ? 'MATIKAN (OFF)' : 'NYALAKAN (ON)' }}</span>
+                                title="Klik untuk {{ $isAc1On ? 'mematikan' : 'menyalakan' }} AC 1"
+                                class="group relative inline-flex items-center h-10 w-24 rounded-full transition-all duration-300 p-1 cursor-pointer select-none shadow-md active:scale-95 {{ $isAc1On ? 'bg-gradient-to-r from-emerald-500 to-teal-600 ring-2 ring-emerald-400/50' : 'bg-gradient-to-r from-slate-300 to-slate-400' }}">
+                            
+                            <!-- Label Text Inside Switch -->
+                            <span class="w-full text-center text-[10px] font-black uppercase tracking-wider transition-all {{ $isAc1On ? 'text-white pr-7 font-mono' : 'text-slate-600 pl-7 font-mono' }}">
+                                {{ $isAc1On ? 'ON' : 'OFF' }}
+                            </span>
+
+                            <!-- Sliding Circular Knob -->
+                            <span class="absolute top-1 left-1 bg-white w-8 h-8 rounded-full shadow-lg transform transition-transform duration-300 flex items-center justify-center {{ $isAc1On ? 'translate-x-14' : 'translate-x-0' }}">
+                                <span class="w-2.5 h-2.5 rounded-full {{ $isAc1On ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-slate-400' }}"></span>
+                            </span>
                         </button>
                     </form>
                 </div>
@@ -391,20 +404,33 @@
                 </div>
 
                 <!-- Toggle Switch AC 2 -->
+                @php
+                    $isAc2On = ($latestAc2 && str_contains($latestAc2->active_ac, 'ON'));
+                @endphp
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
                     <div>
-                        <span class="text-xs font-black text-[#1D1616] block">Kontrol Manual Langsung</span>
-                        <span class="text-[10px] text-slate-400 font-semibold">Bypass jadwal otomatis RTC</span>
+                        <span class="text-xs font-black text-[#1D1616] block">Saklar Manual AC 2</span>
+                        <span class="text-[10px] text-slate-400 font-semibold">Klik saklar untuk ON/OFF langsung</span>
                     </div>
 
                     <form action="{{ route('ac.control') }}" method="POST">
                         @csrf
                         <input type="hidden" name="ac_number" value="2">
                         <input type="hidden" name="device_id" value="{{ $selectedDeviceId }}">
-                        <input type="hidden" name="state" value="{{ ($latestAc2 && str_contains($latestAc2->active_ac, 'ON')) ? 'OFF' : 'ON' }}">
+                        <input type="hidden" name="state" value="{{ $isAc2On ? 'OFF' : 'ON' }}">
                         <button type="submit" 
-                                class="px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition-all shadow-md flex items-center space-x-2 cursor-pointer {{ ($latestAc2 && str_contains($latestAc2->active_ac, 'ON')) ? 'bg-[#D84040] text-white hover:bg-[#8E1616]' : 'bg-emerald-600 text-white hover:bg-emerald-700' }}">
-                            <span>{{ ($latestAc2 && str_contains($latestAc2->active_ac, 'ON')) ? 'MATIKAN (OFF)' : 'NYALAKAN (ON)' }}</span>
+                                title="Klik untuk {{ $isAc2On ? 'mematikan' : 'menyalakan' }} AC 2"
+                                class="group relative inline-flex items-center h-10 w-24 rounded-full transition-all duration-300 p-1 cursor-pointer select-none shadow-md active:scale-95 {{ $isAc2On ? 'bg-gradient-to-r from-emerald-500 to-teal-600 ring-2 ring-emerald-400/50' : 'bg-gradient-to-r from-slate-300 to-slate-400' }}">
+                            
+                            <!-- Label Text Inside Switch -->
+                            <span class="w-full text-center text-[10px] font-black uppercase tracking-wider transition-all {{ $isAc2On ? 'text-white pr-7 font-mono' : 'text-slate-600 pl-7 font-mono' }}">
+                                {{ $isAc2On ? 'ON' : 'OFF' }}
+                            </span>
+
+                            <!-- Sliding Circular Knob -->
+                            <span class="absolute top-1 left-1 bg-white w-8 h-8 rounded-full shadow-lg transform transition-transform duration-300 flex items-center justify-center {{ $isAc2On ? 'translate-x-14' : 'translate-x-0' }}">
+                                <span class="w-2.5 h-2.5 rounded-full {{ $isAc2On ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-slate-400' }}"></span>
+                            </span>
                         </button>
                     </form>
                 </div>
