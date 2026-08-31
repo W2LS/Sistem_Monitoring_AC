@@ -208,6 +208,30 @@
                     </div>
                 </div>
 
+                <!-- One-Command Interactive Wizard Spotlight -->
+                <div class="bg-gradient-to-r from-[#1D1616] to-[#8E1616] text-white p-5 rounded-2xl border border-rose-400/30 shadow-md space-y-3">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-8 h-8 rounded-xl bg-white/20 text-white flex items-center justify-center font-black text-lg shrink-0">⚡</span>
+                        <div>
+                            <h4 class="font-black text-sm text-white">Fitur 1-Perintah Auto Setup Wizard (Paling Cepat & Anti-Ribet)</h4>
+                            <p class="text-xs text-rose-100/80">User cukup menjalankan 1 perintah ini, lalu terminal akan memandu mengisi pin GPIO relay secara interaktif:</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-black/50 p-3 rounded-xl border border-white/10 space-y-1.5">
+                        <div class="flex items-center justify-between text-[11px]">
+                            <span class="text-emerald-400 font-bold font-mono">1 Baris Perintah Terminal Raspberry Pi:</span>
+                            <span class="text-slate-400 font-mono text-[10px]">Auto-Wizard</span>
+                        </div>
+                        <code class="block font-mono text-[11.5px] text-emerald-300 p-2 rounded-lg bg-black/60 select-all overflow-x-auto">
+                            cd Sistem_Monitoring_AC/scripts && bash setup_raspberry_pi.sh
+                        </code>
+                        <p class="text-[10.5px] text-slate-300 pt-1">
+                            👉 Terminal akan bertanya secara ramah: <i>"Berapa jumlah AC? (2/4)"</i> &rarr; <i>"Pin GPIO AC 1? (17)"</i> &rarr; <i>"Pin GPIO AC 2? (27)"</i> &rarr; <b>Selesai!</b> File config langsung dibuat & Auto-start langsung aktif tanpa perlu buka nano sama sekali.
+                        </p>
+                    </div>
+                </div>
+
                 <!-- 3 Easy Deployment Methods -->
                 <div class="bg-white p-5 rounded-2xl border-2 border-amber-300 shadow-xs space-y-4">
                     <div class="flex items-center gap-2.5">
@@ -216,7 +240,7 @@
                         </div>
                         <div>
                             <h4 class="font-black text-sm text-[#1D1616]">3 Cara Termudah Menjalankan Program di Raspberry Pi Baru</h4>
-                            <p class="text-xs text-slate-500">Pilih salah satu cara di bawah ini (Tidak perlu copy-paste manual via nano):</p>
+                            <p class="text-xs text-slate-500">Pilihan metode alternatif deployment alat IoT:</p>
                         </div>
                     </div>
 

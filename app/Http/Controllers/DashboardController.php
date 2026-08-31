@@ -723,6 +723,13 @@ class DashboardController extends Controller
             ]);
         }
 
+        if ($type === 'wizard') {
+            $path = base_path('scripts/pindad_setup_wizard.py');
+            return response()->download($path, 'pindad_setup_wizard.py', [
+                'Content-Type' => 'text/x-python',
+            ]);
+        }
+
         abort(404, 'File skrip tidak ditemukan.');
     }
 }

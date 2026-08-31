@@ -21,12 +21,18 @@ echo "🐍 [3/4] Menginstall library Python sensor (MQTT, ADS1115, DS3231)..."
 pip3 install paho-mqtt adafruit-circuitpython-ads1x15 adafruit-circuitpython-ds3231 RPi.GPIO --break-system-packages 2>/dev/null || pip3 install paho-mqtt adafruit-circuitpython-ads1x15 adafruit-circuitpython-ds3231 RPi.GPIO
 
 # 4. Verifikasi Hardware Sensor I2C
-echo "🔍 [4/5] Memeriksa deteksi hardware I2C (ADS1115 = 0x48, DS3231 = 0x68)..."
+echo "🔍 [4/6] Memeriksa deteksi hardware I2C (ADS1115 = 0x48, DS3231 = 0x68)..."
 i2cdetect -y 1
 
-# 5. Konfigurasi Auto-Start Systemd Service (Booting Daemon)
-echo "⚙️ [5/5] Memasang service auto-start Linux (pindad-iot.service)..."
+# 5. Jalankan Wizard Interaktif Pengaturan GPIO & Device ID
 CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$CURRENT_DIR/pindad_setup_wizard.py" ]; then
+    echo "📋 [5/6] Menjalankan Wizard Pengaturan Pin GPIO & Nama Ruangan..."
+    python3 "$CURRENT_DIR/pindad_setup_wizard.py"
+fi
+
+# 6. Konfigurasi Auto-Start Systemd Service (Booting Daemon)
+echo "⚙️ [6/6] Memasang service auto-start Linux (pindad-iot.service)..."
 SERVICE_FILE="/etc/systemd/system/pindad-iot.service"
 
 sudo bash -c "cat > $SERVICE_FILE" <<EOF
@@ -53,8 +59,7 @@ sudo systemctl enable pindad-iot.service
 sudo systemctl restart pindad-iot.service
 
 echo "======================================================="
-echo "✅ SETUP DEPENDENCY & AUTO-START SELESAI!"
+echo "🎉 SETUP RASPBERRY PI 100% SELESAI & SUKSES!"
+echo "Alat sudah otomatis terhubung ke Web Dashboard."
 echo "Service pindad-iot.service sekarang AKTIF di latar belakang."
-echo "Setiap kali Raspberry Pi dinyalakan/dicolok, program otomatis jalan!"
-echo "Cek status service: sudo systemctl status pindad-iot.service"
 echo "======================================================="
