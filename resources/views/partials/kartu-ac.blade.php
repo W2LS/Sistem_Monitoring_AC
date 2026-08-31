@@ -144,7 +144,10 @@
             <div class="border-b border-[#8E1616]/20 pb-4 flex justify-between items-center">
                 <div class="flex items-center space-x-3">
                     <div class="w-12 h-12 rounded-[20px] bg-[#EEEEEE] text-[#8E1616] flex items-center justify-center font-black text-xl">
-                        ⚙️
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
                     </div>
                     <div>
                         <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616]">Konfigurasi Perangkat</span>
@@ -156,53 +159,23 @@
                 <button @click="showModal = false" class="text-slate-400 hover:text-[#D84040] font-bold text-2xl cursor-pointer">&times;</button>
             </div>
 
-            <!-- FITUR 1: UBAH NAMA UNIT PERANGKAT -->
-            <div class="bg-[#EEEEEE]/60 border border-[#8E1616]/20 rounded-[24px] p-5 space-y-2">
+            <!-- FITUR: UBAH NAMA UNIT PERANGKAT -->
+            <div class="bg-[#EEEEEE]/60 border border-[#8E1616]/20 rounded-[24px] p-6 space-y-3">
                 <label for="unit_name_input_{{ $id }}" class="block text-[11px] font-extrabold uppercase tracking-wider text-[#1D1616]">
-                    ✏️ Ganti Label Nama Unit AC
+                    Ganti Label Nama Unit AC
                 </label>
                 <input type="text" id="unit_name_input_{{ $id }}" x-model="unitName" @input="saveName()" 
                        placeholder="Masukkan nama baru unit AC" 
-                       class="w-full bg-white border border-[#8E1616]/30 rounded-[16px] text-[#1D1616] text-sm px-4 py-3 font-bold focus:border-[#D84040] focus:ring-2 focus:ring-[#D84040]/20 focus:outline-none">
-                <p class="text-[10px] text-slate-500 font-semibold">Tersimpan otomatis secara real-time di browser.</p>
+                       class="w-full bg-white border border-[#8E1616]/30 rounded-[16px] text-[#1D1616] text-sm px-4 py-3 font-bold focus:border-[#D84040] focus:ring-2 focus:ring-[#D84040]/20 focus:outline-none shadow-xs">
+                <p class="text-[11px] text-slate-500 font-semibold">Tersimpan otomatis secara real-time di browser.</p>
             </div>
 
-            <!-- FITUR 2: FORM TAMBAH JADWAL ON/OFF AC -->
-            <form action="{{ route('schedules.store') }}" method="POST" class="space-y-4">
-                @csrf
-                <h4 class="text-[#1D1616] text-xs font-black uppercase tracking-wider">
-                    ⏱️ Tambah Jadwal Operasional Baru
-                </h4>
-                <div>
-                    <label for="label_{{ $id }}" class="block text-[11px] font-extrabold uppercase tracking-wider mb-1.5 text-slate-600">Label Jadwal</label>
-                    <input type="text" id="label_{{ $id }}" name="label" required placeholder="Contoh: Jam Kantor Utama" 
-                           class="w-full bg-[#EEEEEE]/60 border border-[#8E1616]/30 rounded-[16px] text-[#1D1616] text-sm px-4 py-3 placeholder-slate-400 focus:outline-none focus:border-[#D84040] font-bold">
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label for="start_time_{{ $id }}" class="block text-[11px] font-extrabold uppercase tracking-wider mb-1.5 text-slate-600">Jam Mulai (ON)</label>
-                        <input type="time" id="start_time_{{ $id }}" name="start_time" required 
-                               class="w-full bg-[#EEEEEE]/60 border border-[#8E1616]/30 rounded-[16px] text-[#1D1616] text-sm px-4 py-3 font-mono font-bold focus:outline-none focus:border-[#D84040]">
-                    </div>
-                    <div>
-                        <label for="end_time_{{ $id }}" class="block text-[11px] font-extrabold uppercase tracking-wider mb-1.5 text-slate-600">Jam Selesai (OFF)</label>
-                        <input type="time" id="end_time_{{ $id }}" name="end_time" required 
-                               class="w-full bg-[#EEEEEE]/60 border border-[#8E1616]/30 rounded-[16px] text-[#1D1616] text-sm px-4 py-3 font-mono font-bold focus:outline-none focus:border-[#D84040]">
-                    </div>
-                </div>
-
-                <div class="flex space-x-3 pt-2">
-                    <button type="button" @click="showModal = false" 
-                            class="w-1/3 py-3.5 font-black text-xs uppercase tracking-wider bg-[#EEEEEE] hover:bg-slate-200 text-[#1D1616] rounded-[20px] transition cursor-pointer">
-                        Tutup
-                    </button>
-                    <button type="submit" 
-                            class="w-2/3 py-3.5 font-black text-xs uppercase tracking-wider bg-[#D84040] hover:bg-[#8E1616] text-white rounded-[20px] shadow-lg shadow-[#D84040]/30 transition cursor-pointer">
-                        + Simpan Jadwal
-                    </button>
-                </div>
-            </form>
+            <div class="pt-2">
+                <button type="button" @click="showModal = false" 
+                        class="w-full py-4 font-black text-xs uppercase tracking-wider bg-[#1D1616] hover:bg-black text-white rounded-[20px] shadow-md transition cursor-pointer active:scale-98">
+                    Selesai & Tutup
+                </button>
+            </div>
 
         </div>
 
