@@ -2,7 +2,9 @@
 <div class="space-y-6 pb-20" x-data="{ 
     selectedTemplateId: '{{ $templates->first()->id ?? '' }}',
     modalNewTemplate: false,
+    modalEditTemplate: false,
     modalNewDatastream: false,
+    editTemplate: { id: '', name: '', hardware_type: '', connection_type: '', icon: '', description: '' }
 }">
 
     <!-- 1. PAGE HEADER & ACTION BUTTONS -->
@@ -83,13 +85,32 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2.5 shrink-0">
+                    <div class="flex items-center gap-2 shrink-0">
                         <button @click="modalNewDatastream = true"
                                 type="button"
                                 class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#D84040] to-[#8E1616] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:opacity-95 transition cursor-pointer flex items-center gap-1.5 active:scale-95">
                             <span>+ Add Datastream</span>
                         </button>
 
+                        <!-- Rename / Edit Button -->
+                        <button @click="editTemplate = {
+                                    id: '{{ $tmpl->id }}',
+                                    name: '{{ addslashes($tmpl->name) }}',
+                                    hardware_type: '{{ addslashes($tmpl->hardware_type) }}',
+                                    connection_type: '{{ addslashes($tmpl->connection_type) }}',
+                                    icon: '{{ addslashes($tmpl->icon ?? '⚡') }}',
+                                    description: '{{ addslashes($tmpl->description ?? '') }}'
+                                }; modalEditTemplate = true"
+                                type="button"
+                                class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition cursor-pointer flex items-center gap-1 text-xs font-bold"
+                                title="Rename / Edit Informasi Template">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                            <span class="hidden sm:inline">Rename</span>
+                        </button>
+
+                        <!-- Delete Button -->
                         <form action="{{ route('templates.destroy', $tmpl->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus Template {{ $tmpl->name }} beserta seluruh Datastreams-nya?')">
                             @csrf
                             @method('DELETE')
@@ -247,7 +268,80 @@
     </div>
 
 
-    <!-- ================= MODAL 2: TAMBAH DATASTREAM (VIRTUAL PIN) ================= -->
+    <!-- ================= MODAL 2: EDIT / RENAME TEMPLATE ================= -->
+    <div x-show="modalEditTemplate" 
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100">
+        
+        <div @click.away="modalEditTemplate = false" 
+             class="bg-white rounded-[40px] p-7 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 space-y-5 relative max-h-[90vh] overflow-y-auto">
+            
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-[20px] bg-[#8E1616]/10 text-[#8E1616] flex items-center justify-center font-black text-xl">
+                        ✏️
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-black text-[#1D1616]">Rename & Edit Template</h4>
+                        <p class="text-xs text-slate-500">Perbarui nama dan konfigurasi blueprint</p>
+                    </div>
+                </div>
+                <button @click="modalEditTemplate = false" class="text-slate-400 hover:text-[#8E1616] text-2xl font-bold cursor-pointer">&times;</button>
+            </div>
+
+            <form :action="'/templates/' + editTemplate.id" method="POST" class="space-y-4">
+                @csrf
+                @method('PUT')
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Nama Template *</label>
+                    <input type="text" name="name" x-model="editTemplate.name" required class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Tipe Hardware *</label>
+                        <select name="hardware_type" x-model="editTemplate.hardware_type" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#8E1616] outline-none">
+                            <option value="Raspberry Pi 3B+">Raspberry Pi 3B+</option>
+                            <option value="Raspberry Pi 4 Model B">Raspberry Pi 4 Model B</option>
+                            <option value="ESP32 Dual-Core IoT">ESP32 Dual-Core IoT</option>
+                            <option value="Industrial PLC Gateway">Industrial PLC Gateway</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Tipe Koneksi *</label>
+                        <select name="connection_type" x-model="editTemplate.connection_type" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#8E1616] outline-none">
+                            <option value="MQTT Broker (TCP 1883)">MQTT Broker (TCP 1883)</option>
+                            <option value="WiFi (IEEE 802.11 b/g/n)">WiFi (IEEE 802.11 b/g/n)</option>
+                            <option value="Ethernet LAN">Ethernet LAN</option>
+                            <option value="RS485 Modbus RTU">RS485 Modbus RTU</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Ikon</label>
+                    <input type="text" name="icon" x-model="editTemplate.icon" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Deskripsi Template</label>
+                    <textarea name="description" x-model="editTemplate.description" rows="2" class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none"></textarea>
+                </div>
+
+                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+                    <button @click="modalEditTemplate = false" type="button" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-[#8E1616] to-[#1D1616] text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Perbarui Template</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ================= MODAL 3: TAMBAH DATASTREAM (VIRTUAL PIN) ================= -->
     <div x-show="modalNewDatastream" 
          x-cloak
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"

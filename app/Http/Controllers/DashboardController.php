@@ -525,11 +525,12 @@ class DashboardController extends Controller
             'name' => 'required|string|max:100',
             'hardware_type' => 'required|string|max:100',
             'connection_type' => 'required|string|max:100',
+            'icon' => 'nullable|string|max:10',
             'description' => 'nullable|string',
         ]);
 
         $template = Template::findOrFail($id);
-        $template->update($request->only('name', 'hardware_type', 'connection_type', 'description'));
+        $template->update($request->only('name', 'hardware_type', 'connection_type', 'icon', 'description'));
 
         return redirect()->back()->with('success', "Template {$template->name} berhasil diperbarui!");
     }
