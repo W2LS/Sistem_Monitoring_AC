@@ -716,10 +716,10 @@ class DashboardController extends Controller
             ]);
         }
 
-        if ($type === 'pindad_ac' || $type === 'legacy') {
-            $path = base_path('scripts/pindad_ac_monitoring.py');
-            return response()->download($path, 'pindad_ac_monitoring.py', [
-                'Content-Type' => 'text/x-python',
+        if ($type === 'setup' || $type === 'sh') {
+            $path = base_path('scripts/setup_raspberry_pi.sh');
+            return response()->download($path, 'setup_raspberry_pi.sh', [
+                'Content-Type' => 'text/x-sh',
             ]);
         }
 
