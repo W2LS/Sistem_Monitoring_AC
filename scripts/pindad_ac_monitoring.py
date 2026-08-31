@@ -2,6 +2,7 @@ import time
 import math
 import random
 import json
+import threading
 import board
 import busio
 import RPi.GPIO as GPIO
@@ -24,7 +25,7 @@ def login_sophos_firewall():
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
 
-        # 1. Reset Sesi Lama (Logout)
+        # 1. Reset Sesi Lama
         logout_data = urllib.parse.urlencode({'mode': 192, 'username': SOPHOS_USER}).encode('utf-8')
         req_out = urllib.request.Request(SOPHOS_URL, data=logout_data, headers={'User-Agent': 'Mozilla/5.0'})
         try:
@@ -34,7 +35,7 @@ def login_sophos_firewall():
 
         time.sleep(0.5)
 
-        # 2. Login Sesi Baru untuk Raspberry Pi
+        # 2. Login Sesi Baru
         login_data = urllib.parse.urlencode({
             'mode': 191,
             'username': SOPHOS_USER,
@@ -56,7 +57,7 @@ BLYNK_AUTH_TOKEN = "2zT3Crp6HA5DZQaxI26aftTrFUAuwo3F"
 BLYNK_MQTT_HOST  = "blynk.cloud"
 BLYNK_MQTT_PORT  = 1883
 
-# ================= KONFIGURASI PIN & MQTT LOKAL =================
+# ================= KONFIGURASI PIN & PARAMETER =================
 RELAY1_PIN = 17  # GPIO 17 - AC 1 / Lampu Panel Bawah
 RELAY2_PIN = 27  # GPIO 27 - AC 2 / Lampu Panel Atas
 
@@ -68,15 +69,20 @@ TOPIC_SUB_LOCAL  = "pindad/ac/schedule"
 INTERVAL_TELEMETRI  = 30
 SENSITIVITAS_ACS712 = 0.185
 
-# ================= SETUP GPIO & RELAY =================
+# DURASI KEDUA AC MENYALA SAAT BOOT / LISTRIK PULIH (300 Detik = 5 Menit)
+DURASI_TURBO_COOLING_DETIK = 300
+is_turbo_cooling_active = True
+
+# ================= SETUP GPIO & FAIL-SAFE BOOT RECOVERY =================
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 GPIO.setup(RELAY1_PIN, GPIO.OUT)
 GPIO.setup(RELAY2_PIN, GPIO.OUT)
 
-# Kondisi Awal: LOW = MATI (OFF)
-GPIO.output(RELAY1_PIN, GPIO.LOW)
-GPIO.output(RELAY2_PIN, GPIO.LOW)
+# KONDISI AWAL SAAT BOOT / LISTRIK PULIH: KEDUA AC WAJIB MENYALA (FULL COOLING ON)
+GPIO.output(RELAY1_PIN, GPIO.HIGH)
+GPIO.output(RELAY2_PIN, GPIO.HIGH)
+print("❄️ [EMERGENCY TURBO COOLING] Listrik Pulih / Booting: AC 1 & AC 2 MENYALA KEDUANYA!")
 
 # ================= SETUP I2C, ADS1115 & RTC DS3231 =================
 i2c = busio.I2C(board.SCL, board.SDA)
@@ -96,14 +102,17 @@ except Exception as e:
     has_rtc = False
     print(f"[RTC WARNING] {e}. Menggunakan waktu sistem OS.")
 
-def get_current_timestamp():
+def get_current_time_tuple():
     if has_rtc:
         try:
-            t = rtc.datetime
-            return f"{t.tm_year:04d}-{t.tm_mon:02d}-{t.tm_mday:02d} {t.tm_hour:02d}:{t.tm_min:02d}:{t.tm_sec:02d}"
+            return rtc.datetime
         except Exception:
             pass
-    return time.strftime("%Y-%m-%d %H:%M:%S")
+    return time.localtime()
+
+def get_current_timestamp():
+    t = get_current_time_tuple()
+    return f"{t.tm_year:04d}-{t.tm_mon:02d}-{t.tm_mday:02d} {t.tm_hour:02d}:{t.tm_min:02d}:{t.tm_sec:02d}"
 
 # ================= FUNGSI HITUNG ARUS HYBRID =================
 def hitung_arus_hybrid(channel, is_relay_on, ac_nominal=2.15):
@@ -168,7 +177,7 @@ def kirim_telemetri_seketika():
     except Exception:
         pass
 
-    # 2. Publish ke Blynk IoT Cloud (Sesuai Nama Datastream & Virtual Pin)
+    # 2. Publish ke Blynk IoT Cloud
     try:
         client_blynk.publish("ds/Arus AC 1", str(arus_ac1))
         client_blynk.publish("ds/Arus AC 2", str(arus_ac2))
@@ -176,15 +185,38 @@ def kirim_telemetri_seketika():
         client_blynk.publish("ds/Saklar AC 1", "1" if is_ac1_on else "0")
         client_blynk.publish("ds/Saklar AC 2", "1" if is_ac2_on else "0")
         
-        # Format V0-V4
         client_blynk.publish("ds/V0", str(arus_ac1))
         client_blynk.publish("ds/V1", str(arus_ac2))
         client_blynk.publish("ds/V2", str(total_watt))
         client_blynk.publish("ds/V3", "1" if is_ac1_on else "0")
         client_blynk.publish("ds/V4", "1" if is_ac2_on else "0")
-        print("📱 [BLYNK CLOUD] Sinkronisasi data ke Smartphone Berhasil!")
-    except Exception as e:
-        print(f"[BLYNK PUB ERROR] {e}")
+    except Exception:
+        pass
+
+# ================= BACKGROUND WORKER: TIMER TURBO COOLING =================
+def turbo_cooling_timer_worker():
+    global is_turbo_cooling_active
+    print(f"⏳ [TIMER TURBO] Kedua AC menyala bersamaan selama {DURASI_TURBO_COOLING_DETIK} detik...")
+    time.sleep(DURASI_TURBO_COOLING_DETIK)
+    is_turbo_cooling_active = False
+    
+    # Evaluasi jadwal setelah 5 menit berlalu
+    t = get_current_time_tuple()
+    jam_sekarang = t.tm_hour
+    
+    print("\n⏰ [TIMER TURBO SELESAI] Masa Emergency Cooling selesai. Mengecek jam rotasi RTC DS3231...")
+    if 6 <= jam_sekarang < 18:
+        # Pukul 06:00 - 18:00 -> Shift Siang (AC 1 ON, AC 2 OFF)
+        GPIO.output(RELAY1_PIN, GPIO.HIGH)
+        GPIO.output(RELAY2_PIN, GPIO.LOW)
+        print("☀️ [ROTASI NORMAL] Kembali ke Shift Siang: AC 1 (ON), AC 2 (OFF)")
+    else:
+        # Pukul 18:00 - 06:00 -> Shift Malam (AC 2 ON, AC 1 OFF)
+        GPIO.output(RELAY1_PIN, GPIO.LOW)
+        GPIO.output(RELAY2_PIN, GPIO.HIGH)
+        print("🌙 [ROTASI NORMAL] Kembali ke Shift Malam: AC 2 (ON), AC 1 (OFF)")
+        
+    kirim_telemetri_seketika()
 
 # ================= MQTT CALLBACK UNTUK BLYNK CLOUD =================
 def on_blynk_connect(client, userdata, flags, rc, *args):
@@ -233,6 +265,7 @@ def on_local_connect(client, userdata, flags, rc, *args):
         print(f"[MQTT LOKAL ERROR] Kode: {rc}")
 
 def on_local_message(client, userdata, msg):
+    global is_turbo_cooling_active
     try:
         payload_str = msg.payload.decode("utf-8")
         print(f"\n⚡ [WEB KONTROL DITERIMA] Topik: {msg.topic} -> {payload_str}")
@@ -242,6 +275,11 @@ def on_local_message(client, userdata, msg):
             relay_num = int(data["relay"])
             command   = str(data["command"]).upper()
             target_pin = RELAY1_PIN if relay_num == 1 else RELAY2_PIN
+
+            # Proteksi Turbo Cooling: Jangan biarkan jadwal mematikan AC selama 5 menit pendinginan darurat
+            if is_turbo_cooling_active and command == "OFF":
+                print(f"❄️ [TURBO LOCK] Menjaga AC {relay_num} tetap ON selama masa pendinginan darurat 5 menit pasca-boot!")
+                return
             
             if command == "ON":
                 GPIO.output(target_pin, GPIO.HIGH)
@@ -290,6 +328,9 @@ try:
     client_blynk.loop_start()
 except Exception as e:
     print(f"[BLYNK WARNING] Gagal menghubungkan ke Blynk Cloud: {e}")
+
+# Jalankan background timer turbo cooling
+threading.Thread(target=turbo_cooling_timer_worker, daemon=True).start()
 
 # Kirim status awal
 kirim_telemetri_seketika()
