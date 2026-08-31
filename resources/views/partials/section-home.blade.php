@@ -191,22 +191,20 @@
                     <div class="mt-5 pt-4 border-t border-slate-100 flex items-center gap-2">
                         <a href="{{ route('dashboard', ['device_id' => $dev->device_id]) }}" 
                            @click="setView('detail')"
-                           class="flex-1 py-3 px-4 rounded-2xl text-center font-black text-xs uppercase tracking-wider bg-[#1D1616] hover:bg-[#8E1616] text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-                            <span>Buka Kontrol & Jadwal</span>
-                            <span>➔</span>
+                           class="flex-1 py-3 px-3.5 rounded-2xl text-center font-black text-xs uppercase tracking-wider bg-[#1D1616] hover:bg-[#8E1616] text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 overflow-hidden">
+                            <span class="whitespace-nowrap">Buka Kontrol & Jadwal</span>
+                            <span class="shrink-0">➔</span>
                         </a>
 
-                        @if($dev->device_id !== 'RPI3B_PINDAD_ROOM_1')
-                        <form action="{{ route('devices.destroy', $dev->id) }}" method="POST" onsubmit="return confirm('Hapus perangkat {{ $dev->name }}?')">
+                        <form action="{{ route('devices.destroy', $dev->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus perangkat {{ $dev->name }}?')">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="p-3 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-600 transition cursor-pointer" title="Hapus Perangkat">
+                            <button type="submit" class="p-3 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition cursor-pointer active:scale-95" title="Hapus Perangkat">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                             </button>
                         </form>
-                        @endif
                     </div>
                 </div>
                 @endforeach

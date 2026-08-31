@@ -460,9 +460,6 @@ class DashboardController extends Controller
     public function deleteDevice(string $id)
     {
         $device = Device::findOrFail($id);
-        if ($device->device_id === 'RPI3B_PINDAD_ROOM_1') {
-            return redirect()->back()->with('error', 'Node kontroler utama tidak dapat dihapus!');
-        }
         $name = $device->name;
         $device->delete();
 
