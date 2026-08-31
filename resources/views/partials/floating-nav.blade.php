@@ -1,9 +1,9 @@
-    <!-- FLOATING BOTTOM NAVIGATION BAR (PINDAD INDUSTRIAL PALETTE: #1D1616, #8E1616, #D84040, #EEEEEE) -->
+<!-- FLOATING BOTTOM NAVIGATION BAR (4 MODUL BLYNK IOT ENGINE) -->
 <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md">
     
     <div class="bg-[#1D1616] h-16 rounded-[32px] px-4 flex items-center justify-between shadow-[0_20px_50px_-12px_rgba(29,22,22,0.5)] border border-[#8E1616]/30 relative">
         
-        <!-- 1. HOME ICON (DASHBOARD) -->
+        <!-- 1. HOME ICON (UNIVERSAL IOT FLEET OVERVIEW & DRILLDOWN) -->
         <button 
             @click="activeTab = 'home'" 
             type="button"
@@ -15,19 +15,19 @@
             <span class="text-[9px] font-black uppercase tracking-wider mt-0.5" :class="activeTab === 'home' ? 'text-[#D84040]' : 'text-[#EEEEEE]/50'">Home</span>
         </button>
 
-        <!-- 2. CLOCK ICON (PENJADWALAN) -->
+        <!-- 2. DEVELOPER ZONE (TEMPLATES & DATASTREAMS ALA BLYNK IOT) -->
         <button 
-            @click="activeTab = 'search'" 
+            @click="activeTab = 'devzone'" 
             type="button"
             class="w-12 h-12 rounded-full flex flex-col items-center justify-center transition-all cursor-pointer group"
-            :class="activeTab === 'search' ? 'text-white' : 'text-[#EEEEEE]/50 hover:text-white'">
+            :class="activeTab === 'devzone' ? 'text-white' : 'text-[#EEEEEE]/50 hover:text-white'">
             <svg class="w-6 h-6 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
             </svg>
-            <span class="text-[9px] font-black uppercase tracking-wider mt-0.5" :class="activeTab === 'search' ? 'text-[#D84040]' : 'text-[#EEEEEE]/50'">Jadwal</span>
+            <span class="text-[9px] font-black uppercase tracking-wider mt-0.5" :class="activeTab === 'devzone' ? 'text-[#D84040]' : 'text-[#EEEEEE]/50'">DevZone</span>
         </button>
 
-        <!-- 3. CENTER ACTION BUTTON (FAB) CUTOUT: ICON LAMPU PINTAR (#D84040 with 4px #EEEEEE border) -->
+        <!-- 3. CENTER ACTION BUTTON (FAB) CUTOUT: QUICK ACTION MODAL -->
         <div class="relative -top-6 flex items-center justify-center">
             <button 
                 @click="modalFabOpen = true" 
@@ -40,7 +40,7 @@
             </button>
         </div>
 
-        <!-- 4. BOOK ICON (LOG TELEMETRI AC1 VS AC2) -->
+        <!-- 4. LOG TELEMETRI & SENSOR AUDIT -->
         <button 
             @click="activeTab = 'book'" 
             type="button"
@@ -52,7 +52,7 @@
             <span class="text-[9px] font-black uppercase tracking-wider mt-0.5" :class="activeTab === 'book' ? 'text-[#D84040]' : 'text-[#EEEEEE]/50'">Log AC</span>
         </button>
 
-        <!-- 5. SISTEM ICON (INFORMASI SISTEM & HARDWARE) -->
+        <!-- 5. AKUN & SISTEM INFORMASI -->
         <button 
             @click="activeTab = 'akun'" 
             type="button"

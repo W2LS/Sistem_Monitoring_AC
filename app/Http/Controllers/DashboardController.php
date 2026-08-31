@@ -6,9 +6,12 @@ use Illuminate\Http\Request;
 use App\Models\AcLog;
 use App\Models\Schedule;
 use App\Models\Device;
+use App\Models\Template;
+use App\Models\User;
 use App\Services\MqttService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 class DashboardController extends Controller
 {
@@ -61,31 +64,18 @@ class DashboardController extends Controller
     }
 
     /**
-     * Display the dashboard page with Multi-Device Fleet support.
+     * Display the dashboard page with Multi-Device Fleet & Blynk Developer Zone support.
      */
     public function index(Request $request)
     {
-        // Ensure default devices exist
+        // 1. Fetch Devices & Templates
         $devices = Device::all();
-        if ($devices->isEmpty()) {
-            Device::create([
-                'device_id' => 'RPI3B_PINDAD_ROOM_1',
-                'name' => 'Ruang Server Utama (Lt. 1)',
-                'location' => 'Gedung Divisi Mutu & TI',
-                'ip_address' => '192.168.197.64',
-                'hardware_type' => 'Raspberry Pi 3B+',
-                'status' => 'online',
-                'auth_token' => '2zT3Crp6HA5DZQaxI26aftTrFUAuwo3F',
-                'num_ac' => 2,
-                'description' => 'Sistem pemantauan 2 unit pendingin Panasonic server utama.'
-            ]);
-            $devices = Device::all();
-        }
+        $templates = Template::all();
 
         $selectedDeviceId = $request->query('device_id', $devices->first()->device_id ?? 'RPI3B_PINDAD_ROOM_1');
         $currentDevice = $devices->firstWhere('device_id', $selectedDeviceId) ?? $devices->first();
 
-        // Get the latest log for AC 1 and AC 2 filtered by selected device
+        // 2. Fetch Latest Telemetry for AC 1 and AC 2
         $latestAc1 = AcLog::where('device_id', $selectedDeviceId)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
         if (!$latestAc1) {
             $latestAc1 = AcLog::where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
@@ -95,11 +85,18 @@ class DashboardController extends Controller
             $latestAc2 = AcLog::where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
         }
 
-        // Get recent logs separated for AC1 and AC2
-        $recentLogsAll = AcLog::where('device_id', $selectedDeviceId)->latest('recorded_at')->take(50)->get();
+        // 3. Fetch Recent Telemetry Logs for Charts & Tables
+        $filterDevice = $request->query('filter_device', $selectedDeviceId);
+        
+        $queryLogs = AcLog::query();
+        if ($filterDevice && $filterDevice !== 'all') {
+            $queryLogs->where('device_id', $filterDevice);
+        }
+        $recentLogsAll = $queryLogs->latest('recorded_at')->take(50)->get();
         if ($recentLogsAll->isEmpty()) {
             $recentLogsAll = AcLog::latest('recorded_at')->take(50)->get();
         }
+
         $recentLogsAc1 = AcLog::where('device_id', $selectedDeviceId)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->take(50)->get();
         if ($recentLogsAc1->isEmpty()) {
             $recentLogsAc1 = AcLog::where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->take(50)->get();
@@ -109,8 +106,12 @@ class DashboardController extends Controller
             $recentLogsAc2 = AcLog::where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->take(50)->get();
         }
 
-        // Calculate dynamic real-time stats for each device in the fleet
+        // 4. Calculate Fleet Real-Time Summary Stats
         $fleetStats = [];
+        $totalFleetWatt = 0;
+        $totalFleetCurrent = 0;
+        $onlineCount = 0;
+
         foreach ($devices as $dev) {
             $devLast = AcLog::where('device_id', $dev->device_id)->latest('recorded_at')->first();
             $isDevOnline = false;
@@ -119,30 +120,48 @@ class DashboardController extends Controller
             } elseif ($dev->device_id === 'RPI3B_PINDAD_ROOM_1') {
                 $anyLast = AcLog::latest('recorded_at')->first();
                 $isDevOnline = $anyLast && Carbon::parse($anyLast->recorded_at)->diffInSeconds(now()) <= 60;
+            } elseif ($dev->type === 'smart_lighting' || $dev->status === 'online') {
+                $isDevOnline = true;
+            }
+
+            if ($isDevOnline) {
+                $onlineCount++;
             }
 
             $devAc1 = AcLog::where('device_id', $dev->device_id)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
             $devAc2 = AcLog::where('device_id', $dev->device_id)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
-            $c1 = $devAc1 ? (float)$devAc1->current_ampere : 0.0;
-            $c2 = $devAc2 ? (float)$devAc2->current_ampere : 0.0;
-            $w = round(($c1 + $c2) * 220);
+            $c1 = $devAc1 ? (float)$devAc1->current_ampere : ($dev->current_values['V2'] ?? 0.0);
+            $c2 = $devAc2 ? (float)$devAc2->current_ampere : ($dev->current_values['V3'] ?? 0.0);
+            $w = $dev->current_values['V4'] ?? round(($c1 + $c2) * 220);
+            if ($dev->type === 'smart_lighting') {
+                $w = $dev->current_values['V2'] ?? 120;
+                $c1 = round($w / 220, 2);
+            }
+
+            $totalFleetWatt += $w;
+            $totalFleetCurrent += ($c1 + $c2);
 
             $fleetStats[$dev->device_id] = [
                 'is_online' => $isDevOnline,
                 'total_watt' => $w,
                 'total_current' => round($c1 + $c2, 2),
-                'last_seen' => $devLast ? Carbon::parse($devLast->recorded_at)->diffForHumans() : 'Standby',
+                'last_seen' => $devLast ? Carbon::parse($devLast->recorded_at)->diffForHumans() : ($isDevOnline ? 'Online' : 'Standby'),
             ];
         }
 
-        // Get all schedules
+        // 5. Schedules for the selected device
         $schedules = Schedule::orderBy('start_time')->get();
         $shiftAc1 = $this->getActiveShiftText(1);
         $shiftAc2 = $this->getActiveShiftText(2);
 
+        // 6. User Profile
+        $user = auth()->user() ?? User::first();
+
         return view('dashboard', compact(
             'latestAc1', 'latestAc2', 'recentLogsAll', 'recentLogsAc1', 'recentLogsAc2', 
-            'schedules', 'shiftAc1', 'shiftAc2', 'devices', 'selectedDeviceId', 'currentDevice', 'fleetStats'
+            'schedules', 'shiftAc1', 'shiftAc2', 'devices', 'templates', 'selectedDeviceId', 
+            'currentDevice', 'fleetStats', 'totalFleetWatt', 'totalFleetCurrent', 'onlineCount', 
+            'filterDevice', 'user'
         ));
     }
 
@@ -151,336 +170,528 @@ class DashboardController extends Controller
      */
     public function apiLogs(Request $request)
     {
-        $selectedDeviceId = $request->query('device_id', 'RPI3B_PINDAD_ROOM_1');
+        $deviceId = $request->query('device_id', 'RPI3B_PINDAD_ROOM_1');
 
-        $latestAc1 = AcLog::where('device_id', $selectedDeviceId)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
+        $latestAc1 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
         if (!$latestAc1) {
             $latestAc1 = AcLog::where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
         }
-        $latestAc2 = AcLog::where('device_id', $selectedDeviceId)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
+        $latestAc2 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
         if (!$latestAc2) {
             $latestAc2 = AcLog::where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
         }
 
-        $currentAc1 = $latestAc1 ? (float) $latestAc1->current_ampere : 0.0000;
-        $currentAc2 = $latestAc2 ? (float) $latestAc2->current_ampere : 0.0000;
-        $totalCurrent = round($currentAc1 + $currentAc2, 4);
-        $estimatedWatt = round($totalCurrent * 220);
-
-        // Check if device is actively sending telemetry (within last 60 seconds)
-        $latestAny = AcLog::where('device_id', $selectedDeviceId)->latest('recorded_at')->first() ?? AcLog::latest('recorded_at')->first();
-        $isDeviceOnline = false;
-        if ($latestAny && $latestAny->recorded_at) {
-            $secondsAgo = Carbon::parse($latestAny->recorded_at)->diffInSeconds(now());
-            $isDeviceOnline = $secondsAgo <= 60;
+        $logsAc1 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->take(10)->get()->reverse();
+        if ($logsAc1->isEmpty()) {
+            $logsAc1 = AcLog::where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->take(10)->get()->reverse();
         }
-
-        // Take the latest 15 distinct chronological timestamps for Chart.js
-        $logs = AcLog::where('device_id', $selectedDeviceId)->latest('recorded_at')->take(30)->get()->reverse()->values();
-        if ($logs->isEmpty()) {
-            $logs = AcLog::latest('recorded_at')->take(30)->get()->reverse()->values();
+        $logsAc2 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->take(10)->get()->reverse();
+        if ($logsAc2->isEmpty()) {
+            $logsAc2 = AcLog::where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->take(10)->get()->reverse();
         }
 
         $chartLabels = [];
-        $ac1Points = [];
-        $ac2Points = [];
+        $chartDataAc1 = [];
+        $chartDataAc2 = [];
 
-        foreach ($logs as $log) {
-            $timeLabel = Carbon::parse($log->recorded_at)->format('H:i:s');
-            if (!in_array($timeLabel, $chartLabels)) {
-                $chartLabels[] = $timeLabel;
-            }
+        foreach ($logsAc1 as $log) {
+            $chartLabels[] = Carbon::parse($log->recorded_at)->setTimezone('Asia/Jakarta')->format('H:i:s');
+            $chartDataAc1[] = (float) $log->current_ampere;
         }
-        $chartLabels = array_slice($chartLabels, -12);
 
-        foreach ($chartLabels as $label) {
-            $match1 = $logs->first(function ($l) use ($label) {
-                return Carbon::parse($l->recorded_at)->format('H:i:s') === $label && str_contains($l->active_ac, 'AC_1');
-            });
-            $match2 = $logs->first(function ($l) use ($label) {
-                return Carbon::parse($l->recorded_at)->format('H:i:s') === $label && str_contains($l->active_ac, 'AC_2');
-            });
-
-            $ac1Points[] = $match1 ? (float) $match1->current_ampere : $currentAc1;
-            $ac2Points[] = $match2 ? (float) $match2->current_ampere : $currentAc2;
+        foreach ($logsAc2 as $log) {
+            $chartDataAc2[] = (float) $log->current_ampere;
         }
+
+        $isLive = false;
+        if ($latestAc1 && $latestAc1->recorded_at) {
+            $isLive = Carbon::parse($latestAc1->recorded_at)->diffInSeconds(now()) <= 30;
+        }
+
+        $c1 = $latestAc1 ? (float)$latestAc1->current_ampere : 0.0;
+        $c2 = $latestAc2 ? (float)$latestAc2->current_ampere : 0.0;
+        $totalCurrent = round($c1 + $c2, 4);
+        $totalWatt = round($totalCurrent * 220);
 
         return response()->json([
             'status' => 'success',
-            'device_id' => $selectedDeviceId,
-            'latest_ac1' => $latestAc1 ? [
-                'active_ac' => $latestAc1->active_ac,
-                'current_ampere' => $currentAc1,
-                'recorded_at' => Carbon::parse($latestAc1->recorded_at)->format('H:i:s'),
-                'is_on' => str_contains($latestAc1->active_ac, 'ON'),
-            ] : null,
-            'latest_ac2' => $latestAc2 ? [
-                'active_ac' => $latestAc2->active_ac,
-                'current_ampere' => $currentAc2,
-                'recorded_at' => Carbon::parse($latestAc2->recorded_at)->format('H:i:s'),
-                'is_on' => str_contains($latestAc2->active_ac, 'ON'),
-            ] : null,
-            'shift_ac1' => $this->getActiveShiftText(1),
-            'shift_ac2' => $this->getActiveShiftText(2),
-            'total_current' => $totalCurrent,
-            'estimated_watt' => $estimatedWatt,
-            'device_online' => $isDeviceOnline,
-            'chart' => [
+            'is_live' => $isLive,
+            'device_id' => $deviceId,
+            'ac1' => [
+                'current' => $latestAc1 ? (float)$latestAc1->current_ampere : 0.0,
+                'status' => ($latestAc1 && str_contains($latestAc1->active_ac, 'ON')) ? 'ON' : 'OFF',
+                'raw_active_ac' => $latestAc1 ? $latestAc1->active_ac : 'AC_1_OFF',
+                'watt' => round(($latestAc1 ? (float)$latestAc1->current_ampere : 0.0) * 220),
+                'shift' => $this->getActiveShiftText(1),
+                'timestamp' => $latestAc1 ? Carbon::parse($latestAc1->recorded_at)->setTimezone('Asia/Jakarta')->format('d M Y - H:i:s WIB') : '-',
+            ],
+            'ac2' => [
+                'current' => $latestAc2 ? (float)$latestAc2->current_ampere : 0.0,
+                'status' => ($latestAc2 && str_contains($latestAc2->active_ac, 'ON')) ? 'ON' : 'OFF',
+                'raw_active_ac' => $latestAc2 ? $latestAc2->active_ac : 'AC_2_OFF',
+                'watt' => round(($latestAc2 ? (float)$latestAc2->current_ampere : 0.0) * 220),
+                'shift' => $this->getActiveShiftText(2),
+                'timestamp' => $latestAc2 ? Carbon::parse($latestAc2->recorded_at)->setTimezone('Asia/Jakarta')->format('d M Y - H:i:s WIB') : '-',
+            ],
+            'summary' => [
+                'total_current' => $totalCurrent,
+                'total_watt' => $totalWatt,
+            ],
+            'charts' => [
                 'labels' => $chartLabels,
-                'ac1' => $ac1Points,
-                'ac2' => $ac2Points
+                'ac1' => $chartDataAc1,
+                'ac2' => $chartDataAc2,
             ]
         ]);
     }
 
     /**
-     * Toggle AC relay manually via MQTT.
+     * Handle manual AC control toggle command via MQTT.
      */
     public function toggleAc(Request $request)
     {
         $request->validate([
-            'relay' => 'required|integer|in:1,2',
-            'command' => 'required|string|in:ON,OFF'
+            'ac_number' => 'required|integer|in:1,2',
+            'state' => 'required|string|in:ON,OFF',
+            'device_id' => 'nullable|string',
         ]);
 
-        $relay = (int) $request->input('relay');
-        $command = strtoupper($request->input('command'));
+        $acNumber = $request->input('ac_number');
+        $state = $request->input('state');
         $deviceId = $request->input('device_id', 'RPI3B_PINDAD_ROOM_1');
 
-        $payload = json_encode([
-            'relay' => $relay,
-            'command' => $command,
+        $topic = "pindad/ac/control";
+        $payload = [
             'device_id' => $deviceId,
-            'source' => 'manual'
-        ]);
+            'command' => "AC_{$acNumber}_{$state}",
+            'ac_number' => $acNumber,
+            'state' => $state,
+            'source' => 'manual',
+            'timestamp' => Carbon::now('Asia/Jakarta')->toIso8601String(),
+        ];
 
-        AcLog::create([
-            'device_id' => $deviceId,
-            'active_ac' => "AC_{$relay}_{$command}",
-            'current_ampere' => ($command === 'ON' ? 2.1500 : 0.0000),
-            'recorded_at' => Carbon::now(),
-        ]);
+        $published = $this->mqttService->publish($topic, json_encode($payload));
 
-        $success = false;
-        try {
-            $success = $this->mqttService->publish('pindad/ac/schedule', $payload, 1);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning("MQTT Publish non-fatal error: " . $e->getMessage());
+        // Update virtual pin in Device model
+        $dev = Device::where('device_id', $deviceId)->first();
+        if ($dev) {
+            $vals = $dev->current_values ?? [];
+            $vals["V" . ($acNumber - 1)] = ($state === 'ON' ? 1 : 0);
+            $dev->current_values = $vals;
+            $dev->save();
         }
 
-        return response()->json([
-            'status' => 'success', 
-            'mqtt_sent' => $success,
-            'relay' => $relay,
-            'command' => $command,
-            'device_id' => $deviceId
-        ]);
+        return redirect()->route('dashboard', ['device_id' => $deviceId])
+            ->with('success', "Perintah manual AC {$acNumber} ({$state}) berhasil dipublikasikan ke {$deviceId}!");
     }
 
     /**
-     * Store a newly created schedule.
+     * Handle generic Datastream toggle (for smart lighting, data center, etc.).
+     */
+    public function toggleStream(Request $request)
+    {
+        $request->validate([
+            'device_id' => 'required|string',
+            'pin' => 'required|string',
+            'value' => 'required',
+        ]);
+
+        $deviceId = $request->input('device_id');
+        $pin = $request->input('pin');
+        $value = (int)$request->input('value');
+
+        $dev = Device::where('device_id', $deviceId)->first();
+        if ($dev) {
+            $vals = $dev->current_values ?? [];
+            $vals[$pin] = $value;
+            $dev->current_values = $vals;
+            $dev->save();
+        }
+
+        // Publish to MQTT
+        $payload = [
+            'device_id' => $deviceId,
+            'pin' => $pin,
+            'value' => $value,
+            'timestamp' => now()->toIso8601String(),
+        ];
+        $this->mqttService->publish("pindad/devices/{$deviceId}/stream", json_encode($payload));
+
+        return redirect()->back()->with('success', "Saklar {$pin} pada perangkat {$dev->name} berhasil diperbarui!");
+    }
+
+    /**
+     * Store new Schedule.
      */
     public function storeSchedule(Request $request)
     {
         $request->validate([
             'label' => 'required|string|max:100',
-            'start_time' => 'required',
-            'end_time' => 'required',
             'target_ac' => 'nullable|string|in:1,2,all',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i',
+            'device_id' => 'nullable|string',
         ]);
 
         Schedule::create([
             'label' => $request->input('label'),
-            'start_time' => $request->input('start_time'),
-            'end_time' => $request->input('end_time'),
             'target_ac' => $request->input('target_ac', 'all'),
-            'is_active' => true
+            'start_time' => $request->input('start_time') . ':00',
+            'end_time' => $request->input('end_time') . ':00',
+            'is_active' => true,
+            'device_id' => $request->input('device_id', 'RPI3B_PINDAD_ROOM_1'),
         ]);
 
-        return redirect()->back()->with('success', 'Jadwal baru berhasil disimpan!');
+        return redirect()->route('dashboard', ['device_id' => $request->input('device_id', 'RPI3B_PINDAD_ROOM_1')])
+            ->with('success', 'Aturan jadwal rotasi berhasil ditambahkan.');
     }
 
     /**
-     * Update an existing schedule.
+     * Update Schedule.
      */
-    public function updateSchedule(Request $request, $id)
+    public function updateSchedule(Request $request, string $id)
     {
         $request->validate([
             'label' => 'required|string|max:100',
-            'start_time' => 'required',
-            'end_time' => 'required',
             'target_ac' => 'nullable|string|in:1,2,all',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i',
         ]);
 
         $schedule = Schedule::findOrFail($id);
         $schedule->update([
             'label' => $request->input('label'),
-            'start_time' => $request->input('start_time'),
-            'end_time' => $request->input('end_time'),
             'target_ac' => $request->input('target_ac', 'all'),
+            'start_time' => $request->input('start_time') . ':00',
+            'end_time' => $request->input('end_time') . ':00',
         ]);
 
-        return redirect()->back()->with('success', 'Aturan jadwal berhasil diperbarui!');
+        return redirect()->back()->with('success', 'Jadwal rotasi AC berhasil diperbarui.');
     }
 
     /**
-     * Toggle the status of a schedule.
+     * Toggle Schedule active state.
      */
-    public function toggleSchedule($id)
+    public function toggleSchedule(string $id)
     {
         $schedule = Schedule::findOrFail($id);
         $schedule->is_active = !$schedule->is_active;
         $schedule->save();
 
-        return redirect()->back()->with('success', 'Status jadwal berhasil diubah!');
+        return redirect()->back()->with('success', 'Status jadwal berhasil diubah.');
     }
 
     /**
-     * Delete a schedule.
+     * Delete Schedule.
      */
-    public function deleteSchedule($id)
+    public function deleteSchedule(string $id)
     {
         $schedule = Schedule::findOrFail($id);
         $schedule->delete();
 
-        return redirect()->back()->with('success', 'Jadwal berhasil dihapus!');
+        return redirect()->back()->with('success', 'Jadwal berhasil dihapus.');
     }
 
     /**
-     * Store a newly created IoT Device in Fleet.
+     * Store new Device.
      */
     public function storeDevice(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:150',
-            'location' => 'required|string|max:150',
-            'device_id' => 'required|string|max:100',
+            'name' => 'required|string|max:100',
+            'location' => 'required|string|max:100',
+            'device_id' => 'required|string|max:50|unique:devices,device_id',
+            'template_id' => 'nullable|string',
+            'type' => 'nullable|string',
             'ip_address' => 'nullable|string|max:50',
-            'hardware_type' => 'nullable|string|max:100',
-            'num_ac' => 'nullable|integer|min:1|max:8',
-            'description' => 'nullable|string|max:300',
+            'hardware_type' => 'nullable|string|max:50',
+            'num_ac' => 'nullable|integer|min:0|max:8',
+            'description' => 'nullable|string',
         ]);
 
-        $deviceId = strtoupper(str_replace([' ', '-'], '_', $request->input('device_id')));
+        $template = Template::find($request->input('template_id'));
 
         Device::create([
+            'device_id' => strtoupper(Str::slug($request->input('device_id'), '_')),
+            'template_id' => $request->input('template_id'),
             'name' => $request->input('name'),
+            'type' => $request->input('type') ?? ($template ? ($template->name === 'Smart Industrial Lighting' ? 'smart_lighting' : 'ac_monitoring') : 'general_iot'),
+            'icon' => $template->icon ?? '⚡',
             'location' => $request->input('location'),
-            'device_id' => $deviceId,
             'ip_address' => $request->input('ip_address', '192.168.196.x'),
             'hardware_type' => $request->input('hardware_type', 'Raspberry Pi 3B+'),
             'status' => 'standby',
-            'auth_token' => 'PINDAD_' . strtoupper(Str::random(16)),
-            'num_ac' => (int) $request->input('num_ac', 2),
-            'description' => $request->input('description', 'Unit monitoring pendingin ruangan server PT PINDAD.'),
+            'auth_token' => Str::random(32),
+            'num_ac' => $request->input('num_ac', 2),
+            'description' => $request->input('description', ''),
+            'current_values' => ['V0' => 0, 'V1' => 0, 'V2' => 0, 'V3' => 0, 'V4' => 0],
         ]);
 
-        return redirect()->back()->with('success', 'Perangkat IoT baru berhasil didaftarkan ke Fleet Platform!');
+        return redirect()->route('dashboard')->with('success', "Node perangkat {$request->input('name')} berhasil didaftarkan!");
     }
 
     /**
-     * Update an existing IoT Device in Fleet.
+     * Update Device.
      */
-    public function updateDevice(Request $request, $id)
+    public function updateDevice(Request $request, string $id)
     {
         $request->validate([
-            'name' => 'required|string|max:150',
-            'location' => 'required|string|max:150',
+            'name' => 'required|string|max:100',
+            'location' => 'required|string|max:100',
             'ip_address' => 'nullable|string|max:50',
-            'hardware_type' => 'nullable|string|max:100',
-            'num_ac' => 'nullable|integer|min:1|max:8',
-            'description' => 'nullable|string|max:300',
+            'hardware_type' => 'nullable|string|max:50',
+            'num_ac' => 'nullable|integer|min:0|max:8',
+            'description' => 'nullable|string',
         ]);
 
         $device = Device::findOrFail($id);
-        $device->update($request->only(['name', 'location', 'ip_address', 'hardware_type', 'num_ac', 'description']));
+        $device->update($request->only('name', 'location', 'ip_address', 'hardware_type', 'num_ac', 'description'));
 
-        return redirect()->back()->with('success', 'Informasi perangkat berhasil diperbarui!');
+        return redirect()->route('dashboard')->with('success', "Informasi node {$device->name} berhasil diperbarui!");
     }
 
     /**
-     * Delete an IoT Device from Fleet.
+     * Delete Device.
      */
-    public function deleteDevice($id)
+    public function deleteDevice(string $id)
     {
         $device = Device::findOrFail($id);
         if ($device->device_id === 'RPI3B_PINDAD_ROOM_1') {
-            return redirect()->back()->with('error', 'Perangkat utama Ruang Server 1 tidak boleh dihapus.');
+            return redirect()->back()->with('error', 'Node kontroler utama tidak dapat dihapus!');
         }
+        $name = $device->name;
         $device->delete();
 
-        return redirect()->back()->with('success', 'Perangkat berhasil dihapus dari Fleet!');
+        return redirect()->route('dashboard')->with('success', "Perangkat {$name} berhasil dihapus dari sistem.");
     }
 
     /**
-     * Master Fleet Control: Turn all ACs ON / OFF across all rooms.
+     * Master Fleet Emergency Control.
      */
     public function masterControl(Request $request)
     {
-        $command = strtoupper($request->input('command', 'ON'));
+        $command = $request->input('command', 'OFF');
+        $devices = Device::all();
 
-        $payload1 = json_encode(['relay' => 1, 'command' => $command, 'source' => 'manual']);
-        $payload2 = json_encode(['relay' => 2, 'command' => $command, 'source' => 'manual']);
+        foreach ($devices as $dev) {
+            $payload = [
+                'device_id' => $dev->device_id,
+                'command' => "MASTER_{$command}",
+                'state' => $command,
+                'source' => 'master_control',
+                'timestamp' => now()->toIso8601String(),
+            ];
+            $this->mqttService->publish("pindad/devices/{$dev->device_id}/control", json_encode($payload));
+            $this->mqttService->publish("pindad/ac/control", json_encode($payload));
+        }
 
-        try {
-            $this->mqttService->publish('pindad/ac/schedule', $payload1);
-            $this->mqttService->publish('pindad/ac/schedule', $payload2);
-        } catch (\Exception $e) {}
-
-        return redirect()->back()->with('success', "Perintah Massal ({$command}) berhasil dikirim ke seluruh unit AC!");
+        return redirect()->back()->with('success', "Perintah MASTER {$command} berhasil dikirimkan ke seluruh armada perangkat!");
     }
 
     /**
-     * Export telemetry logs to CSV format with Device filter.
+     * Developer Zone: Store Template.
+     */
+    public function storeTemplate(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'hardware_type' => 'required|string|max:100',
+            'connection_type' => 'required|string|max:100',
+            'icon' => 'nullable|string|max:10',
+            'description' => 'nullable|string',
+        ]);
+
+        Template::create([
+            'name' => $request->input('name'),
+            'hardware_type' => $request->input('hardware_type'),
+            'connection_type' => $request->input('connection_type'),
+            'icon' => $request->input('icon', '⚡'),
+            'description' => $request->input('description', ''),
+            'datastreams' => [
+                ['pin' => 'V0', 'name' => 'Main Switch', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'unit' => '', 'desc' => 'Relay utama'],
+                ['pin' => 'V1', 'name' => 'Telemetry Sensor', 'type' => 'Double', 'min' => 0, 'max' => 100, 'unit' => 'Val', 'desc' => 'Data telemetri'],
+            ],
+        ]);
+
+        return redirect()->back()->with('success', "Template {$request->input('name')} berhasil dibuat!");
+    }
+
+    /**
+     * Developer Zone: Update Template.
+     */
+    public function updateTemplate(Request $request, string $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'hardware_type' => 'required|string|max:100',
+            'connection_type' => 'required|string|max:100',
+            'description' => 'nullable|string',
+        ]);
+
+        $template = Template::findOrFail($id);
+        $template->update($request->only('name', 'hardware_type', 'connection_type', 'description'));
+
+        return redirect()->back()->with('success', "Template {$template->name} berhasil diperbarui!");
+    }
+
+    /**
+     * Developer Zone: Delete Template.
+     */
+    public function deleteTemplate(string $id)
+    {
+        $template = Template::findOrFail($id);
+        $name = $template->name;
+        $template->delete();
+
+        return redirect()->back()->with('success', "Template {$name} berhasil dihapus.");
+    }
+
+    /**
+     * Developer Zone: Add Datastream to Template.
+     */
+    public function addDatastream(Request $request, string $id)
+    {
+        $request->validate([
+            'pin' => 'required|string|max:10',
+            'name' => 'required|string|max:100',
+            'type' => 'required|string|in:Integer,Double,String,Enum',
+            'min' => 'nullable|numeric',
+            'max' => 'nullable|numeric',
+            'unit' => 'nullable|string|max:20',
+            'desc' => 'nullable|string|max:200',
+        ]);
+
+        $template = Template::findOrFail($id);
+        $streams = $template->datastreams ?? [];
+
+        // Check if pin exists
+        foreach ($streams as $s) {
+            if ($s['pin'] === strtoupper($request->input('pin'))) {
+                return redirect()->back()->with('error', "Pin {$request->input('pin')} sudah terdaftar pada template ini!");
+            }
+        }
+
+        $streams[] = [
+            'pin' => strtoupper($request->input('pin')),
+            'name' => $request->input('name'),
+            'type' => $request->input('type'),
+            'min' => $request->input('min', 0),
+            'max' => $request->input('max', 100),
+            'unit' => $request->input('unit', ''),
+            'desc' => $request->input('desc', ''),
+        ];
+
+        $template->datastreams = $streams;
+        $template->save();
+
+        return redirect()->back()->with('success', "Datastream {$request->input('pin')} ({$request->input('name')}) berhasil ditambahkan ke template {$template->name}!");
+    }
+
+    /**
+     * Developer Zone: Delete Datastream from Template.
+     */
+    public function deleteDatastream(string $id, string $pin)
+    {
+        $template = Template::findOrFail($id);
+        $streams = collect($template->datastreams ?? [])->reject(function ($s) use ($pin) {
+            return $s['pin'] === $pin;
+        })->values()->all();
+
+        $template->datastreams = $streams;
+        $template->save();
+
+        return redirect()->back()->with('success', "Datastream {$pin} berhasil dihapus dari template {$template->name}.");
+    }
+
+    /**
+     * Update Profile Operator.
+     */
+    public function updateProfile(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'email' => 'required|email|max:100',
+        ]);
+
+        $user = auth()->user() ?? User::first();
+        if ($user) {
+            $user->name = $request->input('name');
+            $user->email = $request->input('email');
+            $user->save();
+        }
+
+        return redirect()->back()->with('success', 'Profil operator PT PINDAD berhasil diperbarui.');
+    }
+
+    /**
+     * Update Password Operator.
+     */
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:6|confirmed',
+        ]);
+
+        $user = auth()->user() ?? User::first();
+        if ($user && Hash::check($request->input('current_password'), $user->password)) {
+            $user->password = Hash::make($request->input('new_password'));
+            $user->save();
+            return redirect()->back()->with('success', 'Kata sandi akun berhasil diubah.');
+        }
+
+        return redirect()->back()->with('error', 'Kata sandi saat ini tidak cocok!');
+    }
+
+    /**
+     * Export telemetry logs to CSV with device filter.
      */
     public function exportCsv(Request $request)
     {
-        $unit = $request->query('unit', 'all'); // 'all', 'ac1', 'ac2'
         $deviceId = $request->query('device_id', 'all');
+        $query = AcLog::query();
         
-        $query = AcLog::latest('recorded_at');
-        if ($deviceId !== 'all') {
+        if ($deviceId && $deviceId !== 'all') {
             $query->where('device_id', $deviceId);
+            $fileName = "telemetri_pindad_{$deviceId}_" . date('Ymd_His') . ".csv";
+        } else {
+            $fileName = "telemetri_pindad_seluruh_fleet_" . date('Ymd_His') . ".csv";
         }
 
-        if ($unit === 'ac1') {
-            $query->where('active_ac', 'like', 'AC_1%');
-        } elseif ($unit === 'ac2') {
-            $query->where('active_ac', 'like', 'AC_2%');
-        }
-        
-        $logs = $query->take(500)->get();
-        
-        $fileName = 'PINDAD_AC_TELEMETRY_' . strtoupper($unit) . '_' . date('Ymd_His') . '.csv';
-        
+        $logs = $query->latest('recorded_at')->take(500)->get();
+
         $headers = [
-            "Content-type"        => "text/csv",
-            "Content-Disposition" => "attachment; filename=$fileName",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
+            "Content-type" => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename={$fileName}",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
         ];
-        
-        $columns = ['ID Log', 'ID Perangkat', 'Status Telemetri', 'Arus Listrik (Ampere)', 'Estimasi Beban (Watt)', 'Waktu Pencatatan'];
-        
-        $callback = function() use ($logs, $columns) {
+
+        $columns = ['ID', 'Device ID', 'Target AC', 'Arus (Ampere)', 'Estimasi Daya (Watt)', 'Waktu Pencatatan (WIB)'];
+
+        $callback = function () use ($logs, $columns) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
-            
+
             foreach ($logs as $log) {
-                $watt = round($log->current_ampere * 220, 2);
+                $amp = (float) $log->current_ampere;
+                $watt = round($amp * 220, 2);
+                $time = Carbon::parse($log->recorded_at)->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+
                 fputcsv($file, [
-                    $log->id,
-                    $log->device_id,
+                    $log->_id ?? $log->id,
+                    $log->device_id ?? 'RPI3B_PINDAD_ROOM_1',
                     $log->active_ac,
-                    number_format($log->current_ampere, 4),
-                    $watt . ' W',
-                    $log->recorded_at
+                    $amp,
+                    $watt,
+                    $time,
                 ]);
             }
+
             fclose($file);
         };
-        
+
         return response()->stream($callback, 200, $headers);
     }
 }
