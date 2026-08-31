@@ -123,14 +123,15 @@
             <span class="text-xs text-slate-500 hidden sm:inline">Pilih <b>"Pantau Ruangan Ini"</b> untuk memantau telemetri</span>
         </div>
 
-        <!-- 3-COLUMN EQUAL GRID FOR LAPTOP/DESKTOP -->
+        <!-- 3-COLUMN EQUAL GRID (WITH TABLET ODD-CARD SPAN BALANCING) -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             @foreach($devices as $device)
             @php
                 $stat = $fleetStats[$device->device_id] ?? ['is_online' => false, 'total_watt' => 0, 'total_current' => 0, 'last_seen' => 'Standby'];
                 $isSelected = ($device->device_id === $selectedDeviceId);
+                $isLastOdd = ($loop->last && $loop->count % 2 !== 0);
             @endphp
-            <div class="bg-white rounded-[28px] p-5 sm:p-6 shadow-[0_15px_35px_-10px_rgba(29,22,22,0.08)] border-2 transition-all duration-200 hover:shadow-lg relative flex flex-col justify-between {{ $isSelected ? 'border-[#D84040] ring-4 ring-[#D84040]/10' : 'border-slate-100 hover:border-slate-300' }}">
+            <div class="bg-white rounded-[28px] p-5 sm:p-6 shadow-[0_15px_35px_-10px_rgba(29,22,22,0.08)] border-2 transition-all duration-200 hover:shadow-lg relative flex flex-col justify-between {{ $isSelected ? 'border-[#D84040] ring-4 ring-[#D84040]/10' : 'border-slate-100 hover:border-slate-300' }} {{ $isLastOdd ? 'md:col-span-2 lg:col-span-1' : '' }}">
                 
                 <!-- TOP ACTIVE BADGE -->
                 @if($isSelected)

@@ -79,8 +79,8 @@
 </head>
 <body class="bg-[#EEEEEE] text-[#1D1616] min-h-screen antialiased flex flex-col justify-between selection:bg-[#D84040] selection:text-white">
 
-    <!-- MAIN RESPONSIVE WRAPPER CONTAINER (Proporsional & Nyaman di Layar Desktop) -->
-    <div class="w-full max-w-5xl lg:max-w-6xl mx-auto px-6 sm:px-10 lg:px-12 pt-6 sm:pt-8 pb-48 space-y-7">
+    <!-- MAIN RESPONSIVE WRAPPER CONTAINER (Proporsional di Tablet iPad, Laptop & Desktop) -->
+    <div class="w-full max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 pt-4 sm:pt-6 pb-48 space-y-6">
         
         <!-- ================= TOP HEADER (Matching Reference Header Layout) ================= -->
         <header class="flex items-center justify-between pt-2">
