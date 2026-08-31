@@ -227,11 +227,17 @@ def on_blynk_connect(client, userdata, flags, rc, *args):
         print(f"[BLYNK MQTT ERROR] Gagal konek ke Blynk Cloud, kode: {rc}")
 
 def on_blynk_message(client, userdata, msg):
+    global is_turbo_cooling_active
     try:
         topic = msg.topic
         payload = msg.payload.decode("utf-8").strip()
         print(f"\n📱 [BLYNK KONTROL HP] Topik: {topic} -> Nilai: {payload}")
         
+        # Saklar manual di HP selalu meng-override Turbo Lock
+        if is_turbo_cooling_active:
+            is_turbo_cooling_active = False
+            print("👤 [MANUAL OVERRIDE HP] Saklar di Aplikasi HP ditekan -> Turbo Lock dinonaktifkan.")
+
         # Saklar AC 1
         if "Saklar AC 1" in topic or topic.endswith("/V3"):
             if payload == "1":
@@ -274,13 +280,19 @@ def on_local_message(client, userdata, msg):
         if "relay" in data and "command" in data:
             relay_num = int(data["relay"])
             command   = str(data["command"]).upper()
+            source    = str(data.get("source", "manual")).lower()
             target_pin = RELAY1_PIN if relay_num == 1 else RELAY2_PIN
 
-            # Proteksi Turbo Cooling: Jangan biarkan jadwal mematikan AC selama 5 menit pendinginan darurat
-            if is_turbo_cooling_active and command == "OFF":
-                print(f"❄️ [TURBO LOCK] Menjaga AC {relay_num} tetap ON selama masa pendinginan darurat 5 menit pasca-boot!")
+            # 1. Jika ini perintah dari JADWAL OTOMATIS saat masa Turbo Cooling: Tahan agar tetap ON
+            if source == "schedule" and is_turbo_cooling_active and command == "OFF":
+                print(f"❄️ [TURBO LOCK] Menjaga AC {relay_num} tetap ON dari jadwal otomatis selama 5 menit pasca-boot...")
                 return
-            
+
+            # 2. Jika ini KLIK MANUAL DARI USER LEWAT WEB (source == "manual"): Lepas Turbo Lock & Eksekusi Langsung!
+            if source == "manual" and is_turbo_cooling_active:
+                is_turbo_cooling_active = False
+                print(f"👤 [MANUAL OVERRIDE WEB] Saklar manual ditekan di Web Dashboard -> Turbo Lock dinonaktifkan.")
+
             if command == "ON":
                 GPIO.output(target_pin, GPIO.HIGH)
                 print(f"✅ [RELAY SUKSES] AC {relay_num} (GPIO {target_pin}) -> DINYALAKAN (ON)")

@@ -176,7 +176,8 @@ class DashboardController extends Controller
         // Package message payload matching ESP32 ArduinoJson format
         $payload = json_encode([
             'relay' => $relay,
-            'command' => $command
+            'command' => $command,
+            'source' => 'manual'
         ]);
 
         // Record the updated state immediately into the database

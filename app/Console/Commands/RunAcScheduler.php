@@ -54,8 +54,8 @@ class RunAcScheduler extends Command
                 }
 
                 // Dispatch state to Raspberry Pi via MQTT
-                $mqttService->publish('pindad/ac/schedule', json_encode(['relay' => 1, 'command' => $ac1DesiredOn ? 'ON' : 'OFF']));
-                $mqttService->publish('pindad/ac/schedule', json_encode(['relay' => 2, 'command' => $ac2DesiredOn ? 'ON' : 'OFF']));
+                $mqttService->publish('pindad/ac/schedule', json_encode(['relay' => 1, 'command' => $ac1DesiredOn ? 'ON' : 'OFF', 'source' => 'schedule']));
+                $mqttService->publish('pindad/ac/schedule', json_encode(['relay' => 2, 'command' => $ac2DesiredOn ? 'ON' : 'OFF', 'source' => 'schedule']));
             } catch (\Exception $e) {
                 $this->error("Scheduler evaluation error: " . $e->getMessage());
             }
