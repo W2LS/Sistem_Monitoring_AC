@@ -87,11 +87,11 @@
                     </span>
                 </div>
 
-                <div class="flex items-baseline space-x-3">
-                    <span class="text-4xl sm:text-5xl font-black font-mono text-white tracking-tight">
-                        {{ number_format($totalFleetCurrent, 2) }} <span class="text-2xl font-sans font-bold text-[#EEEEEE]/80">Ampere</span>
+                <div class="flex flex-wrap items-baseline gap-2 sm:gap-3">
+                    <span class="text-3xl sm:text-4xl lg:text-5xl font-black font-mono text-white tracking-tight">
+                        {{ number_format($totalFleetCurrent, 2) }} <span class="text-xl sm:text-2xl font-sans font-bold text-[#EEEEEE]/80">Ampere</span>
                     </span>
-                    <span class="text-lg sm:text-xl font-extrabold text-amber-400 font-mono">
+                    <span class="text-base sm:text-lg lg:text-xl font-extrabold text-amber-400 font-mono">
                         ≈ {{ number_format($totalFleetWatt) }} Watt
                     </span>
                 </div>
@@ -134,13 +134,13 @@
                     <div class="space-y-4">
                         <!-- Card Header -->
                         <div class="flex items-start justify-between gap-3">
-                            <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-3 min-w-0">
                                 <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 {{ $devStat['is_online'] ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-400 border border-slate-200' }}">
                                     {{ $dev->icon ?? ($isAcType ? '❄️' : '💡') }}
                                 </div>
                                 <div class="min-w-0">
-                                    <h4 class="font-black text-base text-[#1D1616] leading-tight truncate" title="{{ $dev->name }}">{{ $dev->name }}</h4>
-                                    <p class="text-xs text-slate-500 flex items-center gap-1 mt-0.5 truncate" title="{{ $dev->location }}">
+                                    <h4 class="font-black text-sm sm:text-base text-[#1D1616] leading-snug break-words">{{ $dev->name }}</h4>
+                                    <p class="text-xs text-slate-500 flex items-center gap-1 mt-0.5" title="{{ $dev->location }}">
                                         <svg class="w-3.5 h-3.5 text-[#8E1616] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                         </svg>
@@ -149,9 +149,9 @@
                                 </div>
                             </div>
 
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 {{ $devStat['is_online'] ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-slate-100 text-slate-600 border border-slate-200' }}">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 {{ $devStat['is_online'] ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-slate-100 text-slate-600 border border-slate-200' }}">
                                 <span class="w-2 h-2 rounded-full {{ $devStat['is_online'] ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400' }}"></span>
-                                {{ $devStat['is_online'] ? 'Online' : 'Standby' }}
+                                <span>{{ $devStat['is_online'] ? 'Online' : 'Standby' }}</span>
                             </span>
                         </div>
 
@@ -159,28 +159,28 @@
                         <div class="grid grid-cols-2 gap-2.5">
                             <div class="bg-slate-50 rounded-2xl p-3 border border-slate-100">
                                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Beban Terukur</span>
-                                <span class="text-xs font-black text-emerald-600 mt-0.5 block truncate">
+                                <span class="text-xs font-black text-emerald-600 mt-0.5 block">
                                     {{ $devStat['total_watt'] }} Watt <span class="text-[10px] text-slate-400 font-normal">({{ $devStat['total_current'] }} A)</span>
                                 </span>
                             </div>
 
                             <div class="bg-slate-50 rounded-2xl p-3 border border-slate-100">
                                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Kapasitas / Tipe</span>
-                                <span class="text-xs font-black text-[#D84040] mt-0.5 block truncate">
+                                <span class="text-xs font-black text-[#D84040] mt-0.5 block">
                                     {{ $isAcType ? ($dev->num_ac . ' Unit AC') : ($dev->hardware_type) }}
                                 </span>
                             </div>
 
                             <div class="bg-slate-50 rounded-2xl p-3 border border-slate-100">
                                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Alamat IP</span>
-                                <span class="text-[11px] font-bold text-slate-700 mt-0.5 truncate block font-mono">
+                                <span class="text-[11px] font-bold text-slate-700 mt-0.5 block font-mono">
                                     {{ $dev->ip_address ?? '192.168.x.x' }}
                                 </span>
                             </div>
 
                             <div class="bg-slate-50 rounded-2xl p-3 border border-slate-100">
                                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">ID Perangkat</span>
-                                <span class="text-[10px] font-mono font-bold text-[#1D1616] mt-0.5 truncate block" title="{{ $dev->device_id }}">
+                                <span class="text-[10px] font-mono font-bold text-[#1D1616] mt-0.5 block break-all" title="{{ $dev->device_id }}">
                                     {{ $dev->device_id }}
                                 </span>
                             </div>
