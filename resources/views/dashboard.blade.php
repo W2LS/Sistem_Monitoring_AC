@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="id" x-data="{ 
-    activeTab: 'home', 
+    activeTab: localStorage.getItem('pindad_active_tab') || 'home', 
     modalFabOpen: false 
-}">
+}" x-init="$watch('activeTab', val => localStorage.setItem('pindad_active_tab', val))">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
