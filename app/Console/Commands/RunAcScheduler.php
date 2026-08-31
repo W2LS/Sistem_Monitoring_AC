@@ -23,36 +23,39 @@ class RunAcScheduler extends Command
 
         while (true) {
             try {
-                $nowTime = Carbon::now()->format('H:i:s');
+                $now = Carbon::now('Asia/Jakarta');
+                $nowTime = $now->format('H:i');
                 $activeSchedules = Schedule::where('is_active', true)->get();
 
+                $ac1DesiredOn = false;
+                $ac2DesiredOn = false;
+
                 foreach ($activeSchedules as $schedule) {
-                    $start = $schedule->start_time;
-                    $end = $schedule->end_time;
+                    $start = Carbon::parse($schedule->start_time)->format('H:i');
+                    $end = Carbon::parse($schedule->end_time)->format('H:i');
 
                     // Evaluate if current time falls in the active ON window
                     $isInsideWindow = false;
                     if ($start <= $end) {
-                        // Normal window (e.g. 07:00 - 15:00)
-                        $isInsideWindow = ($nowTime >= $start && $nowTime <= $end);
+                        // Normal window (e.g. 10:57 - 10:58)
+                        $isInsideWindow = ($nowTime >= $start && $nowTime < $end);
                     } else {
-                        // Overnight window (e.g. 23:00 - 07:00)
-                        $isInsideWindow = ($nowTime >= $start || $nowTime <= $end);
+                        // Overnight window (e.g. 18:00 - 06:00)
+                        $isInsideWindow = ($nowTime >= $start || $nowTime < $end);
                     }
 
-                    $command = $isInsideWindow ? 'ON' : 'OFF';
                     $targetAc = $schedule->target_ac ?? 'all';
-
-                    $this->line("[{$nowTime}] Rule '{$schedule->label}' (Target: {$targetAc}) ({$start} - {$end}): " . ($isInsideWindow ? 'ACTIVE_WINDOW (ON)' : 'OUTSIDE_WINDOW (OFF)'));
-
-                    // Send MQTT execution
-                    if ($targetAc === '1' || $targetAc === 'all') {
-                        $mqttService->publish('pindad/ac/schedule', json_encode(['relay' => 1, 'command' => $command]));
+                    if ($isInsideWindow) {
+                        if ($targetAc === '1' || $targetAc === 'all') $ac1DesiredOn = true;
+                        if ($targetAc === '2' || $targetAc === 'all') $ac2DesiredOn = true;
                     }
-                    if ($targetAc === '2' || $targetAc === 'all') {
-                        $mqttService->publish('pindad/ac/schedule', json_encode(['relay' => 2, 'command' => $command]));
-                    }
+
+                    $this->line("[{$nowTime} WIB] Aturan '{$schedule->label}' (Target: {$targetAc}) ({$start} - {$end}): " . ($isInsideWindow ? 'AKTIF ON' : 'STANDBY OFF'));
                 }
+
+                // Dispatch state to Raspberry Pi via MQTT
+                $mqttService->publish('pindad/ac/schedule', json_encode(['relay' => 1, 'command' => $ac1DesiredOn ? 'ON' : 'OFF']));
+                $mqttService->publish('pindad/ac/schedule', json_encode(['relay' => 2, 'command' => $ac2DesiredOn ? 'ON' : 'OFF']));
             } catch (\Exception $e) {
                 $this->error("Scheduler evaluation error: " . $e->getMessage());
             }
