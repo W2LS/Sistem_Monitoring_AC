@@ -292,7 +292,51 @@
         </div>
 
         <!-- 3. DUAL AC KONTROL SAKLAR & ARUS (PANASONIC 1 VS PANASONIC 2) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- 3. DUAL AC KONTROL SAKLAR & ARUS (PANASONIC 1 VS PANASONIC 2) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6"
+             x-data="{
+                 ac1On: {{ ($latestAc1 && str_contains($latestAc1->active_ac, 'ON')) ? 'true' : 'false' }},
+                 ac2On: {{ ($latestAc2 && str_contains($latestAc2->active_ac, 'ON')) ? 'true' : 'false' }},
+                 loading1: false,
+                 loading2: false,
+                 async toggleSwitch(acNumber) {
+                     let currentState = acNumber === 1 ? this.ac1On : this.ac2On;
+                     let nextState = !currentState;
+                     
+                     // Instant visual state transition (0ms UI lag)
+                     if (acNumber === 1) { this.ac1On = nextState; this.loading1 = true; }
+                     if (acNumber === 2) { this.ac2On = nextState; this.loading2 = true; }
+
+                     try {
+                         let res = await fetch('{{ route('ac.control') }}', {
+                             method: 'POST',
+                             headers: {
+                                 'Content-Type': 'application/json',
+                                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                 'Accept': 'application/json',
+                                 'X-Requested-With': 'XMLHttpRequest'
+                             },
+                             body: JSON.stringify({
+                                 ac_number: acNumber,
+                                 state: nextState ? 'ON' : 'OFF',
+                                 device_id: '{{ $selectedDeviceId }}'
+                             })
+                         });
+                         let json = await res.json();
+                         if (!json.success) {
+                             if (acNumber === 1) this.ac1On = currentState;
+                             if (acNumber === 2) this.ac2On = currentState;
+                         }
+                     } catch (e) {
+                         console.error('Toggle error:', e);
+                         if (acNumber === 1) this.ac1On = currentState;
+                         if (acNumber === 2) this.ac2On = currentState;
+                     } finally {
+                         if (acNumber === 1) this.loading1 = false;
+                         if (acNumber === 2) this.loading2 = false;
+                     }
+                 }
+             }">
             
             <!-- AC UNIT 1 CARD -->
             <div class="bg-white rounded-[40px] p-6 sm:p-7 shadow-[0_20px_50px_-12px_rgba(29,22,22,0.08)] border border-[#8E1616]/20 space-y-6 flex flex-col justify-between">
@@ -307,7 +351,10 @@
                                 <h3 class="text-xl font-black text-[#1D1616]">Panasonic 1 (Lampu Bawah)</h3>
                             </div>
                         </div>
-                        <span id="badge-status-ac1" class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider {{ ($latestAc1 && str_contains($latestAc1->active_ac, 'ON')) ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500' }}">
+                        <span id="badge-status-ac1" 
+                              class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider transition-colors"
+                              :class="ac1On ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'"
+                              x-text="ac1On ? 'ONLINE' : 'STANDBY'">
                             {{ ($latestAc1 && str_contains($latestAc1->active_ac, 'ON')) ? 'ONLINE' : 'STANDBY' }}
                         </span>
                     </div>
@@ -332,36 +379,32 @@
                     </div>
                 </div>
 
-                <!-- Toggle Switch AC 1 -->
-                @php
-                    $isAc1On = ($latestAc1 && str_contains($latestAc1->active_ac, 'ON'));
-                @endphp
+                <!-- Toggle Switch AC 1 (Zero Reload AJAX) -->
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
                     <div>
                         <span class="text-xs font-black text-[#1D1616] block">Saklar Manual AC 1</span>
                         <span class="text-[10px] text-slate-400 font-semibold">Klik saklar untuk ON/OFF langsung</span>
                     </div>
 
-                    <form action="{{ route('ac.control') }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="ac_number" value="1">
-                        <input type="hidden" name="device_id" value="{{ $selectedDeviceId }}">
-                        <input type="hidden" name="state" value="{{ $isAc1On ? 'OFF' : 'ON' }}">
-                        <button type="submit" 
-                                title="Klik untuk {{ $isAc1On ? 'mematikan' : 'menyalakan' }} AC 1"
-                                class="group relative inline-flex items-center h-10 w-24 rounded-full transition-all duration-300 p-1 cursor-pointer select-none shadow-md active:scale-95 {{ $isAc1On ? 'bg-gradient-to-r from-emerald-500 to-teal-600 ring-2 ring-emerald-400/50' : 'bg-gradient-to-r from-slate-300 to-slate-400' }}">
-                            
-                            <!-- Label Text Inside Switch -->
-                            <span class="w-full text-center text-[10px] font-black uppercase tracking-wider transition-all {{ $isAc1On ? 'text-white pr-7 font-mono' : 'text-slate-600 pl-7 font-mono' }}">
-                                {{ $isAc1On ? 'ON' : 'OFF' }}
-                            </span>
+                    <button @click="toggleSwitch(1)" 
+                            type="button" 
+                            :title="ac1On ? 'Klik untuk mematikan AC 1' : 'Klik untuk menyalakan AC 1'"
+                            class="group relative inline-flex items-center h-10 w-24 rounded-full transition-all duration-300 p-1 cursor-pointer select-none shadow-md active:scale-95"
+                            :class="ac1On ? 'bg-gradient-to-r from-emerald-500 to-teal-600 ring-2 ring-emerald-400/50 shadow-emerald-200' : 'bg-gradient-to-r from-slate-300 to-slate-400 shadow-slate-200'">
+                        
+                        <!-- Label Text Inside Switch -->
+                        <span class="w-full text-center text-[10px] font-black uppercase tracking-wider transition-all font-mono"
+                              :class="ac1On ? 'text-white pr-7' : 'text-slate-600 pl-7'"
+                              x-text="ac1On ? 'ON' : 'OFF'">
+                        </span>
 
-                            <!-- Sliding Circular Knob -->
-                            <span class="absolute top-1 left-1 bg-white w-8 h-8 rounded-full shadow-lg transform transition-transform duration-300 flex items-center justify-center {{ $isAc1On ? 'translate-x-14' : 'translate-x-0' }}">
-                                <span class="w-2.5 h-2.5 rounded-full {{ $isAc1On ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-slate-400' }}"></span>
-                            </span>
-                        </button>
-                    </form>
+                        <!-- Sliding Circular Knob -->
+                        <span class="absolute top-1 left-1 bg-white w-8 h-8 rounded-full shadow-lg transform transition-transform duration-300 flex items-center justify-center"
+                              :class="ac1On ? 'translate-x-14' : 'translate-x-0'">
+                            <span class="w-2.5 h-2.5 rounded-full transition-colors"
+                                  :class="ac1On ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-slate-400'"></span>
+                        </span>
+                    </button>
                 </div>
             </div>
 
@@ -378,7 +421,10 @@
                                 <h3 class="text-xl font-black text-[#1D1616]">Panasonic 2 (Lampu Atas)</h3>
                             </div>
                         </div>
-                        <span id="badge-status-ac2" class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider {{ ($latestAc2 && str_contains($latestAc2->active_ac, 'ON')) ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500' }}">
+                        <span id="badge-status-ac2" 
+                              class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider transition-colors"
+                              :class="ac2On ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'"
+                              x-text="ac2On ? 'ONLINE' : 'STANDBY'">
                             {{ ($latestAc2 && str_contains($latestAc2->active_ac, 'ON')) ? 'ONLINE' : 'STANDBY' }}
                         </span>
                     </div>
@@ -403,40 +449,35 @@
                     </div>
                 </div>
 
-                <!-- Toggle Switch AC 2 -->
-                @php
-                    $isAc2On = ($latestAc2 && str_contains($latestAc2->active_ac, 'ON'));
-                @endphp
+                <!-- Toggle Switch AC 2 (Zero Reload AJAX) -->
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
                     <div>
                         <span class="text-xs font-black text-[#1D1616] block">Saklar Manual AC 2</span>
                         <span class="text-[10px] text-slate-400 font-semibold">Klik saklar untuk ON/OFF langsung</span>
                     </div>
 
-                    <form action="{{ route('ac.control') }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="ac_number" value="2">
-                        <input type="hidden" name="device_id" value="{{ $selectedDeviceId }}">
-                        <input type="hidden" name="state" value="{{ $isAc2On ? 'OFF' : 'ON' }}">
-                        <button type="submit" 
-                                title="Klik untuk {{ $isAc2On ? 'mematikan' : 'menyalakan' }} AC 2"
-                                class="group relative inline-flex items-center h-10 w-24 rounded-full transition-all duration-300 p-1 cursor-pointer select-none shadow-md active:scale-95 {{ $isAc2On ? 'bg-gradient-to-r from-emerald-500 to-teal-600 ring-2 ring-emerald-400/50' : 'bg-gradient-to-r from-slate-300 to-slate-400' }}">
-                            
-                            <!-- Label Text Inside Switch -->
-                            <span class="w-full text-center text-[10px] font-black uppercase tracking-wider transition-all {{ $isAc2On ? 'text-white pr-7 font-mono' : 'text-slate-600 pl-7 font-mono' }}">
-                                {{ $isAc2On ? 'ON' : 'OFF' }}
-                            </span>
+                    <button @click="toggleSwitch(2)" 
+                            type="button" 
+                            :title="ac2On ? 'Klik untuk mematikan AC 2' : 'Klik untuk menyalakan AC 2'"
+                            class="group relative inline-flex items-center h-10 w-24 rounded-full transition-all duration-300 p-1 cursor-pointer select-none shadow-md active:scale-95"
+                            :class="ac2On ? 'bg-gradient-to-r from-emerald-500 to-teal-600 ring-2 ring-emerald-400/50 shadow-emerald-200' : 'bg-gradient-to-r from-slate-300 to-slate-400 shadow-slate-200'">
+                        
+                        <!-- Label Text Inside Switch -->
+                        <span class="w-full text-center text-[10px] font-black uppercase tracking-wider transition-all font-mono"
+                              :class="ac2On ? 'text-white pr-7' : 'text-slate-600 pl-7'"
+                              x-text="ac2On ? 'ON' : 'OFF'">
+                        </span>
 
-                            <!-- Sliding Circular Knob -->
-                            <span class="absolute top-1 left-1 bg-white w-8 h-8 rounded-full shadow-lg transform transition-transform duration-300 flex items-center justify-center {{ $isAc2On ? 'translate-x-14' : 'translate-x-0' }}">
-                                <span class="w-2.5 h-2.5 rounded-full {{ $isAc2On ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-slate-400' }}"></span>
-                            </span>
-                        </button>
-                    </form>
+                        <!-- Sliding Circular Knob -->
+                        <span class="absolute top-1 left-1 bg-white w-8 h-8 rounded-full shadow-lg transform transition-transform duration-300 flex items-center justify-center"
+                              :class="ac2On ? 'translate-x-14' : 'translate-x-0'">
+                            <span class="w-2.5 h-2.5 rounded-full transition-colors"
+                                  :class="ac2On ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-slate-400'"></span>
+                        </span>
+                    </button>
                 </div>
             </div>
         </div>
-
 
         <!-- 5. PUSAT PENJADWALAN SHIFT 12 JAM KHUSUS RUANGAN INI -->
         <div class="bg-white rounded-[40px] p-6 sm:p-8 shadow-[0_20px_50px_-12px_rgba(29,22,22,0.08)] border border-[#8E1616]/20 space-y-6">

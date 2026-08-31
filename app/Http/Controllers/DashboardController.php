@@ -256,21 +256,26 @@ class DashboardController extends Controller
             'device_id' => 'nullable|string',
         ]);
 
-        $acNumber = $request->input('ac_number');
-        $state = $request->input('state');
+        $acNumber = (int)$request->input('ac_number');
+        $state = strtoupper($request->input('state'));
         $deviceId = $request->input('device_id', 'RPI3B_PINDAD_ROOM_1');
 
-        $topic = "pindad/ac/control";
         $payload = [
             'device_id' => $deviceId,
-            'command' => "AC_{$acNumber}_{$state}",
+            'relay' => $acNumber,
+            'command' => $state,
             'ac_number' => $acNumber,
             'state' => $state,
             'source' => 'manual',
             'timestamp' => Carbon::now('Asia/Jakarta')->toIso8601String(),
         ];
 
-        $published = $this->mqttService->publish($topic, json_encode($payload));
+        $jsonPayload = json_encode($payload);
+
+        // Publish to multiple topics for 100% backward & forward compatibility across all scripts
+        $this->mqttService->publish("pindad/ac/schedule", $jsonPayload);
+        $this->mqttService->publish("pindad/ac/control", $jsonPayload);
+        $this->mqttService->publish("pindad/devices/{$deviceId}/control", $jsonPayload);
 
         // Update virtual pin in Device model
         $dev = Device::where('device_id', $deviceId)->first();
@@ -279,6 +284,16 @@ class DashboardController extends Controller
             $vals["V" . ($acNumber - 1)] = ($state === 'ON' ? 1 : 0);
             $dev->current_values = $vals;
             $dev->save();
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'ac_number' => $acNumber,
+                'state' => $state,
+                'device_id' => $deviceId,
+                'message' => "Saklar AC {$acNumber} berhasil diubah ke {$state}!"
+            ]);
         }
 
         return redirect()->route('dashboard', ['device_id' => $deviceId])
