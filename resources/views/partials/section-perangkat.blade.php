@@ -5,14 +5,14 @@
     editDevice: { id: '', name: '', location: '', ip_address: '', hardware_type: '', num_ac: 2, description: '' }
 }">
     
-    <!-- 1. PAGE HEADER & ACTION BUTTONS (IDENTIK DENGAN PENJADWALAN & RIWAYAT) -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#8E1616]/20 pb-4">
+    <!-- 1. PAGE HEADER & ACTION BUTTONS (RESPONSIF & TIDAK MELESAT KE PINGGIR) -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#8E1616]/20 pb-4">
         <div>
             <span class="text-[11px] font-extrabold uppercase tracking-widest text-[#8E1616] flex items-center gap-1.5">
                 <span>📡</span>
                 <span>SISTEM MULTI-NODE • BLYNK PROTOCOL STANDARD</span>
             </span>
-            <h2 class="text-3xl font-black text-[#1D1616] tracking-tight mt-0.5">
+            <h2 class="text-2xl sm:text-3xl font-black text-[#1D1616] tracking-tight mt-0.5">
                 Manajemen Armada Perangkat IoT
             </h2>
             <p class="text-xs font-semibold text-slate-500 mt-1">
