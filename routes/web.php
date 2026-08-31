@@ -48,4 +48,7 @@ Route::middleware('auth.session')->group(function () {
     // Ekspor Log Telemetri CSV (Bisa per-device)
     Route::get('/logs/export', [DashboardController::class, 'exportCsv'])->name('logs.export');
 
+    // Download Skrip & Konfigurasi IoT Raspberry Pi
+    Route::get('/scripts/download/{type}', [DashboardController::class, 'downloadScript'])->name('scripts.download');
+
 });

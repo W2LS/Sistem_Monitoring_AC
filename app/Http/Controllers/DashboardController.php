@@ -695,4 +695,33 @@ class DashboardController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
+
+    /**
+     * Download IoT Scripts and Configs for Raspberry Pi Nodes.
+     */
+    public function downloadScript(string $type)
+    {
+        if ($type === 'universal_node' || $type === 'node') {
+            $path = base_path('scripts/pindad_universal_node.py');
+            return response()->download($path, 'pindad_universal_node.py', [
+                'Content-Type' => 'text/x-python',
+            ]);
+        }
+
+        if ($type === 'config' || $type === 'node_config') {
+            $path = base_path('scripts/node_config.json');
+            return response()->download($path, 'node_config.json', [
+                'Content-Type' => 'application/json',
+            ]);
+        }
+
+        if ($type === 'pindad_ac' || $type === 'legacy') {
+            $path = base_path('scripts/pindad_ac_monitoring.py');
+            return response()->download($path, 'pindad_ac_monitoring.py', [
+                'Content-Type' => 'text/x-python',
+            ]);
+        }
+
+        abort(404, 'File skrip tidak ditemukan.');
+    }
 }

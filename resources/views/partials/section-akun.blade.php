@@ -82,6 +82,14 @@
                             <code class="block mt-1 bg-[#1D1616] text-emerald-400 p-2 rounded-lg font-mono text-[11px]">python3 pindad_universal_node.py</code>
                             Perangkat akan otomatis terhubung ke MQTT dan lampu status di web menjadi <b>🟢 Online</b>.
                         </p>
+                        <div class="pt-1.5 flex items-center gap-2">
+                            <a href="{{ route('scripts.download', 'universal_node') }}" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] uppercase tracking-wider flex items-center gap-1">
+                                <span>📥 Unduh .py</span>
+                            </a>
+                            <a href="{{ route('scripts.download', 'config') }}" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-[#D84040] font-bold text-[10px] uppercase tracking-wider flex items-center gap-1">
+                                <span>📥 Unduh .json</span>
+                            </a>
+                        </div>
                     </div>
 
                     <!-- Step 4: Kontrol & Jadwal -->
@@ -149,6 +157,99 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+
+        <!-- ITEM DOWNLOAD: PUSAT UNDUHAN SKRIP & FIRMWARE NODE -->
+        <div class="bg-white rounded-[32px] border border-[#8E1616]/20 shadow-xs overflow-hidden transition-all duration-300">
+            <button @click="openItem = openItem === 'download' ? null : 'download'" 
+                    type="button" 
+                    class="w-full p-5 sm:p-6 text-left flex items-center justify-between hover:bg-slate-50 transition cursor-pointer">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-black text-xl shrink-0">
+                        📥
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-[#1D1616]">Pusat Unduhan Skrip & Firmware Raspberry Pi</h3>
+                        <p class="text-xs font-semibold text-slate-500">Unduh langsung file skrip Python universal dan template konfigurasi JSON untuk setup alat</p>
+                    </div>
+                </div>
+                <div class="w-8 h-8 rounded-full bg-[#EEEEEE] flex items-center justify-center text-slate-600 font-bold text-sm transition-transform duration-300 shrink-0 ml-2"
+                     :class="openItem === 'download' ? 'rotate-90 bg-[#8E1616] text-white' : ''">
+                    ➔
+                </div>
+            </button>
+
+            <!-- ACCORDION CONTENT -->
+            <div x-show="openItem === 'download'" x-cloak x-transition class="px-5 sm:px-6 pb-6 pt-2 border-t border-[#8E1616]/10 space-y-4 bg-slate-50/60">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 text-xs">
+                    
+                    <!-- 1. Universal Node Script -->
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3 flex flex-col justify-between">
+                        <div class="space-y-1.5">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xl">🐍</span>
+                                <h4 class="font-black text-sm text-[#1D1616]">Universal Node Client</h4>
+                            </div>
+                            <p class="text-slate-500 text-[11px] leading-relaxed">
+                                Skrip Python universal untuk semua Raspberry Pi di berbagai ruangan.
+                            </p>
+                            <span class="text-[10px] font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-700 block">pindad_universal_node.py</span>
+                        </div>
+                        <a href="{{ route('scripts.download', 'universal_node') }}" 
+                           class="inline-flex items-center justify-center gap-2 bg-[#1D1616] hover:bg-[#8E1616] text-white py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm transition active:scale-95">
+                            <span>📥 Download Skrip (.py)</span>
+                        </a>
+                    </div>
+
+                    <!-- 2. Node Config JSON -->
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3 flex flex-col justify-between">
+                        <div class="space-y-1.5">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xl">⚙️</span>
+                                <h4 class="font-black text-sm text-[#1D1616]">Template Konfigurasi</h4>
+                            </div>
+                            <p class="text-slate-500 text-[11px] leading-relaxed">
+                                File pengaturan JSON untuk mengisi Device ID, GPIO pin relay, dan sensor ruangan.
+                            </p>
+                            <span class="text-[10px] font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-700 block">node_config.json</span>
+                        </div>
+                        <a href="{{ route('scripts.download', 'config') }}" 
+                           class="inline-flex items-center justify-center gap-2 bg-[#D84040] hover:bg-[#8E1616] text-white py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm transition active:scale-95">
+                            <span>📥 Download Config (.json)</span>
+                        </a>
+                    </div>
+
+                    <!-- 3. Legacy AC Monitoring -->
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3 flex flex-col justify-between">
+                        <div class="space-y-1.5">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xl">❄️</span>
+                                <h4 class="font-black text-sm text-[#1D1616]">Dual AC Monitor (Alex)</h4>
+                            </div>
+                            <p class="text-slate-500 text-[11px] leading-relaxed">
+                                Skrip khusus kontrol 2 AC Ruang Server 1 dengan fail-safe RTC DS3231.
+                            </p>
+                            <span class="text-[10px] font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-700 block">pindad_ac_monitoring.py</span>
+                        </div>
+                        <a href="{{ route('scripts.download', 'pindad_ac') }}" 
+                           class="inline-flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-900 text-white py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm transition active:scale-95">
+                            <span>📥 Download Skrip (.py)</span>
+                        </a>
+                    </div>
+
+                </div>
+
+                <!-- Terminal Quick Setup Command -->
+                <div class="bg-[#1D1616] text-white p-4 rounded-2xl space-y-2 border border-slate-800">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-[#D84040]">Setup Cepat via Terminal Raspberry Pi:</span>
+                        <span class="text-[10px] text-slate-400 font-mono">Terminal CLI</span>
+                    </div>
+                    <code class="block bg-black/50 p-2.5 rounded-xl font-mono text-emerald-400 text-[11px] select-all overflow-x-auto">
+                        git clone https://github.com/W2LS/Sistem_Monitoring_AC.git && cd Sistem_Monitoring_AC/scripts
+                    </code>
+                </div>
             </div>
         </div>
         
