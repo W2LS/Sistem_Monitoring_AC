@@ -1,6 +1,6 @@
 <!-- ================= MODUL 4: PUSAT INFORMASI AKUN & SISTEM IOT ================= -->
 <div class="space-y-6 pb-20" x-data="{ 
-    openItem: 'tutorial',
+    openItem: null,
     modalPassword: false,
 }">
     
