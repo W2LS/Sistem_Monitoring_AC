@@ -120,13 +120,16 @@ def login_sophos():
 adc_channels = {}
 has_rtc = False
 
+TRIGGER_MODE = config.get("trigger_mode", "LATCHING") # "LATCHING" (Lampu LED / Relai) atau "TACTILE_PULSE" (Tombol AC)
+
 if HAS_HARDWARE:
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
     for r in RELAYS:
         GPIO.setup(r["gpio_pin"], GPIO.OUT)
-        GPIO.output(r["gpio_pin"], GPIO.LOW) # Default NO terbuka (tombol siaga tidak ditekan)
-    print("❄️ [BOOT INIT] Relai tombol taktikal AC siap di mode siaga.")
+        initial_val = GPIO.HIGH if TRIGGER_MODE == "LATCHING" else GPIO.LOW
+        GPIO.output(r["gpio_pin"], initial_val)
+    print(f"❄️ [BOOT INIT] Seluruh relai siap ({TRIGGER_MODE} Mode).")
 
     try:
         i2c = busio.I2C(board.SCL, board.SDA)
@@ -193,11 +196,17 @@ def switch_relay(ac_num, state_bool):
     for r in RELAYS:
         if r["ac_number"] == ac_num:
             pin = r["gpio_pin"]
-            # ON = Short Pulse (0.6 detik), OFF = Long Press Hold (3.2 detik)
-            pulse_time = 0.6 if state_bool else 3.2
-            action_desc = "SHORT PRESS 0.6s (CETUK NYALAKAN AC)" if state_bool else "LONG PRESS 3.2s (TAHAN PADAMKAN AC)"
-            print(f"🔘 [TACTILE SWITCH AC {ac_num}] {r['name']} ➔ {action_desc}")
-            threading.Thread(target=_pulse_tactile, args=(pin, pulse_time), daemon=True).start()
+            if TRIGGER_MODE == "TACTILE_PULSE":
+                # Mode Tombol Taktikal AC: ON = Short Pulse 0.6s, OFF = Long Press 3.2s
+                pulse_time = 0.6 if state_bool else 3.2
+                action_desc = "SHORT PRESS 0.6s (CETUK NYALAKAN AC)" if state_bool else "LONG PRESS 3.2s (TAHAN PADAMKAN AC)"
+                print(f"🔘 [TACTILE PULSE AC {ac_num}] {r['name']} ➔ {action_desc}")
+                threading.Thread(target=_pulse_tactile, args=(pin, pulse_time), daemon=True).start()
+            else:
+                # Mode Latching (Default untuk Lampu LED & Relai Kontinu)
+                if HAS_HARDWARE:
+                    GPIO.output(pin, GPIO.HIGH if state_bool else GPIO.LOW)
+                print(f"⚡ [RELAY {ac_num}] {r['name']} ➔ {'ON (LAMPU MENYALA)' if state_bool else 'OFF (LAMPU PADAM)'}")
             break
 
 # ================= 4. MQTT CLIENTS (LOCAL & BLYNK) =================

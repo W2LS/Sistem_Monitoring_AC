@@ -79,10 +79,10 @@ GPIO.setwarnings(False)
 GPIO.setup(RELAY1_PIN, GPIO.OUT)
 GPIO.setup(RELAY2_PIN, GPIO.OUT)
 
-# KONDISI AWAL: NO kontak terbuka (tombol taktikal siaga tidak ditekan)
-GPIO.output(RELAY1_PIN, GPIO.LOW)
-GPIO.output(RELAY2_PIN, GPIO.LOW)
-print("❄️ [BOOT INIT] Relai tombol taktikal AC 1 & AC 2 siap di mode siaga.")
+# KONDISI AWAL SAAT BOOT: KEDUA LAMPU/AC MENYALA (FAIL-SAFE RECOVERY)
+GPIO.output(RELAY1_PIN, GPIO.HIGH)
+GPIO.output(RELAY2_PIN, GPIO.HIGH)
+print("❄️ [BOOT INIT] Relai Lampu / AC 1 & AC 2 siap dinyalakan.")
 
 # ================= SETUP I2C, ADS1115 & RTC DS3231 =================
 i2c = busio.I2C(board.SCL, board.SDA)
@@ -297,18 +297,12 @@ def on_local_message(client, userdata, msg):
                 is_turbo_cooling_active = False
                 print(f"👤 [MANUAL OVERRIDE WEB] Saklar manual ditekan di Web Dashboard -> Turbo Lock dinonaktifkan.")
 
-            def _pulse_tactile(pin, duration_sec):
-                try:
-                    GPIO.output(pin, GPIO.HIGH)
-                    time.sleep(duration_sec)
-                    GPIO.output(pin, GPIO.LOW)
-                except Exception as e:
-                    print(f"⚠️ [PULSE ERROR] {e}")
-
-            pulse_sec = 0.6 if command == "ON" else 3.2
-            action_desc = "SHORT PRESS 0.6s (CETUK NYALAKAN AC)" if command == "ON" else "LONG PRESS 3.2s (TAHAN PADAMKAN AC)"
-            print(f"🔘 [TACTILE PULSE AC {relay_num}] GPIO {target_pin} ➔ {action_desc}")
-            threading.Thread(target=_pulse_tactile, args=(target_pin, pulse_sec), daemon=True).start()
+            if command == "ON":
+                GPIO.output(target_pin, GPIO.HIGH)
+                print(f"✅ [RELAY SUKSES] AC {relay_num} (GPIO {target_pin}) -> DINYALAKAN (ON / LAMPU MENYALA)")
+            elif command == "OFF":
+                GPIO.output(target_pin, GPIO.LOW)
+                print(f"⭕ [RELAY SUKSES] AC {relay_num} (GPIO {target_pin}) -> DIMATIKAN (OFF / LAMPU PADAM)")
             
             time.sleep(0.05)
             kirim_telemetri_seketika()
