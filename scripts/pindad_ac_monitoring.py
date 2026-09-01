@@ -114,9 +114,9 @@ def get_current_timestamp():
     t = get_current_time_tuple()
     return f"{t.tm_year:04d}-{t.tm_mon:02d}-{t.tm_mday:02d} {t.tm_hour:02d}:{t.tm_min:02d}:{t.tm_sec:02d}"
 
-# ================= FUNGSI HITUNG ARUS HYBRID =================
-def hitung_arus_hybrid(channel, is_relay_on, ac_nominal=2.15):
-    if not is_relay_on:
+# ================= FUNGSI BACA SENSOR ARUS FISIK ACS712 =================
+def hitung_arus_sensor(channel, is_relay_on):
+    if not is_relay_on or channel is None:
         return 0.0000
 
     voltage_min = 5.0
@@ -135,11 +135,10 @@ def hitung_arus_hybrid(channel, is_relay_on, ac_nominal=2.15):
     v_rms = (v_peak_to_peak / 2.0) * 0.707
     arus_fisik_riil = v_rms / SENSITIVITAS_ACS712
     
-    if arus_fisik_riil >= 0.15:
+    if arus_fisik_riil >= 0.08:
         return round(arus_fisik_riil, 4)
     
-    fluktuasi = random.uniform(-0.035, 0.045)
-    return round(ac_nominal + fluktuasi, 4)
+    return 0.0000
 
 # ================= FUNGSI PUBLISH TELEMETRI (WEB + BLYNK) =================
 def kirim_telemetri_seketika():
@@ -151,8 +150,8 @@ def kirim_telemetri_seketika():
     status_ac1 = "AC_1_ON" if is_ac1_on else "AC_1_OFF"
     status_ac2 = "AC_2_ON" if is_ac2_on else "AC_2_OFF"
     
-    arus_ac1 = hitung_arus_hybrid(chan_ac1, is_ac1_on, ac_nominal=2.15)
-    arus_ac2 = hitung_arus_hybrid(chan_ac2, is_ac2_on, ac_nominal=2.08)
+    arus_ac1 = hitung_arus_sensor(chan_ac1, is_ac1_on)
+    arus_ac2 = hitung_arus_sensor(chan_ac2, is_ac2_on)
     total_current = round(arus_ac1 + arus_ac2, 2)
     total_watt = int(round(total_current * 220))
     

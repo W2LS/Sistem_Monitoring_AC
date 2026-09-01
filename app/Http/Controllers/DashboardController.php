@@ -346,29 +346,37 @@ class DashboardController extends Controller
         $this->mqttService->publish("pindad/devices/{$deviceId}/control", $jsonPayload);
         $this->mqttService->publish("pindad/ac/control", $jsonPayload);
 
-        // 1. Immediately record AcLog so database state is 100% synchronized for page reloads (F5)
-        $currentAmpere = ($state === 'ON' ? ($acNumber === 1 ? 2.15 : 2.08) : 0.0);
-        AcLog::create([
-            'device_id' => $deviceId,
-            'active_ac' => "AC_{$acNumber}_{$state}",
-            'current_ampere' => $currentAmpere,
-            'recorded_at' => now(),
-        ]);
-
-        // 2. Update virtual pin in Device model
+        // 1. Update virtual pin in Device model
         $dev = Device::where('device_id', $deviceId)->first();
         if ($dev) {
             $vals = $dev->current_values ?? [];
             $vals["V" . ($acNumber - 1)] = ($state === 'ON' ? 1 : 0);
-            $vals["V" . ($acNumber + 1)] = $currentAmpere;
+            
+            // If turning OFF, immediately reset measured current to 0.0
+            if ($state === 'OFF') {
+                $vals["V" . ($acNumber + 1)] = 0.0;
+            }
 
-            // Recalculate combined wattage for V4
-            $cur1 = ($vals["V0"] ?? 0) ? 2.15 : 0.0;
-            $cur2 = ($vals["V1"] ?? 0) ? 2.08 : 0.0;
+            // Recalculate combined wattage strictly from measured pin values
+            $cur1 = (float)($vals["V2"] ?? 0.0);
+            $cur2 = (float)($vals["V3"] ?? 0.0);
+            if (!($vals["V0"] ?? 0)) $cur1 = 0.0;
+            if (!($vals["V1"] ?? 0)) $cur2 = 0.0;
             $vals["V4"] = round(($cur1 + $cur2) * 220);
 
             $dev->current_values = $vals;
             $dev->save();
+        }
+
+        // 2. Only record AcLog if turning OFF (0.0 A) to prevent injecting fabricated mock current.
+        // When turning ON, real current will be measured by the physical ACS712 sensor and reported via MQTT.
+        if ($state === 'OFF') {
+            AcLog::create([
+                'device_id' => $deviceId,
+                'active_ac' => "AC_{$acNumber}_OFF",
+                'current_ampere' => 0.0,
+                'recorded_at' => now(),
+            ]);
         }
 
         if ($request->ajax() || $request->wantsJson()) {

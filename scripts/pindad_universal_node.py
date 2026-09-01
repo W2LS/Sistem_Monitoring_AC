@@ -204,7 +204,40 @@ def on_local_message(client, userdata, msg):
 local_client.on_connect = on_local_connect
 local_client.on_message = on_local_message
 
-# ================= 5. MAIN LOOP TELEMETRY =================
+# ================= 4. SENSOR ARUS ACS712 & ADS1115 =================
+SENSITIVITAS_ACS712 = 0.185 # V/A (185 mV/A untuk ACS712-05B, 100 mV/A untuk ACS712-20A)
+
+def read_current_ampere(ac_num):
+    is_on = relay_states.get(ac_num, False)
+    if not is_on:
+        return 0.0000
+
+    chan = adc_channels.get(ac_num)
+    if chan is None or not HAS_HARDWARE:
+        return 0.0000
+
+    voltage_min = 5.0
+    voltage_max = 0.0
+    start_time = time.time()
+    
+    while (time.time() - start_time) < 0.15:
+        try:
+            v = chan.voltage
+            if v > voltage_max: voltage_max = v
+            if v < voltage_min: voltage_min = v
+        except Exception:
+            pass
+            
+    v_peak_to_peak = max(0.0, voltage_max - voltage_min)
+    v_rms = (v_peak_to_peak / 2.0) * 0.707
+    arus_fisik_riil = v_rms / SENSITIVITAS_ACS712
+    
+    if arus_fisik_riil >= 0.08:
+        return round(arus_fisik_riil, 4)
+    
+    return 0.0000
+
+# ================= 5. MAIN TELEMETRY LOOP =================
 def telemetry_loop():
     global is_turbo_cooling_active
     start_time = time.time()
@@ -222,11 +255,8 @@ def telemetry_loop():
                 ac_num = r["ac_number"]
                 is_on = relay_states.get(ac_num, False)
                 
-                # Baca / hitung arus
-                if is_on:
-                    current_amp = round(random.uniform(2.10, 2.30), 4) # Nominal 2.15 A
-                else:
-                    current_amp = 0.0000
+                # Baca arus dari sensor fisik ACS712
+                current_amp = read_current_ampere(ac_num)
 
                 payload = {
                     "device_id": DEVICE_ID,
