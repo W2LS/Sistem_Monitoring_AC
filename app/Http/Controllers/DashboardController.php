@@ -873,9 +873,11 @@ class DashboardController extends Controller
             ];
 
             $jsonConfigStr = json_encode($customConfig, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-            $replacement = "    default_config = {$jsonConfigStr}";
+            $pyConfigStr = str_replace([': true', ': false', ': null'], [': True', ': False', ': None'], $jsonConfigStr);
+            $indentedPyConfig = preg_replace('/^/m', '    ', $pyConfigStr);
+            $replacement = "    default_config = " . ltrim($indentedPyConfig);
             
-            $pattern = '/default_config\s*=\s*\{.*?\n    \}/s';
+            $pattern = '/    default_config\s*=\s*\{.*?\n    \}/s';
             $tailoredCode = preg_replace($pattern, $replacement, $baseCode);
 
             $fileName = "pindad_node_" . strtolower(preg_replace('/[^a-zA-Z0-9_]/', '_', $deviceId)) . ".py";
