@@ -10,6 +10,7 @@ Konfigurasi: Dibaca otomatis dari node_config.json
 =============================================================================
 """
 
+import sys
 import time
 import math
 import random
@@ -34,7 +35,7 @@ except ImportError:
     HAS_HARDWARE = False
     print("⚠️ [NOTE] Berjalan di mode simulasi (RPi.GPIO / Adafruit library tidak ditemukan).")
 
-# ================= 1. BACA FILE KONFIGURASI NODE =================
+# ================= 1. BACA FILE KONFIGURASI NODE & CLI ARGS =================
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "node_config.json")
 
 def load_config():
@@ -63,6 +64,12 @@ def load_config():
     return default_config
 
 config = load_config()
+
+# Cek apakah user memberikan Device ID lewat CLI argumen (misal: python3 pindad_universal_node.py RPI3B_MONITORING_AC_RUANG_SERVER_2)
+if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
+    config["device_id"] = sys.argv[1].strip()
+    config["room_name"] = sys.argv[1].strip().replace("_", " ")
+
 DEVICE_ID = config["device_id"]
 RELAYS = config["relays"]
 TURBO_COOLING_SEC = config.get("turbo_cooling_seconds", 300)

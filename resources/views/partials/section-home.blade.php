@@ -265,6 +265,16 @@
                     </p>
                 </div>
             </div>
+
+            <!-- Download Standalone Python Script for This Room -->
+            <div class="flex items-center gap-2 shrink-0">
+                <a href="{{ route('scripts.download', ['type' => 'device', 'device_id' => $currentDevice->device_id ?? 'RPI3B_PINDAD_ROOM_1']) }}" 
+                   class="px-4 py-2.5 rounded-2xl bg-[#1D1616] hover:bg-[#8E1616] text-white font-black text-xs uppercase tracking-wider transition cursor-pointer flex items-center gap-2 shadow-sm active:scale-95"
+                   title="Unduh 1 file Python siap pakai untuk perangkat ini tanpa perlu file json">
+                    <span>📥</span>
+                    <span>Unduh Skrip (.py)</span>
+                </a>
+            </div>
         </div>
 
         <!-- 2. SUMMARY HERO STATUS KHUSUS RUANGAN INI -->
@@ -905,6 +915,19 @@
                                max="8" 
                                class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
                     </div>
+                </div>
+
+                <!-- Direct Standalone Script Download -->
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-3">
+                    <div class="space-y-0.5">
+                        <span class="text-xs font-black text-[#1D1616] block">Skrip Standalone Raspberry Pi</span>
+                        <span class="text-[10px] text-slate-500">Unduh 1 file Python siap pakai tanpa perlu file node_config.json</span>
+                    </div>
+                    <a :href="'/scripts/download/device?device_id=' + editDeviceData.device_id" 
+                       class="px-3.5 py-2 rounded-xl bg-[#1D1616] hover:bg-[#8E1616] text-white font-bold text-[11px] uppercase tracking-wide transition flex items-center gap-1.5 shrink-0 shadow-xs cursor-pointer">
+                        <span>📥</span>
+                        <span>Unduh .py</span>
+                    </a>
                 </div>
 
                 <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">

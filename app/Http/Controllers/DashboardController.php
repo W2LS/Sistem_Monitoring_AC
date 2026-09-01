@@ -821,8 +821,55 @@ class DashboardController extends Controller
     /**
      * Download IoT Scripts and Configs for Raspberry Pi Nodes.
      */
-    public function downloadScript(string $type)
+    public function downloadScript(Request $request, string $type)
     {
+        // 1. Download tailored standalone Python script for a specific device (No JSON required!)
+        if ($type === 'device' || $request->has('device_id')) {
+            $deviceId = $request->query('device_id', $type);
+            $dev = Device::where('device_id', $deviceId)->first();
+            $roomName = $dev->name ?? $deviceId;
+            $location = $dev->location ?? 'PT PINDAD (PERSERO)';
+            $numAc = $dev->num_ac ?? 2;
+
+            $baseCode = file_get_contents(base_path('scripts/pindad_universal_node.py'));
+            
+            $customConfig = [
+                'device_id' => $deviceId,
+                'room_name' => $roomName,
+                'location' => $location,
+                'mqtt_broker_host' => '127.0.0.1',
+                'mqtt_broker_port' => 1883,
+                'blynk_auth_token' => $dev->blynk_auth_token ?? '',
+                'blynk_mqtt_host' => 'blynk.cloud',
+                'blynk_mqtt_port' => 1883,
+                'sophos_auth' => ['enabled' => true, 'user' => 'pin-00020', 'pass' => '5uiFS4eE', 'url' => 'https://sophostrn.pindad.com:8090/login.xml'],
+                'relays' => [
+                    ['ac_number' => 1, 'gpio_pin' => 17, 'name' => 'Panasonic 1 (Lampu Bawah)', 'adc_channel' => 0],
+                    ['ac_number' => 2, 'gpio_pin' => 27, 'name' => 'Panasonic 2 (Lampu Atas)', 'adc_channel' => 1],
+                ],
+                'turbo_cooling_seconds' => 300,
+                'telemetry_interval_seconds' => 15,
+            ];
+
+            if ($numAc == 4) {
+                $customConfig['relays'][] = ['ac_number' => 3, 'gpio_pin' => 22, 'name' => 'AC 3', 'adc_channel' => 2];
+                $customConfig['relays'][] = ['ac_number' => 4, 'gpio_pin' => 23, 'name' => 'AC 4', 'adc_channel' => 3];
+            }
+
+            $jsonConfigStr = json_encode($customConfig, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+            $replacement = "    default_config = {$jsonConfigStr}";
+            
+            $pattern = '/default_config\s*=\s*\{.*?\n    \}/s';
+            $tailoredCode = preg_replace($pattern, $replacement, $baseCode);
+
+            $fileName = "pindad_node_" . strtolower(preg_replace('/[^a-zA-Z0-9_]/', '_', $deviceId)) . ".py";
+
+            return response($tailoredCode, 200, [
+                'Content-Type' => 'text/x-python',
+                'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
+            ]);
+        }
+
         if ($type === 'universal_node' || $type === 'node') {
             $path = base_path('scripts/pindad_universal_node.py');
             return response()->download($path, 'pindad_universal_node.py', [
