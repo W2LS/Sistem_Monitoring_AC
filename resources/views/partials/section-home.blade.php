@@ -59,40 +59,13 @@
                 </p>
             </div>
 
-            <div class="flex flex-wrap items-center gap-3 shrink-0">
+            <div class="flex items-center gap-3 shrink-0">
                 <button @click="modalNewDevice = true" 
                         type="button"
                         class="bg-[#D84040] hover:bg-[#8E1616] text-white rounded-[24px] text-xs font-black uppercase tracking-wider py-3.5 px-6 shadow-lg shadow-[#D84040]/30 transition flex items-center space-x-2 shrink-0 cursor-pointer active:scale-95">
                     <span class="text-base leading-none font-black">+</span>
                     <span>Tambah Perangkat Baru</span>
                 </button>
-
-                <!-- Master Controls -->
-                <div class="flex items-center gap-1.5 bg-white border border-[#8E1616]/20 p-1.5 rounded-full shadow-xs">
-                    <form action="{{ route('devices.masterControl') }}" method="POST" class="inline">
-                        @csrf
-                        <input type="hidden" name="command" value="ON">
-                        <button type="submit" 
-                                onclick="return confirm('Nyalakan SELURUH unit perangkat di semua ruangan?')"
-                                class="px-3.5 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[10px] uppercase tracking-wider transition flex items-center gap-1 cursor-pointer"
-                                title="Nyalakan Seluruh Perangkat">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                            <span>Master ON</span>
-                        </button>
-                    </form>
-
-                    <form action="{{ route('devices.masterControl') }}" method="POST" class="inline">
-                        @csrf
-                        <input type="hidden" name="command" value="OFF">
-                        <button type="submit" 
-                                onclick="return confirm('Matikan SELURUH unit perangkat di semua ruangan?')"
-                                class="px-3.5 py-1.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[10px] uppercase tracking-wider transition flex items-center gap-1 cursor-pointer"
-                                title="Matikan Seluruh Perangkat">
-                            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                            <span>Master OFF</span>
-                        </button>
-                    </form>
-                </div>
             </div>
         </div>
 

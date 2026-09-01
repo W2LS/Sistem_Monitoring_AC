@@ -223,8 +223,8 @@
                         ⚡
                     </div>
                     <div>
-                        <h4 class="text-lg font-black text-[#1D1616]">Aksi Pintar PINDAD</h4>
-                        <p class="text-xs text-slate-500">Pusat Komando & Navigasi Cepat</p>
+                        <h4 class="text-lg font-black text-[#1D1616]">Aksi Pintar & Kontrol Cepat</h4>
+                        <p class="text-xs text-slate-500">Pusat Komando & Master Kontrol Armada</p>
                     </div>
                 </div>
                 <button @click="modalFabOpen = false" class="text-slate-400 hover:text-[#8E1616] text-2xl font-bold cursor-pointer">&times;</button>
@@ -257,18 +257,31 @@
             </div>
 
             <!-- Master Emergency Control -->
-            <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
-                <span class="text-xs font-black text-[#1D1616]">Master Kontrol Darurat</span>
-                <div class="flex items-center gap-2">
-                    <form action="{{ route('devices.masterControl') }}" method="POST" class="inline">
+            <div class="pt-4 border-t border-slate-100 space-y-2.5">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black uppercase text-[#1D1616] tracking-wider">Aksi Kontrol Seluruh Armada</span>
+                    <span class="text-[10px] font-bold text-slate-400">Master Switch</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <form action="{{ route('devices.masterControl') }}" method="POST" class="w-full">
                         @csrf
                         <input type="hidden" name="command" value="ON">
-                        <button type="submit" class="px-3 py-1.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-black text-xs uppercase cursor-pointer">ALL ON</button>
+                        <button type="submit" 
+                                onclick="return confirm('Nyalakan SELURUH unit perangkat di semua ruangan?')"
+                                class="w-full py-3 px-3 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-black text-[11px] uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer active:scale-95 shadow-xs transition">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>Nyalakan Semua Device</span>
+                        </button>
                     </form>
-                    <form action="{{ route('devices.masterControl') }}" method="POST" class="inline">
+                    <form action="{{ route('devices.masterControl') }}" method="POST" class="w-full">
                         @csrf
                         <input type="hidden" name="command" value="OFF">
-                        <button type="submit" class="px-3 py-1.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 font-black text-xs uppercase cursor-pointer">ALL OFF</button>
+                        <button type="submit" 
+                                onclick="return confirm('Matikan SELURUH unit perangkat di semua ruangan?')"
+                                class="w-full py-3 px-3 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 font-black text-[11px] uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer active:scale-95 shadow-xs transition">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                            <span>Matikan Semua Device</span>
+                        </button>
                     </form>
                 </div>
             </div>
