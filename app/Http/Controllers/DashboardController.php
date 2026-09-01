@@ -464,6 +464,7 @@ class DashboardController extends Controller
             'target_ac' => $request->input('target_ac', 'all'),
             'start_time' => $request->input('start_time') . ':00',
             'end_time' => $request->input('end_time') . ':00',
+            'is_active' => $request->has('is_active') ? (bool)$request->input('is_active') : false,
         ]);
 
         return redirect()->back()->with('success', 'Jadwal rotasi AC berhasil diperbarui.');

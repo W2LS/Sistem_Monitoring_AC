@@ -6,7 +6,7 @@
     modalSchedule: false,
     modalEditSchedule: false,
     editDeviceData: { id: '', name: '', template_id: '', location: '', device_id: '', ip_address: '', num_ac: 2 },
-    editScheduleData: { id: '', label: '', target_ac: 'all', start_time: '06:00', end_time: '18:00' },
+    editScheduleData: { id: '', label: '', target_ac: 'all', start_time: '06:00', end_time: '18:00', is_active: true },
     openEditDevice(dev) {
         this.editDeviceData = {
             id: dev.id,
@@ -25,7 +25,8 @@
             label: sch.label,
             target_ac: sch.target_ac || 'all',
             start_time: sch.start_time ? sch.start_time.substring(0, 5) : '06:00',
-            end_time: sch.end_time ? sch.end_time.substring(0, 5) : '18:00'
+            end_time: sch.end_time ? sch.end_time.substring(0, 5) : '18:00',
+            is_active: sch.is_active ? true : false
         };
         this.modalEditSchedule = true;
     },
@@ -521,12 +522,13 @@
             <!-- Schedule Rules List -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @forelse($schedules as $sch)
-                <div class="bg-slate-50 rounded-[28px] p-5 border border-slate-200 flex items-center justify-between gap-4">
+                <div class="rounded-[28px] p-5 border flex items-center justify-between gap-4 transition-all {{ $sch->is_active ? 'bg-slate-50 border-slate-200 shadow-xs' : 'bg-slate-100/70 border-slate-300/80 opacity-65' }}">
                     <div class="space-y-1">
                         <div class="flex items-center gap-2">
                             <h4 class="font-black text-sm text-[#1D1616]">{{ $sch->label }}</h4>
-                            <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full {{ $sch->is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600' }}">
-                                {{ $sch->is_active ? 'Aktif' : 'Non-Aktif' }}
+                            <span class="text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full flex items-center gap-1 {{ $sch->is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600' }}">
+                                <span class="w-1.5 h-1.5 rounded-full {{ $sch->is_active ? 'bg-emerald-500' : 'bg-slate-400' }}"></span>
+                                <span>{{ $sch->is_active ? 'Aktif' : 'Non-Aktif' }}</span>
                             </span>
                         </div>
                         <p class="text-xs font-mono font-bold text-[#8E1616]">
@@ -544,7 +546,8 @@
                             label: '{{ addslashes($sch->label) }}',
                             target_ac: '{{ $sch->target_ac }}',
                             start_time: '{{ $sch->start_time }}',
-                            end_time: '{{ $sch->end_time }}'
+                            end_time: '{{ $sch->end_time }}',
+                            is_active: {{ $sch->is_active ? 'true' : 'false' }}
                         })" 
                         type="button" 
                         class="p-2.5 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-800 transition cursor-pointer text-xs font-bold flex items-center justify-center shrink-0 active:scale-95 shadow-xs" 
@@ -804,6 +807,17 @@
                                required 
                                class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
                     </div>
+                </div>
+
+                <div class="pt-1">
+                    <label class="flex items-center gap-3 cursor-pointer p-3.5 rounded-2xl border transition"
+                           :class="editScheduleData.is_active ? 'bg-emerald-50/70 border-emerald-300' : 'bg-slate-50 border-slate-200'">
+                        <input type="checkbox" name="is_active" value="1" x-model="editScheduleData.is_active" class="w-5 h-5 accent-emerald-600 rounded-lg cursor-pointer">
+                        <div>
+                            <span class="text-xs font-black text-[#1D1616] block">Status Aturan Jadwal</span>
+                            <span class="text-[10.5px] font-medium" :class="editScheduleData.is_active ? 'text-emerald-700 font-bold' : 'text-slate-500'" x-text="editScheduleData.is_active ? '🟢 Jadwal AKTIF dan dieksekusi otomatis oleh sistem' : '⚪ Jadwal NON-AKTIF (Dijeda / Tidak dieksekusi)'"></span>
+                        </div>
+                    </label>
                 </div>
 
                 <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
