@@ -265,23 +265,6 @@
                     </p>
                 </div>
             </div>
-
-            <!-- Device Quick Selector Dropdown -->
-            <div class="flex items-center gap-2">
-                <select onchange="window.location.href='/?device_id=' + this.value" 
-                        class="bg-white border-2 border-[#8E1616]/30 text-xs font-bold text-[#1D1616] rounded-2xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#D84040] shadow-sm cursor-pointer">
-                    @foreach($devices as $d)
-                    <option value="{{ $d->device_id }}" {{ $selectedDeviceId === $d->device_id ? 'selected' : '' }}>
-                        {{ $d->name }}
-                    </option>
-                    @endforeach
-                </select>
-
-                <button @click="setView('fleet')" 
-                        class="px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs uppercase tracking-wider transition cursor-pointer">
-                    Semua Device ➔
-                </button>
-            </div>
         </div>
 
         <!-- 2. SUMMARY HERO STATUS KHUSUS RUANGAN INI -->
