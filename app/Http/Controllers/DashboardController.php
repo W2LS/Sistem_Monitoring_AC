@@ -160,19 +160,20 @@ class DashboardController extends Controller
 
             $c1 = $devAc1 ? (float)$devAc1->current_ampere : ($dev->current_values['V2'] ?? 0.0);
             $c2 = $devAc2 ? (float)$devAc2->current_ampere : ($dev->current_values['V3'] ?? 0.0);
-            $w = $dev->current_values['V4'] ?? round(($c1 + $c2) * 220);
+            $totalCur = round($c1 + $c2, 4);
+            $w = ($dev->type === 'smart_lighting') ? ($dev->current_values['V2'] ?? 120) : round($totalCur * 220);
             if ($dev->type === 'smart_lighting') {
-                $w = $dev->current_values['V2'] ?? 120;
                 $c1 = round($w / 220, 2);
+                $totalCur = $c1;
             }
 
             $totalFleetWatt += $w;
-            $totalFleetCurrent += ($c1 + $c2);
+            $totalFleetCurrent += $totalCur;
 
             $fleetStats[$dev->device_id] = [
                 'is_online' => $isDevOnline,
                 'total_watt' => $w,
-                'total_current' => round($c1 + $c2, 2),
+                'total_current' => round($totalCur, 2),
                 'last_seen' => $devLast ? Carbon::parse($devLast->recorded_at)->diffForHumans() : ($isDevOnline ? 'Online' : 'Standby'),
             ];
         }
@@ -357,6 +358,12 @@ class DashboardController extends Controller
             $vals = $dev->current_values ?? [];
             $vals["V" . ($acNumber - 1)] = ($state === 'ON' ? 1 : 0);
             $vals["V" . ($acNumber + 1)] = $currentAmpere;
+
+            // Recalculate combined wattage for V4
+            $cur1 = ($vals["V0"] ?? 0) ? 2.15 : 0.0;
+            $cur2 = ($vals["V1"] ?? 0) ? 2.08 : 0.0;
+            $vals["V4"] = round(($cur1 + $cur2) * 220);
+
             $dev->current_values = $vals;
             $dev->save();
         }
