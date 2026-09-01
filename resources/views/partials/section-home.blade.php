@@ -216,9 +216,9 @@
                     <div class="mt-5 pt-4 border-t border-slate-100 flex items-center gap-2">
                         <a href="{{ route('dashboard', ['device_id' => $dev->device_id]) }}" 
                            @click="setView('detail')"
-                           class="flex-1 py-3 px-3.5 rounded-2xl text-center font-black text-xs uppercase tracking-wider bg-[#1D1616] hover:bg-[#8E1616] text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 overflow-hidden">
-                            <span class="whitespace-nowrap">Buka Kontrol & Jadwal</span>
-                            <span class="shrink-0">➔</span>
+                           class="flex-1 h-10 px-3 rounded-2xl text-center font-black text-[11px] sm:text-xs uppercase tracking-wide bg-[#1D1616] hover:bg-[#8E1616] text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+                            <span>Kontrol & Jadwal</span>
+                            <span class="shrink-0 text-xs">➔</span>
                         </a>
 
                         <!-- Edit Device Button -->
@@ -232,7 +232,7 @@
                             num_ac: {{ $dev->num_ac ?? 2 }}
                         })" 
                         type="button" 
-                        class="p-3 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 transition cursor-pointer active:scale-95 flex items-center justify-center shrink-0" 
+                        class="w-10 h-10 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 transition cursor-pointer active:scale-95 flex items-center justify-center shrink-0 shadow-xs" 
                         title="Edit Informasi Perangkat">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -242,7 +242,7 @@
                         <form action="{{ route('devices.destroy', $dev->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus perangkat {{ $dev->name }}?')">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="p-3 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition cursor-pointer active:scale-95 flex items-center justify-center shrink-0" title="Hapus Perangkat">
+                            <button type="submit" class="w-10 h-10 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition cursor-pointer active:scale-95 flex items-center justify-center shrink-0 shadow-xs" title="Hapus Perangkat">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
