@@ -342,11 +342,21 @@ class DashboardController extends Controller
         $this->mqttService->publish("pindad/devices/{$deviceId}/control", $jsonPayload);
         $this->mqttService->publish("pindad/ac/control", $jsonPayload);
 
-        // Update virtual pin in Device model
+        // 1. Immediately record AcLog so database state is 100% synchronized for page reloads (F5)
+        $currentAmpere = ($state === 'ON' ? ($acNumber === 1 ? 2.15 : 2.08) : 0.0);
+        AcLog::create([
+            'device_id' => $deviceId,
+            'active_ac' => "AC_{$acNumber}_{$state}",
+            'current_ampere' => $currentAmpere,
+            'recorded_at' => now(),
+        ]);
+
+        // 2. Update virtual pin in Device model
         $dev = Device::where('device_id', $deviceId)->first();
         if ($dev) {
             $vals = $dev->current_values ?? [];
             $vals["V" . ($acNumber - 1)] = ($state === 'ON' ? 1 : 0);
+            $vals["V" . ($acNumber + 1)] = $currentAmpere;
             $dev->current_values = $vals;
             $dev->save();
         }
