@@ -368,16 +368,13 @@ class DashboardController extends Controller
             $dev->save();
         }
 
-        // 2. Only record AcLog if turning OFF (0.0 A) to prevent injecting fabricated mock current.
-        // When turning ON, real current will be measured by the physical ACS712 sensor and reported via MQTT.
-        if ($state === 'OFF') {
-            AcLog::create([
-                'device_id' => $deviceId,
-                'active_ac' => "AC_{$acNumber}_OFF",
-                'current_ampere' => 0.0,
-                'recorded_at' => now(),
-            ]);
-        }
+        // 2. Immediately record AcLog so ON/OFF relay switch state persists 100% on page reload (F5) without injecting fake ampere
+        AcLog::create([
+            'device_id' => $deviceId,
+            'active_ac' => "AC_{$acNumber}_{$state}",
+            'current_ampere' => ($state === 'OFF') ? 0.0 : (float)($vals["V" . ($acNumber + 1)] ?? 0.0),
+            'recorded_at' => now(),
+        ]);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([

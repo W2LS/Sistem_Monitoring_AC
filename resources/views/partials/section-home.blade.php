@@ -320,8 +320,8 @@
         <!-- 3. DUAL AC KONTROL SAKLAR & ARUS (PANASONIC 1 VS PANASONIC 2) -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6"
              x-data="{
-                 ac1On: {{ ($latestAc1 && str_contains($latestAc1->active_ac, 'ON')) ? 'true' : 'false' }},
-                 ac2On: {{ ($latestAc2 && str_contains($latestAc2->active_ac, 'ON')) ? 'true' : 'false' }},
+                 ac1On: {{ (($latestAc1 && str_contains($latestAc1->active_ac, 'ON')) || (($currentDevice->current_values['V0'] ?? 0) == 1)) ? 'true' : 'false' }},
+                 ac2On: {{ (($latestAc2 && str_contains($latestAc2->active_ac, 'ON')) || (($currentDevice->current_values['V1'] ?? 0) == 1)) ? 'true' : 'false' }},
                  loading1: false,
                  loading2: false,
                  async toggleSwitch(acNumber) {
@@ -380,7 +380,7 @@
                               class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider transition-colors"
                               :class="ac1On ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'"
                               x-text="ac1On ? 'ONLINE' : 'STANDBY'">
-                            {{ ($latestAc1 && str_contains($latestAc1->active_ac, 'ON')) ? 'ONLINE' : 'STANDBY' }}
+                            {{ (($latestAc1 && str_contains($latestAc1->active_ac, 'ON')) || (($currentDevice->current_values['V0'] ?? 0) == 1)) ? 'ONLINE' : 'STANDBY' }}
                         </span>
                     </div>
 
@@ -450,7 +450,7 @@
                               class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider transition-colors"
                               :class="ac2On ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'"
                               x-text="ac2On ? 'ONLINE' : 'STANDBY'">
-                            {{ ($latestAc2 && str_contains($latestAc2->active_ac, 'ON')) ? 'ONLINE' : 'STANDBY' }}
+                            {{ (($latestAc2 && str_contains($latestAc2->active_ac, 'ON')) || (($currentDevice->current_values['V1'] ?? 0) == 1)) ? 'ONLINE' : 'STANDBY' }}
                         </span>
                     </div>
 
