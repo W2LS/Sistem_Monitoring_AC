@@ -540,6 +540,7 @@ class DashboardController extends Controller
         $request->validate([
             'name' => 'required|string|max:100',
             'location' => 'required|string|max:100',
+            'template_id' => 'nullable|string',
             'ip_address' => 'nullable|string|max:50',
             'hardware_type' => 'nullable|string|max:50',
             'num_ac' => 'nullable|integer|min:0|max:8',
@@ -547,9 +548,17 @@ class DashboardController extends Controller
         ]);
 
         $device = Device::findOrFail($id);
-        $device->update($request->only('name', 'location', 'ip_address', 'hardware_type', 'num_ac', 'description'));
+        $template = Template::find($request->input('template_id'));
 
-        return redirect()->route('dashboard')->with('success', "Informasi node {$device->name} berhasil diperbarui!");
+        $updateData = $request->only('name', 'location', 'template_id', 'ip_address', 'hardware_type', 'num_ac', 'description');
+        if ($template) {
+            $updateData['icon'] = $template->icon ?? $device->icon;
+            $updateData['hardware_type'] = $template->hardware_type ?? $device->hardware_type;
+        }
+
+        $device->update($updateData);
+
+        return redirect()->route('dashboard', ['device_id' => $device->device_id])->with('success', "Informasi node {$device->name} berhasil diperbarui!");
     }
 
     /**

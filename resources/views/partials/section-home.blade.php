@@ -2,9 +2,23 @@
 <div class="space-y-8 pb-20" x-data="{ 
     viewMode: localStorage.getItem('pindad_home_view') || 'fleet', // 'fleet' or 'detail'
     modalNewDevice: false,
+    modalEditDevice: false,
     modalSchedule: false,
     modalEditSchedule: false,
+    editDeviceData: { id: '', name: '', template_id: '', location: '', device_id: '', ip_address: '', num_ac: 2 },
     editScheduleData: { id: '', label: '', target_ac: 'all', start_time: '06:00', end_time: '18:00' },
+    openEditDevice(dev) {
+        this.editDeviceData = {
+            id: dev.id,
+            name: dev.name,
+            template_id: dev.template_id || '',
+            location: dev.location,
+            device_id: dev.device_id,
+            ip_address: dev.ip_address || '',
+            num_ac: dev.num_ac || 2
+        };
+        this.modalEditDevice = true;
+    },
     openEditSchedule(sch) {
         this.editScheduleData = {
             id: sch.id,
@@ -207,10 +221,28 @@
                             <span class="shrink-0">➔</span>
                         </a>
 
+                        <!-- Edit Device Button -->
+                        <button @click="openEditDevice({
+                            id: '{{ $dev->id }}',
+                            name: '{{ addslashes($dev->name) }}',
+                            template_id: '{{ $dev->template_id }}',
+                            location: '{{ addslashes($dev->location) }}',
+                            device_id: '{{ $dev->device_id }}',
+                            ip_address: '{{ $dev->ip_address }}',
+                            num_ac: {{ $dev->num_ac ?? 2 }}
+                        })" 
+                        type="button" 
+                        class="p-3 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 transition cursor-pointer active:scale-95 flex items-center justify-center shrink-0" 
+                        title="Edit Informasi Perangkat">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                        </button>
+
                         <form action="{{ route('devices.destroy', $dev->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus perangkat {{ $dev->name }}?')">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="p-3 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition cursor-pointer active:scale-95" title="Hapus Perangkat">
+                            <button type="submit" class="p-3 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition cursor-pointer active:scale-95 flex items-center justify-center shrink-0" title="Hapus Perangkat">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
@@ -804,6 +836,110 @@
                 <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
                     <button @click="modalEditSchedule = false" type="button" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
                     <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Perbarui Jadwal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 4: EDIT INFORMASI PERANGKAT IOT -->
+    <!-- ========================================================================= -->
+    <div x-show="modalEditDevice" 
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100">
+        
+        <div @click.away="modalEditDevice = false" 
+             class="bg-white rounded-[40px] p-7 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 space-y-5 relative max-h-[90vh] overflow-y-auto">
+            
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-[20px] bg-amber-100 text-amber-800 flex items-center justify-center font-black text-xl">
+                        ✏️
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-black text-[#1D1616]">Edit Informasi Perangkat IoT</h4>
+                        <p class="text-xs text-slate-500">Perbarui konfigurasi ruangan & blueprint template</p>
+                    </div>
+                </div>
+                <button @click="modalEditDevice = false" class="text-slate-400 hover:text-amber-800 text-2xl font-bold cursor-pointer">&times;</button>
+            </div>
+
+            <form :action="'/devices/' + editDeviceData.id" method="POST" class="space-y-4">
+                @csrf
+                @method('PUT')
+                
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Pilih Template Blueprint *</label>
+                    <select name="template_id" x-model="editDeviceData.template_id" required class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#D84040] outline-none">
+                        @foreach($templates as $tmpl)
+                        <option value="{{ $tmpl->id }}">{{ $tmpl->icon }} {{ $tmpl->name }} ({{ $tmpl->hardware_type }})</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Nama Perangkat / Ruangan *</label>
+                    <input type="text" 
+                           name="name" 
+                           x-model="editDeviceData.name"
+                           required 
+                           placeholder="Contoh: Monitoring AC Ruang Server 2" 
+                           class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Lokasi / Gedung *</label>
+                        <input type="text" 
+                               name="location" 
+                               x-model="editDeviceData.location"
+                               required 
+                               placeholder="Gedung TIK" 
+                               class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-black uppercase text-slate-700 tracking-wider">ID Perangkat (MQTT)</label>
+                            <span class="text-[9px] font-bold text-slate-600 bg-slate-100 border border-slate-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <span>Terkunci</span>
+                            </span>
+                        </div>
+                        <input type="text" 
+                               name="device_id" 
+                               x-model="editDeviceData.device_id"
+                               readonly
+                               class="w-full px-4 py-3 rounded-2xl border-2 border-dashed border-slate-300 text-xs sm:text-sm font-mono uppercase bg-slate-100/90 text-slate-700 font-bold cursor-not-allowed select-all outline-none">
+                        <p class="text-[10px] text-slate-400 mt-1">ID MQTT bersifat permanen untuk menjaga rute sensor.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Alamat IP Perangkat</label>
+                        <input type="text" 
+                               name="ip_address" 
+                               x-model="editDeviceData.ip_address"
+                               placeholder="192.168.196.45" 
+                               class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#D84040] outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Kapasitas AC (Unit)</label>
+                        <input type="number" 
+                               name="num_ac" 
+                               x-model="editDeviceData.num_ac"
+                               min="0" 
+                               max="8" 
+                               class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                    </div>
+                </div>
+
+                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+                    <button @click="modalEditDevice = false" type="button" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Perbarui Perangkat</button>
                 </div>
             </form>
         </div>
