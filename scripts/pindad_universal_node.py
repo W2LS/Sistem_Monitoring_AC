@@ -125,8 +125,8 @@ if HAS_HARDWARE:
     GPIO.setwarnings(False)
     for r in RELAYS:
         GPIO.setup(r["gpio_pin"], GPIO.OUT)
-        GPIO.output(r["gpio_pin"], GPIO.HIGH) # Fail-safe boot ON
-    print("❄️ [BOOT FAIL-SAFE] Seluruh relai AC dinyalakan saat startup.")
+        GPIO.output(r["gpio_pin"], GPIO.LOW) # Default NO terbuka (tombol siaga tidak ditekan)
+    print("❄️ [BOOT INIT] Relai tombol taktikal AC siap di mode siaga.")
 
     try:
         i2c = busio.I2C(board.SCL, board.SDA)
@@ -176,14 +176,28 @@ def get_current_timestamp():
             pass
     return time.strftime("%Y-%m-%d %H:%M:%S")
 
+def _pulse_tactile(gpio_pin, duration_sec):
+    """Pemicu pulsa ke tombol taktikal AC (Non-blocking background thread)"""
+    try:
+        if HAS_HARDWARE:
+            GPIO.output(gpio_pin, GPIO.HIGH) # Kontak NO-COM terhubung (menekan tombol)
+        time.sleep(duration_sec)
+        if HAS_HARDWARE:
+            GPIO.output(gpio_pin, GPIO.LOW)  # Kontak NO-COM terbuka (melepas tombol)
+    except Exception as e:
+        print(f"⚠️ [PULSE ERROR] {e}")
+
 def switch_relay(ac_num, state_bool):
     global is_turbo_cooling_active
     relay_states[ac_num] = state_bool
     for r in RELAYS:
         if r["ac_number"] == ac_num:
-            if HAS_HARDWARE:
-                GPIO.output(r["gpio_pin"], GPIO.HIGH if state_bool else GPIO.LOW)
-            print(f"⚡ [RELAY {ac_num}] {r['name']} -> {'ON (MENYALA)' if state_bool else 'OFF (PADAM)'}")
+            pin = r["gpio_pin"]
+            # ON = Short Pulse (0.6 detik), OFF = Long Press Hold (3.2 detik)
+            pulse_time = 0.6 if state_bool else 3.2
+            action_desc = "SHORT PRESS 0.6s (CETUK NYALAKAN AC)" if state_bool else "LONG PRESS 3.2s (TAHAN PADAMKAN AC)"
+            print(f"🔘 [TACTILE SWITCH AC {ac_num}] {r['name']} ➔ {action_desc}")
+            threading.Thread(target=_pulse_tactile, args=(pin, pulse_time), daemon=True).start()
             break
 
 # ================= 4. MQTT CLIENTS (LOCAL & BLYNK) =================
