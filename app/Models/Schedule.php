@@ -15,6 +15,7 @@ class Schedule extends Model
         'end_time',
         'target_ac',
         'is_active',
+        'device_id',
     ];
 
     protected $casts = [

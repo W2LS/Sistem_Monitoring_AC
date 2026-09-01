@@ -179,8 +179,10 @@ class DashboardController extends Controller
             ];
         }
 
-        // 5. Schedules for the selected device
-        $schedules = Schedule::orderBy('start_time')->get();
+        // 5. Schedules for the selected device (Fixed & Stable order by creation time / ID)
+        $schedules = Schedule::where(function($q) use ($selectedDeviceId) {
+            $q->where('device_id', $selectedDeviceId)->orWhereNull('device_id');
+        })->orderBy('created_at', 'asc')->orderBy('_id', 'asc')->get();
         $shiftAc1 = $this->getActiveShiftText(1);
         $shiftAc2 = $this->getActiveShiftText(2);
 
