@@ -833,6 +833,30 @@ class DashboardController extends Controller
 
             $baseCode = file_get_contents(base_path('scripts/pindad_universal_node.py'));
             
+            // Standard Industrial Raspberry Pi pinout & ADS1115 ADC mapping for 1 to 8 AC units
+            $standardPins = [
+                1 => ['gpio' => 17, 'adc' => 0, 'name' => ($numAc == 2 ? 'Panasonic 1 (Lampu Bawah)' : 'AC 1 (Unit 1)')],
+                2 => ['gpio' => 27, 'adc' => 1, 'name' => ($numAc == 2 ? 'Panasonic 2 (Lampu Atas)' : 'AC 2 (Unit 2)')],
+                3 => ['gpio' => 22, 'adc' => 2, 'name' => 'AC 3 (Unit 3)'],
+                4 => ['gpio' => 23, 'adc' => 3, 'name' => 'AC 4 (Unit 4)'],
+                5 => ['gpio' => 24, 'adc' => 0, 'name' => 'AC 5 (Unit 5)'],
+                6 => ['gpio' => 25, 'adc' => 1, 'name' => 'AC 6 (Unit 6)'],
+                7 => ['gpio' => 5,  'adc' => 2, 'name' => 'AC 7 (Unit 7)'],
+                8 => ['gpio' => 6,  'adc' => 3, 'name' => 'AC 8 (Unit 8)'],
+            ];
+
+            $relays = [];
+            $maxChannels = max(1, min(8, (int)$numAc));
+            for ($i = 1; $i <= $maxChannels; $i++) {
+                $pinInfo = $standardPins[$i] ?? ['gpio' => 17 + $i, 'adc' => ($i - 1) % 4, 'name' => "AC {$i}"];
+                $relays[] = [
+                    'ac_number' => $i,
+                    'gpio_pin' => $pinInfo['gpio'],
+                    'name' => $pinInfo['name'],
+                    'adc_channel' => $pinInfo['adc'],
+                ];
+            }
+
             $customConfig = [
                 'device_id' => $deviceId,
                 'room_name' => $roomName,
@@ -843,18 +867,10 @@ class DashboardController extends Controller
                 'blynk_mqtt_host' => 'blynk.cloud',
                 'blynk_mqtt_port' => 1883,
                 'sophos_auth' => ['enabled' => true, 'user' => 'pin-00020', 'pass' => '5uiFS4eE', 'url' => 'https://sophostrn.pindad.com:8090/login.xml'],
-                'relays' => [
-                    ['ac_number' => 1, 'gpio_pin' => 17, 'name' => 'Panasonic 1 (Lampu Bawah)', 'adc_channel' => 0],
-                    ['ac_number' => 2, 'gpio_pin' => 27, 'name' => 'Panasonic 2 (Lampu Atas)', 'adc_channel' => 1],
-                ],
+                'relays' => $relays,
                 'turbo_cooling_seconds' => 300,
                 'telemetry_interval_seconds' => 15,
             ];
-
-            if ($numAc == 4) {
-                $customConfig['relays'][] = ['ac_number' => 3, 'gpio_pin' => 22, 'name' => 'AC 3', 'adc_channel' => 2];
-                $customConfig['relays'][] = ['ac_number' => 4, 'gpio_pin' => 23, 'name' => 'AC 4', 'adc_channel' => 3];
-            }
 
             $jsonConfigStr = json_encode($customConfig, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             $replacement = "    default_config = {$jsonConfigStr}";

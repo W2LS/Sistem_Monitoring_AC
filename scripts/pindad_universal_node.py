@@ -130,15 +130,35 @@ if HAS_HARDWARE:
 
     try:
         i2c = busio.I2C(board.SCL, board.SDA)
-        ads = ADS.ADS1115(i2c, address=0x48)
-        ads.gain = 1
-        ads.data_rate = 860
+        ads1 = None
+        ads2 = None
+
+        try:
+            ads1 = ADS.ADS1115(i2c, address=0x48)
+            ads1.gain = 1
+            ads1.data_rate = 860
+        except Exception as e:
+            print(f"⚠️ [ADS1115 #1 (0x48) ERROR] {e}")
+
+        try:
+            ads2 = ADS.ADS1115(i2c, address=0x49)
+            ads2.gain = 1
+            ads2.data_rate = 860
+        except Exception:
+            pass # Secondary ADC opsional jika menggunakan relay > 4 channel
+
         for r in RELAYS:
-            ch_idx = r.get("adc_channel", 0)
-            adc_channels[r["ac_number"]] = AnalogIn(ads, ch_idx)
-        print("⚡ [ADS1115] ADC Sensor Arus ACS712 siap.")
+            ac_num = r["ac_number"]
+            ch_idx = r.get("adc_channel", (ac_num - 1) % 4)
+            if ac_num <= 4 and ads1:
+                adc_channels[ac_num] = AnalogIn(ads1, ch_idx)
+            elif ac_num > 4 and ads2:
+                adc_channels[ac_num] = AnalogIn(ads2, ch_idx)
+            elif ads1:
+                adc_channels[ac_num] = AnalogIn(ads1, ch_idx)
+        print(f"⚡ [ADS1115] ADC Sensor Arus ACS712 siap untuk {len(adc_channels)} Channel ({len(RELAYS)} Unit AC).")
     except Exception as e:
-        print(f"⚠️ [ADS1115 ERROR] {e}")
+        print(f"⚠️ [ADS1115 SETUP ERROR] {e}")
 
     try:
         rtc = adafruit_ds3231.DS3231(i2c)
