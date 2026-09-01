@@ -56,7 +56,7 @@
                             <h4 class="font-black text-sm text-[#1D1616]">Rancang Template di DevZone (Modul 2)</h4>
                         </div>
                         <p class="text-slate-600 leading-relaxed">
-                            Buka menu <b>DevZone</b> untuk membuat atau memilih blueprint hardware (misal <i>Raspberry Pi 3B+</i>). Konfigurasikan saluran <b>Virtual Pin (Datastreams)</b> seperti <code class="bg-slate-100 px-1 py-0.5 rounded font-bold text-[#8E1616]">V0</code> untuk Relay AC 1, <code class="bg-slate-100 px-1 py-0.5 rounded font-bold text-[#8E1616]">V1</code> untuk Relay AC 2, dan <code class="bg-slate-100 px-1 py-0.5 rounded font-bold text-[#8E1616]">V2</code> untuk Sensor Arus.
+                            Buka menu <b>DevZone</b> untuk membuat atau memilih blueprint hardware (misal <i>Dual AC Controller (Raspberry Pi 3B+)</i>). Konfigurasikan saluran <b>Virtual Pin</b> seperti <code class="bg-slate-100 px-1 py-0.5 rounded font-bold text-[#8E1616]">V0/V1</code> untuk Saklar Relay, dan <code class="bg-slate-100 px-1 py-0.5 rounded font-bold text-[#8E1616]">V2/V3</code> untuk Sensor Arus ACS712.
                         </p>
                     </div>
 
@@ -64,95 +64,94 @@
                     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2 relative overflow-hidden">
                         <div class="flex items-center gap-2.5">
                             <span class="w-7 h-7 rounded-xl bg-[#8E1616] text-white flex items-center justify-center font-black text-xs shrink-0">2</span>
-                            <h4 class="font-black text-sm text-[#1D1616]">Tambahkan Perangkat Baru di Home (Modul 1)</h4>
+                            <h4 class="font-black text-sm text-[#1D1616]">Daftarkan Ruangan Baru di Home (Modul 1)</h4>
                         </div>
                         <p class="text-slate-600 leading-relaxed">
-                            Di halaman <b>Home</b>, klik tombol <b>`+ Tambah Perangkat Baru`</b>. Pilih Template yang sudah dibuat, tentukan Nama Ruangan (misal <i>Ruang Server Internet</i>), dan masukkan <b>Device ID</b> unik (misal <code class="bg-slate-100 px-1 py-0.5 rounded font-bold text-[#1D1616]">RPI3B_RUANG_INTERNET</code>).
+                            Di halaman <b>Home</b>, klik tombol <b>`+ Tambah Perangkat Baru`</b>. Tentukan Nama Ruangan (misal <i>Monitoring AC Ruang Server 2</i>) dan tentukan jumlah <b>Kapasitas AC</b> (misal <i>2, 4, 6, atau 8 AC</i>).
                         </p>
                     </div>
 
-                    <!-- Step 3: Setup Hardware -->
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2 relative overflow-hidden">
-                        <div class="flex items-center gap-2.5">
-                            <span class="w-7 h-7 rounded-xl bg-[#8E1616] text-white flex items-center justify-center font-black text-xs shrink-0">3</span>
-                            <h4 class="font-black text-sm text-[#1D1616]">Jalankan Skrip di Raspberry Pi Ruangan</h4>
+                    <!-- Step 3: Unduh Skrip Otomatis -->
+                    <div class="bg-white p-5 rounded-2xl border-2 border-emerald-400/80 shadow-xs space-y-2 relative overflow-hidden bg-emerald-50/20">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-xs shrink-0">3</span>
+                                <h4 class="font-black text-sm text-[#1D1616]">Unduh Skrip Python (.py) Siap Pakai</h4>
+                            </div>
+                            <span class="text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">100% Otomatis</span>
                         </div>
                         <p class="text-slate-600 leading-relaxed">
-                            Di Raspberry Pi fisik ruangan tersebut, copy folder <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">scripts/</code>, isi file <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">node_config.json</code> dengan Device ID yang cocok, lalu jalankan:
-                            <code class="block mt-1 bg-[#1D1616] text-emerald-400 p-2 rounded-lg font-mono text-[11px]">python3 pindad_universal_node.py</code>
-                            Perangkat akan otomatis terhubung ke MQTT dan lampu status di web menjadi <b>🟢 Online</b>.
+                            Buka detail ruangan tersebut, lalu klik tombol <b>`📥 Unduh Skrip (.py)`</b>. Web langsung men-generate 1 file Python mandiri (misal <code class="bg-slate-100 px-1 py-0.5 rounded font-mono font-bold text-emerald-800">pindad_node_ruang_server_2.py</code>) yang <b>sudah otomatis terkonfigurasi dengan ID Ruangan, channel relay, dan pin sensor ACS712</b>. <i>Tanpa perlu file json sama sekali!</i>
                         </p>
-                        <div class="pt-1.5 flex items-center gap-2">
-                            <a href="{{ route('scripts.download', 'universal_node') }}" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] uppercase tracking-wider flex items-center gap-1">
-                                <span>📥 Unduh .py</span>
-                            </a>
-                            <a href="{{ route('scripts.download', 'config') }}" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-[#D84040] font-bold text-[10px] uppercase tracking-wider flex items-center gap-1">
-                                <span>📥 Unduh .json</span>
-                            </a>
-                        </div>
                     </div>
 
-                    <!-- Step 4: Kontrol & Jadwal -->
+                    <!-- Step 4: Jalankan di Raspberry Pi -->
                     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2 relative overflow-hidden">
                         <div class="flex items-center gap-2.5">
                             <span class="w-7 h-7 rounded-xl bg-[#8E1616] text-white flex items-center justify-center font-black text-xs shrink-0">4</span>
-                            <h4 class="font-black text-sm text-[#1D1616]">Kontrol Saklar & Atur Jadwal Shift</h4>
+                            <h4 class="font-black text-sm text-[#1D1616]">Jalankan Skrip di Raspberry Pi via SSH</h4>
                         </div>
                         <p class="text-slate-600 leading-relaxed">
-                            Di kartu perangkat ruangan, klik <b>`Buka Kontrol & Jadwal ➔`</b>. Anda dapat menyalakan/mematikan AC secara manual atau mengatur <b>Jadwal Rotasi Shift 12 Jam Otomatis</b> berbasis RTC DS3231 tanpa khawatir padam listrik.
+                            Salin 1 file <code class="bg-slate-100 px-1 py-0.5 rounded font-mono text-[11px]">.py</code> hasil unduhan tadi ke Raspberry Pi (via SSH/WinSCP), lalu jalankan:
+                            <code class="block mt-1 bg-[#1D1616] text-emerald-400 p-2 rounded-lg font-mono text-[11px]">python3 pindad_node_ruang_server_2.py</code>
+                            Perangkat langsung terhubung ke MQTT dan lampu status di web menjadi <b>🟢 Online</b>!
                         </p>
                     </div>
 
                 </div>
 
-                <!-- Summary Tips Banner -->
-                <div class="bg-gradient-to-r from-[#1D1616] to-[#8E1616] text-white p-4 rounded-2xl flex items-center gap-3 text-xs">
-                    <span class="text-2xl">💡</span>
-                    <div>
-                        <span class="font-black block text-sm">Hubungan Template vs Device:</span>
-                        <p class="text-slate-200 text-[11px] mt-0.5">
-                            <b>Template</b> adalah cetak biru spesifikasi hardware (dibuat sekali di DevZone). <b>Device</b> adalah wujud fisik alat yang terpasang di masing-masing ruangan gedung PT PINDAD.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Hardware Node Multi-Room Guide (2-Channel vs 4-Channel Relay) -->
+                <!-- Hardware Pinout Mapping Guide (2-Channel s/d 8-Channel Relay & ACS712) -->
                 <div class="bg-white p-5 rounded-2xl border-2 border-indigo-200 shadow-xs space-y-3">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-base shrink-0">
-                            ⚙️
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-base shrink-0">
+                                ⚡
+                            </div>
+                            <div>
+                                <h4 class="font-black text-sm text-[#1D1616]">Alokasi Hardware Otomatis (Relay & Sensor Arus ACS712)</h4>
+                                <p class="text-xs text-slate-500">Skrip yang diunduh dari web sudah otomatis memetakan pin GPIO dan kanal ADC ADS1115:</p>
+                            </div>
                         </div>
-                        <div>
-                            <h4 class="font-black text-sm text-[#1D1616]">Konfigurasi Hardware Multi-Ruangan (2-Channel vs 4-Channel)</h4>
-                            <p class="text-xs text-slate-500">Program Python <b>100% SAMA PERSIS</b> di seluruh Raspberry Pi. Cukup ubah file <code class="bg-slate-100 px-1 py-0.5 rounded font-mono font-bold text-indigo-600">node_config.json</code> di masing-masing alat:</p>
-                        </div>
+                        <span class="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg border border-indigo-200">
+                            1 s/d 8 Channel AC
+                        </span>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] font-mono">
-                        <!-- Server A (2 Relay) -->
-                        <div class="bg-slate-900 text-slate-200 p-3.5 rounded-xl border border-slate-800 space-y-1">
-                            <span class="text-emerald-400 font-bold font-sans block text-xs">📌 Ruang Server A (Relay 2 Channel):</span>
-                            <pre class="text-[10.5px] leading-tight text-slate-300 overflow-x-auto">{
-  "device_id": "RPI3B_SERVER_A",
-  "relays": [
-    {"ac_number": 1, "gpio_pin": 17, "name": "AC 1"},
-    {"ac_number": 2, "gpio_pin": 27, "name": "AC 2"}
-  ]
-}</pre>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 text-[11px]">
+                        <!-- Channel 1-2 -->
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                            <span class="text-indigo-700 font-bold font-sans block text-xs">❄️ AC 1 & AC 2 (2 Channel):</span>
+                            <div class="text-[10.5px] text-slate-600 font-mono space-y-0.5">
+                                <p>• AC 1: GPIO 17 | ADS1115 #1 (A0)</p>
+                                <p>• AC 2: GPIO 27 | ADS1115 #1 (A1)</p>
+                            </div>
                         </div>
 
-                        <!-- Server B (4 Relay) -->
-                        <div class="bg-slate-900 text-slate-200 p-3.5 rounded-xl border border-slate-800 space-y-1">
-                            <span class="text-amber-400 font-bold font-sans block text-xs">📌 Ruang Server B (Relay 4 Channel):</span>
-                            <pre class="text-[10.5px] leading-tight text-slate-300 overflow-x-auto">{
-  "device_id": "RPI3B_SERVER_B",
-  "relays": [
-    {"ac_number": 1, "gpio_pin": 17, "name": "AC 1"},
-    {"ac_number": 2, "gpio_pin": 27, "name": "AC 2"},
-    {"ac_number": 3, "gpio_pin": 22, "name": "AC 3"},
-    {"ac_number": 4, "gpio_pin": 23, "name": "AC 4"}
-  ]
-}</pre>
+                        <!-- Channel 3-4 -->
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                            <span class="text-indigo-700 font-bold font-sans block text-xs">❄️ AC 3 & AC 4 (4 Channel):</span>
+                            <div class="text-[10.5px] text-slate-600 font-mono space-y-0.5">
+                                <p>• AC 3: GPIO 22 | ADS1115 #1 (A2)</p>
+                                <p>• AC 4: GPIO 23 | ADS1115 #1 (A3)</p>
+                            </div>
+                        </div>
+
+                        <!-- Channel 5-6 -->
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                            <span class="text-indigo-700 font-bold font-sans block text-xs">❄️ AC 5 & AC 6 (6 Channel):</span>
+                            <div class="text-[10.5px] text-slate-600 font-mono space-y-0.5">
+                                <p>• AC 5: GPIO 24 | ADS1115 #2 (A0)</p>
+                                <p>• AC 6: GPIO 25 | ADS1115 #2 (A1)</p>
+                            </div>
+                        </div>
+
+                        <!-- Channel 7-8 -->
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                            <span class="text-indigo-700 font-bold font-sans block text-xs">❄️ AC 7 & AC 8 (8 Channel):</span>
+                            <div class="text-[10.5px] text-slate-600 font-mono space-y-0.5">
+                                <p>• AC 7: GPIO 5 | ADS1115 #2 (A2)</p>
+                                <p>• AC 8: GPIO 6 | ADS1115 #2 (A3)</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -166,7 +165,7 @@
                             </div>
                             <div>
                                 <h4 class="font-black text-sm text-[#1D1616]">Perintah Terminal Setup Raspberry Pi Baru</h4>
-                                <p class="text-xs text-slate-500">Jalankan perintah ini di terminal Raspberry Pi OS sebelum menjalankan program:</p>
+                                <p class="text-xs text-slate-500">Jalankan 2 perintah ini di terminal Raspberry Pi OS saat pertama kali menginstal alat:</p>
                             </div>
                         </div>
                         <a href="{{ route('scripts.download', 'setup') }}" class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] uppercase tracking-wider transition shrink-0 hidden sm:inline-flex items-center gap-1">
@@ -178,33 +177,22 @@
                         <!-- Step A -->
                         <div class="bg-slate-900 text-slate-200 p-3 rounded-xl border border-slate-800 space-y-1">
                             <div class="flex items-center justify-between text-[11px]">
-                                <span class="font-bold text-emerald-400 font-sans">1. Update OS Linux & Aktifkan Port I2C Hardware:</span>
+                                <span class="font-bold text-emerald-400 font-sans">1. Aktifkan Driver Hardware I2C & Install Dependensi:</span>
                                 <span class="text-slate-400 font-mono text-[10px]">Linux Shell</span>
                             </div>
                             <code class="block font-mono text-slate-100 text-[11px] select-all bg-black/40 p-2 rounded-lg">
-                                sudo apt update && sudo apt install -y python3-pip python3-smbus i2c-tools git && sudo raspi-config nonint do_i2c 0
+                                sudo apt update && sudo apt install -y python3-pip python3-smbus i2c-tools && sudo raspi-config nonint do_i2c 0
                             </code>
                         </div>
 
                         <!-- Step B -->
                         <div class="bg-slate-900 text-slate-200 p-3 rounded-xl border border-slate-800 space-y-1">
                             <div class="flex items-center justify-between text-[11px]">
-                                <span class="font-bold text-amber-400 font-sans">2. Install Library Sensor Python (MQTT, ADS1115, DS3231):</span>
+                                <span class="font-bold text-amber-400 font-sans">2. Install Library Sensor (MQTT, ADS1115 ADC, DS3231 RTC):</span>
                                 <span class="text-slate-400 font-mono text-[10px]">Python Pip</span>
                             </div>
                             <code class="block font-mono text-slate-100 text-[11px] select-all bg-black/40 p-2 rounded-lg">
                                 pip3 install paho-mqtt adafruit-circuitpython-ads1x15 adafruit-circuitpython-ds3231 RPi.GPIO --break-system-packages
-                            </code>
-                        </div>
-
-                        <!-- Step C -->
-                        <div class="bg-slate-900 text-slate-200 p-3 rounded-xl border border-slate-800 space-y-1">
-                            <div class="flex items-center justify-between text-[11px]">
-                                <span class="font-bold text-sky-400 font-sans">3. Clone Repo & Jalankan Node:</span>
-                                <span class="text-slate-400 font-mono text-[10px]">Execute</span>
-                            </div>
-                            <code class="block font-mono text-slate-100 text-[11px] select-all bg-black/40 p-2 rounded-lg">
-                                git clone https://github.com/W2LS/Sistem_Monitoring_AC.git && cd Sistem_Monitoring_AC/scripts && python3 pindad_universal_node.py
                             </code>
                         </div>
                     </div>
@@ -242,57 +230,54 @@
                         </div>
                         <div>
                             <h4 class="font-black text-sm text-[#1D1616]">3 Cara Termudah Menjalankan Program di Raspberry Pi Baru</h4>
-                            <p class="text-xs text-slate-500">Pilihan metode alternatif deployment alat IoT:</p>
+                            <p class="text-xs text-slate-500">Pilihan metode deployment IoT yang paling praktis:</p>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                        <!-- Option 1: Git Clone -->
-                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 flex flex-col justify-between">
+                        <!-- Option 1: Direct Download Standalone .py -->
+                        <div class="p-4 rounded-xl bg-emerald-50/50 border-2 border-emerald-300 space-y-2 flex flex-col justify-between">
                             <div class="space-y-1">
-                                <span class="font-black text-xs text-[#1D1616] flex items-center gap-1.5">
-                                    <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">1</span>
-                                    <span>Cara 1: Git Clone (3 Detik)</span>
+                                <span class="font-black text-xs text-[#1D1616] flex items-center justify-between">
+                                    <span class="flex items-center gap-1.5">
+                                        <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">1</span>
+                                        <span>Cara 1: Unduh Skrip (.py)</span>
+                                    </span>
+                                    <span class="text-[9px] font-black uppercase bg-emerald-200 text-emerald-900 px-1.5 py-0.5 rounded">Terbaik</span>
                                 </span>
-                                <p class="text-[11px] text-slate-600 leading-relaxed">Download folder lengkap dari repo resmi:</p>
+                                <p class="text-[11px] text-slate-600 leading-relaxed">Unduh 1 file Python mandiri dari tombol web, lalu jalankan:</p>
                             </div>
                             <code class="block font-mono text-[10.5px] bg-slate-900 text-emerald-400 p-2.5 rounded-lg select-all overflow-x-auto leading-tight">
-                                git clone https://github.com/W2LS/Sistem_Monitoring_AC.git<br>
-                                cd Sistem_Monitoring_AC/scripts<br>
-                                python3 pindad_universal_node.py
+                                python3 pindad_node_ruang_server.py
                             </code>
                         </div>
 
-                        <!-- Option 2: Wget Direct -->
+                        <!-- Option 2: CLI Parameter -->
                         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 flex flex-col justify-between">
                             <div class="space-y-1">
                                 <span class="font-black text-xs text-[#1D1616] flex items-center gap-1.5">
                                     <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px]">2</span>
-                                    <span>Cara 2: Wget Download</span>
+                                    <span>Cara 2: Lewat Terminal CLI</span>
                                 </span>
-                                <p class="text-[11px] text-slate-600 leading-relaxed">Download 2 file langsung dari web dashboard:</p>
+                                <p class="text-[11px] text-slate-600 leading-relaxed">Jalankan universal node dengan argumen ID Perangkat:</p>
                             </div>
                             <code class="block font-mono text-[10.5px] bg-slate-900 text-blue-300 p-2.5 rounded-lg select-all overflow-x-auto leading-tight">
-                                wget http://IP-SERVER:8000/scripts/download/node -O node.py<br>
-                                wget http://IP-SERVER:8000/scripts/download/config -O node_config.json<br>
-                                python3 node.py
+                                python3 pindad_universal_node.py RPI3B_RUANG_SERVER_2
                             </code>
                         </div>
 
-                        <!-- Option 3: Flashdisk -->
+                        <!-- Option 3: Git Clone -->
                         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 flex flex-col justify-between">
                             <div class="space-y-1">
                                 <span class="font-black text-xs text-[#1D1616] flex items-center gap-1.5">
                                     <span class="w-5 h-5 rounded-full bg-purple-600 text-white flex items-center justify-center text-[10px]">3</span>
-                                    <span>Cara 3: Flashdisk (Offline)</span>
+                                    <span>Cara 3: Git Clone Repository</span>
                                 </span>
-                                <p class="text-[11px] text-slate-600 leading-relaxed">Copy folder scripts dari laptop ke USB drive:</p>
+                                <p class="text-[11px] text-slate-600 leading-relaxed">Clone seluruh repo untuk pengembangan/backup:</p>
                             </div>
-                            <div class="bg-slate-900 text-slate-200 p-2.5 rounded-lg text-[10.5px] leading-tight space-y-1">
-                                <p>1. Copy folder <code class="text-amber-400">scripts/</code> ke Flashdisk.</p>
-                                <p>2. Colok Flashdisk ke Raspberry Pi.</p>
-                                <p>3. Buka terminal & jalankan <code class="text-emerald-400">python3 pindad_universal_node.py</code></p>
-                            </div>
+                            <code class="block font-mono text-[10.5px] bg-slate-900 text-purple-300 p-2.5 rounded-lg select-all overflow-x-auto leading-tight">
+                                git clone https://github.com/W2LS/Sistem_Monitoring_AC.git
+                            </code>
                         </div>
                     </div>
                 </div>
