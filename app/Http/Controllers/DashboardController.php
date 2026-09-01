@@ -89,33 +89,34 @@ class DashboardController extends Controller
             $latestAc2 = AcLog::where('device_id', $selectedDeviceId)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
         }
 
-        // 3. Fetch Recent Telemetry Logs for Charts & Tables
+        // 3. Fetch Recent Telemetry Logs for Charts & Tables based on $filterDevice
         $filterDevice = $request->query('filter_device', $selectedDeviceId);
         
         $queryLogs = AcLog::query();
+        $queryAc1 = AcLog::query()->where('active_ac', 'like', 'AC_1%');
+        $queryAc2 = AcLog::query()->where('active_ac', 'like', 'AC_2%');
+
         if ($filterDevice && $filterDevice !== 'all') {
             if ($filterDevice === 'RPI3B_PINDAD_ROOM_1') {
                 $queryLogs->where(function($q) {
                     $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
                 });
+                $queryAc1->where(function($q) {
+                    $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
+                });
+                $queryAc2->where(function($q) {
+                    $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
+                });
             } else {
                 $queryLogs->where('device_id', $filterDevice);
+                $queryAc1->where('device_id', $filterDevice);
+                $queryAc2->where('device_id', $filterDevice);
             }
         }
+
         $recentLogsAll = $queryLogs->latest('recorded_at')->take(50)->get();
-
-        if ($selectedDeviceId === 'RPI3B_PINDAD_ROOM_1') {
-            $recentLogsAc1 = AcLog::where(function($q) {
-                $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
-            })->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->take(50)->get();
-
-            $recentLogsAc2 = AcLog::where(function($q) {
-                $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
-            })->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->take(50)->get();
-        } else {
-            $recentLogsAc1 = AcLog::where('device_id', $selectedDeviceId)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->take(50)->get();
-            $recentLogsAc2 = AcLog::where('device_id', $selectedDeviceId)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->take(50)->get();
-        }
+        $recentLogsAc1 = $queryAc1->latest('recorded_at')->take(50)->get();
+        $recentLogsAc2 = $queryAc2->latest('recorded_at')->take(50)->get();
 
         // 4. Calculate Fleet Real-Time Summary Stats
         $fleetStats = [];
@@ -751,7 +752,13 @@ class DashboardController extends Controller
         $query = AcLog::query();
         
         if ($deviceId && $deviceId !== 'all') {
-            $query->where('device_id', $deviceId);
+            if ($deviceId === 'RPI3B_PINDAD_ROOM_1') {
+                $query->where(function($q) {
+                    $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
+                });
+            } else {
+                $query->where('device_id', $deviceId);
+            }
             $fileName = "telemetri_pindad_{$deviceId}_" . date('Ymd_His') . ".csv";
         } else {
             $fileName = "telemetri_pindad_seluruh_fleet_" . date('Ymd_His') . ".csv";
