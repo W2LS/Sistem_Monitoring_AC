@@ -5,7 +5,7 @@
         
         <!-- 1. HOME ICON (UNIVERSAL IOT FLEET OVERVIEW & DRILLDOWN) -->
         <button 
-            @click="activeTab = 'home'" 
+            @click="activeTab = 'home'; window.dispatchEvent(new CustomEvent('reset-home-view'))" 
             type="button"
             class="w-12 h-12 rounded-full flex flex-col items-center justify-center transition-all cursor-pointer group"
             :class="activeTab === 'home' ? 'text-white' : 'text-[#EEEEEE]/50 hover:text-white'">

@@ -105,7 +105,7 @@
             
             <!-- Category 1: Home (Universal IoT Fleet Overview & Drilldown) -->
             <button 
-                @click="activeTab = 'home'"
+                @click="activeTab = 'home'; window.dispatchEvent(new CustomEvent('reset-home-view'))"
                 type="button"
                 :class="activeTab === 'home' 
                     ? 'w-48 bg-[#8E1616] text-white shadow-lg shadow-[#8E1616]/25' 
@@ -231,7 +231,7 @@
             </div>
 
             <div class="grid grid-cols-2 gap-3">
-                <button @click="activeTab = 'home'; modalFabOpen = false" class="p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 text-left transition cursor-pointer border border-slate-200">
+                <button @click="activeTab = 'home'; modalFabOpen = false; window.dispatchEvent(new CustomEvent('reset-home-view'))" class="p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 text-left transition cursor-pointer border border-slate-200">
                     <span class="text-2xl block mb-1">🏠</span>
                     <span class="font-black text-xs text-[#1D1616] block">Home Fleet</span>
                     <span class="text-[10px] text-slate-400">Pusat armada IoT</span>

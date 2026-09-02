@@ -33,8 +33,11 @@
     setView(mode) {
         this.viewMode = mode;
         localStorage.setItem('pindad_home_view', mode);
+        if (mode === 'fleet' && window.history.pushState) {
+            window.history.pushState({}, '', '/');
+        }
     }
-}">
+}" @reset-home-view.window="setView('fleet')">
 
     <!-- ========================================================================= -->
     <!-- VIEW MODE 1: FLEET CENTRAL OVERVIEW (DAFTAR SEMUA DEVICE & TOTAL DAYA) -->
