@@ -582,26 +582,66 @@ class DashboardController extends Controller
     }
 
     /**
-     * Master Fleet Emergency Control.
+    /**
+     * Master Fleet Emergency Control (Nyalakan / Matikan Semua Device).
      */
     public function masterControl(Request $request)
     {
-        $command = $request->input('command', 'OFF');
+        $command = strtoupper($request->input('command', 'OFF'));
         $devices = Device::all();
+        $isStateOn = ($command === 'ON');
 
         foreach ($devices as $dev) {
-            $payload = [
+            $curr = $dev->current_values ?? [];
+            $numAc = $dev->num_ac ?? 2;
+
+            // 1. Update each AC state in Device model
+            for ($i = 0; $i < $numAc; $i++) {
+                $curr["V{$i}"] = $isStateOn ? 1 : 0;
+            }
+            $dev->current_values = $curr;
+            $dev->save();
+
+            // 2. Publish individual relay commands for high compatibility
+            for ($acNum = 1; $acNum <= $numAc; $acNum++) {
+                $payloadRelay = [
+                    'device_id' => $dev->device_id,
+                    'relay'     => $acNum,
+                    'ac_number' => $acNum,
+                    'command'   => $command,
+                    'source'    => 'manual',
+                    'timestamp' => now()->toIso8601String(),
+                ];
+                $this->mqttService->publish('pindad/ac/control', json_encode($payloadRelay));
+                $this->mqttService->publish("pindad/devices/{$dev->device_id}/control", json_encode($payloadRelay));
+            }
+
+            // 3. Also send Master command payload
+            $payloadMaster = [
                 'device_id' => $dev->device_id,
-                'command' => "MASTER_{$command}",
-                'state' => $command,
-                'source' => 'master_control',
+                'command'   => "MASTER_{$command}",
+                'relay'     => 'all',
+                'state'     => $command,
+                'source'    => 'manual',
                 'timestamp' => now()->toIso8601String(),
             ];
-            $this->mqttService->publish("pindad/devices/{$dev->device_id}/control", json_encode($payload));
-            $this->mqttService->publish("pindad/ac/control", json_encode($payload));
+            $this->mqttService->publish('pindad/ac/control', json_encode($payloadMaster));
+            $this->mqttService->publish("pindad/devices/{$dev->device_id}/control", json_encode($payloadMaster));
+
+            // 4. Create log record
+            AcLog::create([
+                'device_id'      => $dev->device_id,
+                'ac_number'      => 1,
+                'relay_state'    => $isStateOn ? 1 : 0,
+                'current_ampere' => 0.0,
+                'watt'           => 0.0,
+                'source'         => 'master_control',
+                'recorded_at'    => now(),
+            ]);
         }
 
-        return redirect()->back()->with('success', "Perintah MASTER {$command} berhasil dikirimkan ke seluruh armada perangkat!");
+        $label = $isStateOn ? 'DINYALAKAN (ON)' : 'DIMATIKAN (OFF)';
+        return redirect()->back()->with('success', "Seluruh unit perangkat di semua ruangan berhasil {$label}!");
     }
 
     /**

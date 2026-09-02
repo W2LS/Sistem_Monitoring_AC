@@ -281,21 +281,40 @@ def on_local_message(client, userdata, msg):
         if target_dev and target_dev not in ["RPI3B_PINDAD_ROOM_1", "all"]:
             return
 
+        cmd = str(data.get("command", "")).upper()
+        source = str(data.get("source", "manual")).lower()
+
+        # 1. Jika ini KLIK MANUAL DARI USER LEWAT WEB (source == "manual"): Lepas Turbo Lock & Eksekusi Langsung!
+        if source == "manual" and is_turbo_cooling_active:
+            is_turbo_cooling_active = False
+            print(f"👤 [MANUAL OVERRIDE WEB] Perintah manual diterima -> Turbo Lock dinonaktifkan.")
+
+        # 2. Handle Master Fleet Commands
+        if "MASTER_ON" in cmd or (cmd == "ON" and str(data.get("relay")) in ["all", "ALL"]):
+            GPIO.output(RELAY1_PIN, GPIO.HIGH)
+            GPIO.output(RELAY2_PIN, GPIO.HIGH)
+            print("⚡ [MASTER ON] Seluruh AC (AC 1 & AC 2) DINYALAKAN (ON / MENYALA)!")
+            time.sleep(0.05)
+            kirim_telemetri_seketika()
+            return
+        elif "MASTER_OFF" in cmd or (cmd == "OFF" and str(data.get("relay")) in ["all", "ALL"]):
+            GPIO.output(RELAY1_PIN, GPIO.LOW)
+            GPIO.output(RELAY2_PIN, GPIO.LOW)
+            print("⭕ [MASTER OFF] Seluruh AC (AC 1 & AC 2) DIMATIKAN (OFF / PADAM)!")
+            time.sleep(0.05)
+            kirim_telemetri_seketika()
+            return
+
+        # 3. Handle Individual Relay Commands
         if "relay" in data and "command" in data:
             relay_num = int(data["relay"])
-            command   = str(data["command"]).upper()
-            source    = str(data.get("source", "manual")).lower()
+            command   = cmd
             target_pin = RELAY1_PIN if relay_num == 1 else RELAY2_PIN
 
-            # 1. Jika ini perintah dari JADWAL OTOMATIS saat masa Turbo Cooling: Tahan agar tetap ON
+            # Jika ini perintah dari JADWAL OTOMATIS saat masa Turbo Cooling: Tahan agar tetap ON
             if source == "schedule" and is_turbo_cooling_active and command == "OFF":
                 print(f"❄️ [TURBO LOCK] Menjaga AC {relay_num} tetap ON dari jadwal otomatis selama 5 menit pasca-boot...")
                 return
-
-            # 2. Jika ini KLIK MANUAL DARI USER LEWAT WEB (source == "manual"): Lepas Turbo Lock & Eksekusi Langsung!
-            if source == "manual" and is_turbo_cooling_active:
-                is_turbo_cooling_active = False
-                print(f"👤 [MANUAL OVERRIDE WEB] Saklar manual ditekan di Web Dashboard -> Turbo Lock dinonaktifkan.")
 
             if command == "ON":
                 GPIO.output(target_pin, GPIO.HIGH)
