@@ -75,6 +75,67 @@ RELAYS = config["relays"]
 TURBO_COOLING_SEC = config.get("turbo_cooling_seconds", 300)
 INTERVAL_SEC = config.get("telemetry_interval_seconds", 15)
 
+# ================= AUTO-START INSTALLER FEATURE (--install / --autostart) =================
+def setup_autostart():
+    script_path = os.path.abspath(__file__)
+    user = os.getenv("USER", "alex")
+    home = os.getenv("HOME", f"/home/{user}")
+    print(f"\n⚙️ [AUTO-START INSTALLER] Memasang layanan auto-start on boot untuk {DEVICE_ID}...")
+    
+    # 1. Setup Crontab Entry automatically
+    try:
+        cron_line = f"@reboot sleep 10 && cd {home} && /usr/bin/python3 {script_path} > {home}/node.log 2>&1 &"
+        import subprocess
+        p = subprocess.Popen(["crontab", "-l"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, _ = p.communicate()
+        existing = out.decode("utf-8", errors="ignore")
+        
+        base_name = os.path.basename(script_path)
+        new_lines = [line for line in existing.splitlines() if base_name not in line and "pindad_node" not in line and line.strip()]
+        new_lines.append(cron_line)
+        new_crontab = "\n".join(new_lines) + "\n"
+        
+        p_write = subprocess.Popen(["crontab", "-"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p_write.communicate(input=new_crontab.encode("utf-8"))
+        print(f"✅ [CRONTAB] Berhasil mendaftarkan Auto-Start on Boot ke Crontab!")
+    except Exception as e:
+        print(f"⚠️ [CRONTAB NOTE] Status: {e}")
+
+    # 2. Setup Systemd Service if root / sudo available
+    try:
+        service_content = f"""[Unit]
+Description=PT Pindad IoT Node - {DEVICE_ID}
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={user}
+WorkingDirectory={home}
+ExecStart=/usr/bin/python3 {script_path}
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+"""
+        service_path = f"/etc/systemd/system/pindad_node_{DEVICE_ID.lower()}.service"
+        if os.geteuid() == 0:
+            with open(service_path, "w") as f:
+                f.write(service_content)
+            os.system("systemctl daemon-reload")
+            os.system(f"systemctl enable pindad_node_{DEVICE_ID.lower()}.service")
+            os.system(f"systemctl restart pindad_node_{DEVICE_ID.lower()}.service")
+            print(f"✅ [SYSTEMD] Layanan systemd berhasil dipasang dan diaktifkan (Auto-Restart 24/7)!")
+    except Exception as e:
+        pass
+
+    print(f"🎉 [SUKSES] Konfigurasi Auto-Start Selesai! Raspberry Pi akan otomatis menyalakan script ini setiap kali dicolok listrik.\n")
+    sys.exit(0)
+
+if "--install" in sys.argv or "--autostart" in sys.argv:
+    setup_autostart()
+
 print(f"🚀 [INIT] Memulai Node Controller: {DEVICE_ID} ({config.get('room_name')})")
 
 # Track states
