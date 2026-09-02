@@ -27,41 +27,165 @@
         </a>
     </div>
 
-    <!-- 2. FILTER DEVICE BAR -->
-    <div class="bg-white rounded-[28px] sm:rounded-[32px] p-4 sm:p-5 shadow-sm border border-[#8E1616]/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div class="flex flex-col sm:flex-row sm:items-center gap-2.5 w-full md:w-auto">
-            <span class="text-xs font-black uppercase tracking-wider text-slate-400 shrink-0">Pilih Perangkat:</span>
-            <select x-model="selectedLogDevice" 
-                    @change="window.location.href='/?filter_device=' + selectedLogDevice"
-                    class="bg-slate-50 border-2 border-slate-200 text-xs font-bold text-[#1D1616] rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-[#D84040] cursor-pointer w-full sm:w-auto">
-                <option value="all">🌐 Seluruh Armada (All Devices)</option>
+    <!-- 2. FILTER BAR (DUAL CUSTOM DROPDOWNS ALA DEVZONE V-PIN) -->
+    <div class="bg-white rounded-[28px] sm:rounded-[36px] p-5 sm:p-6 shadow-sm border border-[#8E1616]/20 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+        
+        <!-- DROPDOWN 1: PILIH PERANGKAT -->
+        <div x-data="{
+            openDevDropdown: false,
+            searchDev: '',
+            devices: [
+                { id: 'all', name: 'Seluruh Armada (All Devices)', code: 'ALL', icon: '🌐' },
                 @foreach($devices as $d)
-                <option value="{{ $d->device_id }}" {{ ($filterDevice ?? '') === $d->device_id ? 'selected' : '' }}>
-                    {{ $d->icon ?? '⚡' }} {{ $d->name }} ({{ $d->device_id }})
-                </option>
+                { 
+                    id: '{{ $d->device_id }}', 
+                    name: '{{ addslashes($d->name) }}', 
+                    code: '{{ $d->device_id }}', 
+                    icon: '{{ addslashes($d->icon ?? '⚡') }}' 
+                },
                 @endforeach
-            </select>
+            ],
+            get currentDev() {
+                return this.devices.find(d => d.id === selectedLogDevice) || this.devices[0];
+            },
+            get filteredDevs() {
+                if (!this.searchDev) return this.devices;
+                const q = this.searchDev.toLowerCase();
+                return this.devices.filter(d => d.name.toLowerCase().includes(q) || d.code.toLowerCase().includes(q));
+            },
+            selectDevice(devId) {
+                selectedLogDevice = devId;
+                this.openDevDropdown = false;
+                window.location.href = '/?filter_device=' + devId;
+            }
+        }" class="relative">
+            <label class="block text-[11px] font-black uppercase text-slate-500 tracking-wider mb-1.5 flex items-center gap-1.5">
+                <span>📱</span>
+                <span>PILIH PERANGKAT</span>
+            </label>
+
+            <!-- Trigger Button -->
+            <div @click="openDevDropdown = !openDevDropdown" 
+                 @click.away="openDevDropdown = false"
+                 class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-xs sm:text-sm font-bold text-[#1D1616] bg-slate-50/70 hover:bg-white focus-within:ring-2 focus-within:ring-[#D84040] flex items-center justify-between cursor-pointer shadow-2xs hover:border-slate-300 transition">
+                <div class="flex items-center gap-2.5 truncate">
+                    <span class="text-base shrink-0" x-text="currentDev.icon"></span>
+                    <span class="truncate font-black" x-text="currentDev.name"></span>
+                    <span class="text-[10px] font-mono font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded shrink-0 hidden sm:inline" x-text="currentDev.code"></span>
+                </div>
+                <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ml-2" :class="openDevDropdown ? 'rotate-180 text-[#D84040]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </div>
+
+            <!-- Dropdown Panel -->
+            <div x-show="openDevDropdown" 
+                 x-cloak
+                 x-transition:enter="transition ease-out duration-150 transform opacity-0 scale-95"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 class="absolute left-0 right-0 z-50 mt-1.5 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 space-y-1.5 max-h-60 overflow-y-auto">
+                
+                <!-- Search input -->
+                <div class="px-1 pt-1 pb-1">
+                    <input type="text" 
+                           x-model="searchDev" 
+                           @click.stop
+                           placeholder="🔍 Cari perangkat / ID..." 
+                           class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono focus:ring-2 focus:ring-[#D84040] outline-none">
+                </div>
+
+                <!-- Device List -->
+                <div class="divide-y divide-slate-50">
+                    <template x-for="dev in filteredDevs" :key="dev.id">
+                        <div @click="selectDevice(dev.id)" 
+                             :class="selectedLogDevice === dev.id ? 'bg-[#D84040] text-white font-black' : 'text-slate-700 hover:bg-slate-50 font-bold'"
+                             class="px-3.5 py-2.5 rounded-xl text-xs cursor-pointer flex items-center justify-between transition">
+                            <div class="flex items-center gap-2 truncate">
+                                <span x-text="dev.icon"></span>
+                                <span class="truncate" x-text="dev.name"></span>
+                                <span class="text-[10px] font-mono opacity-60" x-text="'(' + dev.code + ')'"></span>
+                            </div>
+                            <span x-show="selectedLogDevice === dev.id" class="text-[10px] font-black shrink-0">✓</span>
+                        </div>
+                    </template>
+                </div>
+            </div>
         </div>
 
-        <!-- AC Unit Sub-filter (Dynamic based on Device Capacity) -->
-        <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl w-full md:w-auto overflow-x-auto">
-            <button @click="logTab = 'all'" 
-                    :class="logTab === 'all' ? 'bg-[#1D1616] text-white font-black shadow-xs' : 'text-slate-600 font-bold hover:text-[#D84040]'"
-                    class="px-3.5 py-2 rounded-xl text-[11px] sm:text-xs transition uppercase tracking-wider cursor-pointer text-center whitespace-nowrap">
-                Semua ({{ count($recentLogsAll) }})
-            </button>
-            @for($u = 1; $u <= ($logNumAc ?? 2); $u++)
-            @php
-                $tabCount = count($recentLogsByUnit[$u] ?? []);
-                $tabName = $unitLogNames[$u] ?? ("AC {$u}");
-            @endphp
-            <button @click="logTab = 'ac{{ $u }}'" 
-                    :class="logTab === 'ac{{ $u }}' ? 'bg-[#D84040] text-white font-black shadow-xs' : 'text-slate-600 font-bold hover:text-[#D84040]'"
-                    class="px-3.5 py-2 rounded-xl text-[11px] sm:text-xs transition uppercase tracking-wider cursor-pointer text-center whitespace-nowrap">
-                {{ $tabName }} ({{ $tabCount }})
-            </button>
-            @endfor
+        <!-- DROPDOWN 2: FILTER UNIT AC -->
+        <div x-data="{
+            openUnitDropdown: false,
+            units: [
+                { id: 'all', label: 'Semua Unit AC', count: {{ count($recentLogsAll) }}, badge: 'ALL', color: 'bg-slate-900 text-white' },
+                @for($u = 1; $u <= ($logNumAc ?? 2); $u++)
+                @php
+                    $uCount = count($recentLogsByUnit[$u] ?? []);
+                    $uLabel = $unitLogNames[$u] ?? ("AC {$u}");
+                @endphp
+                { 
+                    id: 'ac{{ $u }}', 
+                    label: '{{ addslashes($uLabel) }}', 
+                    count: {{ $uCount }}, 
+                    badge: 'AC {{ $u }}', 
+                    color: '{{ match($u) { 1 => 'bg-rose-50 text-[#D84040] border border-rose-200', 2 => 'bg-red-50 text-[#8E1616] border border-red-200', 3 => 'bg-amber-50 text-amber-800 border border-amber-200', 4 => 'bg-emerald-50 text-emerald-800 border border-emerald-200', 5 => 'bg-cyan-50 text-cyan-800 border border-cyan-200', default => 'bg-purple-50 text-purple-800 border border-purple-200' } }}'
+                },
+                @endfor
+            ],
+            get currentUnit() {
+                return this.units.find(u => u.id === logTab) || this.units[0];
+            },
+            selectUnit(unitId) {
+                logTab = unitId;
+                this.openUnitDropdown = false;
+            }
+        }" class="relative">
+            <label class="block text-[11px] font-black uppercase text-slate-500 tracking-wider mb-1.5 flex items-center gap-1.5">
+                <span>❄️</span>
+                <span>FILTER UNIT AC</span>
+            </label>
+
+            <!-- Trigger Button -->
+            <div @click="openUnitDropdown = !openUnitDropdown" 
+                 @click.away="openUnitDropdown = false"
+                 class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-xs sm:text-sm font-bold text-[#1D1616] bg-slate-50/70 hover:bg-white focus-within:ring-2 focus-within:ring-[#8E1616] flex items-center justify-between cursor-pointer shadow-2xs hover:border-slate-300 transition">
+                <div class="flex items-center gap-2.5 truncate">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase shrink-0" :class="currentUnit.color" x-text="currentUnit.badge"></span>
+                    <span class="truncate font-black" x-text="currentUnit.label"></span>
+                    <span class="text-[11px] font-mono font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full shrink-0" x-text="'(' + currentUnit.count + ' log)'"></span>
+                </div>
+                <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ml-2" :class="openUnitDropdown ? 'rotate-180 text-[#8E1616]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </div>
+
+            <!-- Dropdown Panel -->
+            <div x-show="openUnitDropdown" 
+                 x-cloak
+                 x-transition:enter="transition ease-out duration-150 transform opacity-0 scale-95"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 class="absolute left-0 right-0 z-50 mt-1.5 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 space-y-1.5 max-h-60 overflow-y-auto">
+                
+                <div class="divide-y divide-slate-50">
+                    <template x-for="u in units" :key="u.id">
+                        <div @click="selectUnit(u.id)" 
+                             :class="logTab === u.id ? 'bg-[#8E1616] text-white font-black' : 'text-slate-700 hover:bg-slate-50 font-bold'"
+                             class="px-3.5 py-2.5 rounded-xl text-xs cursor-pointer flex items-center justify-between transition">
+                            <div class="flex items-center gap-2.5 truncate">
+                                <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase" :class="logTab === u.id ? 'bg-white/20 text-white' : u.color" x-text="u.badge"></span>
+                                <span class="truncate" x-text="u.label"></span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded-full" :class="logTab === u.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'" x-text="u.count"></span>
+                                <span x-show="logTab === u.id" class="text-[10px] font-black">✓</span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
         </div>
+
     </div>
 
     <!-- 3. MAIN LOG TABLE -->
