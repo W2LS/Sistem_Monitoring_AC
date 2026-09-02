@@ -122,7 +122,6 @@
                     <span>Daftar Perangkat Terpasang</span>
                     <span class="text-xs font-bold text-[#8E1616] bg-[#8E1616]/10 px-2.5 py-0.5 rounded-full">{{ count($devices) }} Unit</span>
                 </h3>
-                <span class="text-xs text-slate-500">Klik <b>"Buka Detail & Jadwal"</b> untuk mengontrol perangkat</span>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
