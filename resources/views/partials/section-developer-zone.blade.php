@@ -490,22 +490,22 @@
                     <input type="text" name="name" required placeholder="Contoh: Sensor Arus ACS712" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Min Value</label>
-                        <input type="number" step="any" name="min" value="0" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 items-end">
+                    <div class="flex flex-col justify-end">
+                        <label class="block text-[10.5px] sm:text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1.5 whitespace-nowrap truncate" title="Batas Nilai Minimum">Min Value</label>
+                        <input type="number" step="any" name="min" value="0" class="w-full h-11 px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
                     </div>
-                    <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Max Value</label>
-                        <input type="number" step="any" name="max" value="100" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
+                    <div class="flex flex-col justify-end">
+                        <label class="block text-[10.5px] sm:text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1.5 whitespace-nowrap truncate" title="Batas Nilai Maksimum">Max Value</label>
+                        <input type="number" step="any" name="max" value="100" class="w-full h-11 px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
                     </div>
-                    <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Default Value</label>
-                        <input type="number" step="any" name="default_value" value="0" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
+                    <div class="flex flex-col justify-end">
+                        <label class="block text-[10.5px] sm:text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1.5 whitespace-nowrap truncate" title="Nilai Awal / Default">Default Value</label>
+                        <input type="number" step="any" name="default_value" value="0" class="w-full h-11 px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
                     </div>
-                    <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Satuan Unit</label>
-                        <input type="text" name="unit" placeholder="A, W, °C, %" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
+                    <div class="flex flex-col justify-end">
+                        <label class="block text-[10.5px] sm:text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1.5 whitespace-nowrap truncate" title="Satuan Pengukuran">Satuan Unit</label>
+                        <input type="text" name="unit" placeholder="A, W, °C, %" class="w-full h-11 px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
                     </div>
                 </div>
 
