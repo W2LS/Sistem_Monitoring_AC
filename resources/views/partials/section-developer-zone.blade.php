@@ -183,7 +183,13 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="6" class="py-6 text-center text-slate-400">Belum ada datastream yang terdaftar pada template ini.</td>
+                                    <td colspan="6" class="py-12 text-center">
+                                        <div class="space-y-2 max-w-sm mx-auto">
+                                            <span class="text-3xl block">📋</span>
+                                            <span class="font-bold text-slate-700 text-xs block">Belum ada Virtual Pin (Datastream) terdaftar</span>
+                                            <span class="text-[11px] text-slate-400 block leading-relaxed">Template ini masih kosong. Klik tombol <b class="text-[#D84040]">+ Add Datastream</b> di atas untuk menambahkan saluran pin baru.</span>
+                                        </div>
+                                    </td>
                                 </tr>
                                 @endforelse
                             </tbody>

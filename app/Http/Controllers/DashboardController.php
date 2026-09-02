@@ -668,13 +668,10 @@ class DashboardController extends Controller
             'connection_type' => $request->input('connection_type'),
             'icon' => $request->input('icon', '⚡'),
             'description' => $request->input('description', ''),
-            'datastreams' => [
-                ['pin' => 'V0', 'name' => 'Main Switch', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'unit' => '', 'desc' => 'Relay utama'],
-                ['pin' => 'V1', 'name' => 'Telemetry Sensor', 'type' => 'Double', 'min' => 0, 'max' => 100, 'unit' => 'Val', 'desc' => 'Data telemetri'],
-            ],
+            'datastreams' => [], // Kosongan secara default agar user bebas menambahkan Datastream sendiri
         ]);
 
-        return redirect()->back()->with('success', "Template {$request->input('name')} berhasil dibuat!");
+        return redirect()->back()->with('success', "Template {$request->input('name')} berhasil dibuat (kosongan)! Silakan tambahkan Datastream sesuai kebutuhan.");
     }
 
     /**
