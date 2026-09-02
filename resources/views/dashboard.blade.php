@@ -230,57 +230,44 @@
                 <button @click="modalFabOpen = false" class="text-slate-400 hover:text-[#8E1616] text-2xl font-bold cursor-pointer">&times;</button>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
-                <button @click="activeTab = 'home'; modalFabOpen = false; window.dispatchEvent(new CustomEvent('reset-home-view'))" class="p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 text-left transition cursor-pointer border border-slate-200">
-                    <span class="text-2xl block mb-1">🏠</span>
-                    <span class="font-black text-xs text-[#1D1616] block">Home Fleet</span>
-                    <span class="text-[10px] text-slate-400">Pusat armada IoT</span>
-                </button>
+            <!-- Master Control Action Buttons -->
+            <div class="space-y-4">
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    Pilih aksi di bawah ini untuk mengontrol serentak seluruh unit perangkat AC di semua ruangan secara bersamaan:
+                </p>
 
-                <button @click="activeTab = 'devzone'; modalFabOpen = false" class="p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 text-left transition cursor-pointer border border-slate-200">
-                    <span class="text-2xl block mb-1">🛠️</span>
-                    <span class="font-black text-xs text-[#1D1616] block">Developer Zone</span>
-                    <span class="text-[10px] text-slate-400">Templates & V-Pins</span>
-                </button>
-
-                <button @click="activeTab = 'book'; modalFabOpen = false" class="p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 text-left transition cursor-pointer border border-slate-200">
-                    <span class="text-2xl block mb-1">📊</span>
-                    <span class="font-black text-xs text-[#1D1616] block">Log Telemetri</span>
-                    <span class="text-[10px] text-slate-400">Unduh data CSV</span>
-                </button>
-
-                <button @click="activeTab = 'akun'; modalFabOpen = false" class="p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 text-left transition cursor-pointer border border-slate-200">
-                    <span class="text-2xl block mb-1">⚙️</span>
-                    <span class="font-black text-xs text-[#1D1616] block">Info Sistem</span>
-                    <span class="text-[10px] text-slate-400">Profil & setting</span>
-                </button>
-            </div>
-
-            <!-- Master Emergency Control -->
-            <div class="pt-4 border-t border-slate-100 space-y-2.5">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-black uppercase text-[#1D1616] tracking-wider">Aksi Kontrol Seluruh Armada</span>
-                    <span class="text-[10px] font-bold text-slate-400">Master Switch</span>
-                </div>
-                <div class="grid grid-cols-2 gap-2.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <!-- Nyalakan Semua Device -->
                     <form action="{{ route('devices.masterControl') }}" method="POST" class="w-full">
                         @csrf
                         <input type="hidden" name="command" value="ON">
                         <button type="submit" 
                                 onclick="return confirm('Nyalakan SELURUH unit perangkat di semua ruangan?')"
-                                class="w-full py-3 px-3 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-black text-[11px] uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer active:scale-95 shadow-xs transition">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span>Nyalakan Semua Device</span>
+                                class="w-full py-4 px-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100/80 hover:from-emerald-100 hover:to-emerald-200/90 text-emerald-900 border-2 border-emerald-300 font-black text-xs uppercase tracking-wider flex flex-col items-center justify-center gap-2.5 cursor-pointer active:scale-95 shadow-sm hover:shadow-md transition group">
+                            <div class="w-11 h-11 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-xl shadow-xs group-hover:scale-110 transition-transform">
+                                ⚡
+                            </div>
+                            <div class="text-center">
+                                <span class="block font-black text-xs text-emerald-950">Nyalakan Semua Device</span>
+                                <span class="text-[10.5px] text-emerald-700 font-semibold normal-case">Semua AC Langsung ON</span>
+                            </div>
                         </button>
                     </form>
+
+                    <!-- Matikan Semua Device -->
                     <form action="{{ route('devices.masterControl') }}" method="POST" class="w-full">
                         @csrf
                         <input type="hidden" name="command" value="OFF">
                         <button type="submit" 
                                 onclick="return confirm('Matikan SELURUH unit perangkat di semua ruangan?')"
-                                class="w-full py-3 px-3 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 font-black text-[11px] uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer active:scale-95 shadow-xs transition">
-                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-                            <span>Matikan Semua Device</span>
+                                class="w-full py-4 px-4 rounded-2xl bg-gradient-to-br from-rose-50 to-rose-100/80 hover:from-rose-100 hover:to-rose-200/90 text-rose-900 border-2 border-rose-300 font-black text-xs uppercase tracking-wider flex flex-col items-center justify-center gap-2.5 cursor-pointer active:scale-95 shadow-sm hover:shadow-md transition group">
+                            <div class="w-11 h-11 rounded-xl bg-rose-600 text-white flex items-center justify-center text-xl shadow-xs group-hover:scale-110 transition-transform">
+                                ⭕
+                            </div>
+                            <div class="text-center">
+                                <span class="block font-black text-xs text-rose-950">Matikan Semua Device</span>
+                                <span class="text-[10.5px] text-rose-700 font-semibold normal-case">Semua AC Langsung OFF</span>
+                            </div>
                         </button>
                     </form>
                 </div>
