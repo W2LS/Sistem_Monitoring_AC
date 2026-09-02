@@ -218,55 +218,60 @@ function homeFleetComponent() {
                         </div>
                     </div>
 
-                    <!-- Action Button -->
-                    <div class="mt-5 pt-4 border-t border-slate-100 flex items-center gap-2">
+                    <!-- Action Button Tier: Clean 2-Tier Hierarchy (No Text Wrap Glitch) -->
+                    <div class="mt-5 pt-4 border-t border-slate-100 flex flex-col gap-2">
+                        <!-- Primary Action: Full Width Kontrol & Jadwal -->
                         <a href="{{ route('dashboard', ['device_id' => $dev->device_id]) }}" 
                            @click="setView('detail')"
-                           class="flex-1 h-10 px-3 rounded-2xl text-center font-black text-[11px] sm:text-xs uppercase tracking-wide bg-[#1D1616] hover:bg-[#8E1616] text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+                           class="w-full h-11 px-4 rounded-2xl text-center font-black text-xs uppercase tracking-wider bg-[#1D1616] hover:bg-[#8E1616] text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95">
                             <span>Kontrol & Jadwal</span>
-                            <span class="shrink-0 text-xs">➔</span>
+                            <span class="text-sm">➔</span>
                         </a>
 
-                        <!-- Setup Node & 1-Click Auto-Start Command Guide -->
-                        <button @click="openRpiSetup({
-                            name: '{{ addslashes($dev->name) }}',
-                            device_id: '{{ $dev->device_id }}',
-                            ip_address: '{{ $dev->ip_address }}'
-                        })" 
-                        type="button" 
-                        class="h-10 px-3.5 rounded-2xl bg-slate-900 hover:bg-[#8E1616] text-white transition cursor-pointer active:scale-95 flex items-center justify-center gap-1.5 shrink-0 shadow-xs font-black text-xs" 
-                        title="Panduan Setup & Salin Perintah Auto-Start Raspberry Pi untuk {{ $dev->name }}">
-                            <span>⚡</span>
-                            <span>Setup Node</span>
-                        </button>
+                        <!-- Secondary Utilities: Setup Node, Edit, Hapus -->
+                        <div class="flex items-center gap-2">
+                            <!-- Setup Node Button -->
+                            <button @click="openRpiSetup({
+                                name: '{{ addslashes($dev->name) }}',
+                                device_id: '{{ $dev->device_id }}',
+                                ip_address: '{{ $dev->ip_address }}'
+                            })" 
+                            type="button" 
+                            class="flex-1 h-9 px-3 rounded-xl bg-slate-900 hover:bg-[#8E1616] text-white transition cursor-pointer active:scale-95 flex items-center justify-center gap-1.5 shadow-xs font-black text-[11px] uppercase tracking-wide" 
+                            title="Panduan Setup & Salin Perintah Auto-Start Raspberry Pi">
+                                <span class="text-amber-400">⚡</span>
+                                <span>Setup Node</span>
+                            </button>
 
-                        <!-- Edit Device Button -->
-                        <button @click="openEditDevice({
-                            id: '{{ $dev->id }}',
-                            name: '{{ addslashes($dev->name) }}',
-                            template_id: '{{ $dev->template_id }}',
-                            location: '{{ addslashes($dev->location) }}',
-                            device_id: '{{ $dev->device_id }}',
-                            ip_address: '{{ $dev->ip_address }}',
-                            num_ac: {{ $dev->num_ac ?? 2 }}
-                        })" 
-                        type="button" 
-                        class="w-10 h-10 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 transition cursor-pointer active:scale-95 flex items-center justify-center shrink-0 shadow-xs" 
-                        title="Edit Informasi Perangkat">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                        </button>
-
-                        <form action="{{ route('devices.destroy', $dev->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus perangkat {{ $dev->name }}?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="w-10 h-10 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition cursor-pointer active:scale-95 flex items-center justify-center shrink-0 shadow-xs" title="Hapus Perangkat">
+                            <!-- Edit Device Button -->
+                            <button @click="openEditDevice({
+                                id: '{{ $dev->id }}',
+                                name: '{{ addslashes($dev->name) }}',
+                                template_id: '{{ $dev->template_id }}',
+                                location: '{{ addslashes($dev->location) }}',
+                                device_id: '{{ $dev->device_id }}',
+                                ip_address: '{{ $dev->ip_address }}',
+                                num_ac: {{ $dev->num_ac ?? 2 }}
+                            })" 
+                            type="button" 
+                            class="w-9 h-9 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 transition cursor-pointer active:scale-95 flex items-center justify-center shrink-0 shadow-xs" 
+                            title="Edit Informasi Perangkat">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
                             </button>
-                        </form>
+
+                            <!-- Delete Device Button -->
+                            <form action="{{ route('devices.destroy', $dev->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus perangkat {{ $dev->name }}?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="w-9 h-9 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition cursor-pointer active:scale-95 flex items-center justify-center shrink-0 shadow-xs" title="Hapus Perangkat">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
                 @endforeach
@@ -559,7 +564,7 @@ function homeFleetComponent() {
          x-transition:enter-end="opacity-100">
         
         <div @click.away="modalNewDevice = false" 
-             class="bg-white rounded-[40px] p-7 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 space-y-5 relative max-h-[90vh] overflow-y-auto">
+             class="bg-white rounded-[40px] p-6 sm:p-8 max-w-xl w-full shadow-2xl border border-slate-200 space-y-5 relative max-h-[90vh] overflow-y-auto">
             
             <div class="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div class="flex items-center gap-3">
@@ -608,15 +613,15 @@ function homeFleetComponent() {
                     </select>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
                         <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Nama Perangkat / Ruangan *</label>
-                        <input type="text" name="name" x-model="devName" @input="updateSlug()" required placeholder="Contoh: AC Ruang Server 2" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                        <input type="text" name="name" x-model="devName" @input="updateSlug()" required placeholder="Contoh: Ruang Server 2" class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
                     </div>
 
                     <div>
                         <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Lokasi Gedung / Ruangan *</label>
-                        <input type="text" name="location" required placeholder="Contoh: Gedung TIK Lantai 2" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                        <input type="text" name="location" required placeholder="Contoh: Gedung TIK" class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
                     </div>
                 </div>
 
@@ -628,19 +633,19 @@ function homeFleetComponent() {
                             <span>Auto-Generated (Read-Only)</span>
                         </span>
                     </div>
-                    <input type="text" name="device_id" x-model="devId" readonly required placeholder="RPI3B_..." class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono font-bold uppercase bg-slate-100 text-slate-600 cursor-not-allowed outline-none select-none shadow-2xs">
+                    <input type="text" name="device_id" x-model="devId" readonly required placeholder="RPI3B_..." class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono font-bold uppercase bg-slate-100 text-slate-600 cursor-not-allowed outline-none select-none shadow-2xs">
                     <p class="text-[11px] text-slate-400 mt-1">ID MQTT digenerate otomatis dari nama perangkat untuk meminimalisir kesalahan penulisan topic broker.</p>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
                         <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">IP Address Perangkat</label>
-                        <input type="text" name="ip_address" value="192.168.196.50" placeholder="192.168.196.x" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#D84040] outline-none">
+                        <input type="text" name="ip_address" value="192.168.196.50" placeholder="192.168.196.x" class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-[#D84040] outline-none">
                     </div>
 
                     <div>
                         <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Jumlah Unit AC (Kapasitas Relai)</label>
-                        <input type="number" name="num_ac" min="1" max="8" value="2" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#D84040] outline-none">
+                        <input type="number" name="num_ac" min="1" max="8" value="2" class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-[#D84040] outline-none">
                     </div>
                 </div>
 
@@ -808,7 +813,6 @@ function homeFleetComponent() {
         </div>
     </div>
 
-
     <!-- ========================================================================= -->
     <!-- MODAL 4: EDIT INFORMASI PERANGKAT IOT -->
     <!-- ========================================================================= -->
@@ -820,7 +824,7 @@ function homeFleetComponent() {
          x-transition:enter-end="opacity-100">
         
         <div @click.away="modalEditDevice = false" 
-             class="bg-white rounded-[40px] p-7 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 space-y-5 relative max-h-[90vh] overflow-y-auto">
+             class="bg-white rounded-[40px] p-6 sm:p-8 max-w-xl w-full shadow-2xl border border-slate-200 space-y-5 relative max-h-[90vh] overflow-y-auto">
             
             <div class="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div class="flex items-center gap-3">
@@ -852,21 +856,21 @@ function homeFleetComponent() {
                     <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Nama Perangkat / Ruangan *</label>
                     <input type="text" 
                            name="name" 
-                           x-model="editDeviceData.name"
+                           x-model="editDeviceData.name" 
                            required 
-                           placeholder="Contoh: Monitoring AC Ruang Server 2" 
-                           class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                           placeholder="Contoh: Ruang Server 2" 
+                           class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
                         <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Lokasi / Gedung *</label>
                         <input type="text" 
                                name="location" 
-                               x-model="editDeviceData.location"
+                               x-model="editDeviceData.location" 
                                required 
-                               placeholder="Gedung TIK" 
-                               class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                               placeholder="Contoh: Gedung TIK" 
+                               class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
                     </div>
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
@@ -877,30 +881,30 @@ function homeFleetComponent() {
                         </div>
                         <input type="text" 
                                name="device_id" 
-                               x-model="editDeviceData.device_id"
+                               x-model="editDeviceData.device_id" 
                                readonly
-                               class="w-full px-4 py-3 rounded-2xl border-2 border-dashed border-slate-300 text-xs sm:text-sm font-mono uppercase bg-slate-100/90 text-slate-700 font-bold cursor-not-allowed select-all outline-none">
+                               class="w-full px-4 py-2.5 rounded-2xl border-2 border-dashed border-slate-300 text-xs sm:text-sm font-mono uppercase bg-slate-100/90 text-slate-700 font-bold cursor-not-allowed select-all outline-none">
                         <p class="text-[10px] text-slate-400 mt-1">ID MQTT bersifat permanen untuk menjaga rute sensor.</p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
                         <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Alamat IP Perangkat</label>
                         <input type="text" 
                                name="ip_address" 
-                               x-model="editDeviceData.ip_address"
+                               x-model="editDeviceData.ip_address" 
                                placeholder="192.168.196.45" 
-                               class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#D84040] outline-none">
+                               class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-[#D84040] outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Kapasitas AC (Unit)</label>
                         <input type="number" 
                                name="num_ac" 
-                               x-model="editDeviceData.num_ac"
+                               x-model="editDeviceData.num_ac" 
                                min="0" 
                                max="8" 
-                               class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                               class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
                     </div>
                 </div>
 
