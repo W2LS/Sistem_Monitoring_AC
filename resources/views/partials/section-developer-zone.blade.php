@@ -374,19 +374,63 @@
             <form :action="'/templates/' + selectedTemplateId + '/datastreams'" method="POST" class="space-y-4">
                 @csrf
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
+                    <div x-data="{ 
+                        openPinDropdown: false, 
+                        selectedPin: '', 
+                        searchPin: '',
+                        pins: Array.from({length: 64}, (_, i) => 'V' + i),
+                        get filteredPins() {
+                            if (!this.searchPin) return this.pins;
+                            return this.pins.filter(p => p.toLowerCase().includes(this.searchPin.toLowerCase()));
+                        }
+                    }" class="relative">
                         <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Virtual Pin *</label>
-                        <select name="pin" required class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono font-bold text-[#1D1616] bg-white focus:ring-2 focus:ring-[#8E1616] outline-none cursor-pointer">
-                            <option value="" disabled selected>-- Pilih Virtual Pin --</option>
-                            @for($i = 0; $i <= 32; $i++)
-                                <option value="V{{ $i }}">V{{ $i }}</option>
-                            @endfor
-                            <optgroup label="Extended Virtual Pins (V33 - V100)">
-                                @for($i = 33; $i <= 100; $i++)
-                                    <option value="V{{ $i }}">V{{ $i }}</option>
-                                @endfor
-                            </optgroup>
-                        </select>
+                        
+                        <!-- Hidden input for form submit -->
+                        <input type="hidden" name="pin" :value="selectedPin" required>
+
+                        <!-- Trigger Button -->
+                        <div @click="openPinDropdown = !openPinDropdown" 
+                             @click.away="openPinDropdown = false"
+                             class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono font-bold text-[#1D1616] bg-white focus-within:ring-2 focus-within:ring-[#8E1616] flex items-center justify-between cursor-pointer shadow-2xs hover:border-slate-300 transition">
+                            <span :class="selectedPin ? 'text-[#1D1616] font-black' : 'text-slate-400 font-sans font-normal'" x-text="selectedPin ? selectedPin : '-- Pilih Virtual Pin --'"></span>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="openPinDropdown ? 'rotate-180 text-[#8E1616]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+
+                        <!-- Dropdown Panel (Compact Max Height 48 with Custom Scrollbar) -->
+                        <div x-show="openPinDropdown" 
+                             x-cloak
+                             x-transition:enter="transition ease-out duration-150 transform opacity-0 scale-95"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             class="absolute left-0 right-0 z-50 mt-1.5 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 space-y-1.5 max-h-52 overflow-y-auto">
+                            
+                            <!-- Search input inside dropdown -->
+                            <div class="px-1 pt-1 pb-1">
+                                <input type="text" 
+                                       x-model="searchPin" 
+                                       @click.stop
+                                       placeholder="🔍 Cari pin (cth: V0, V12)..." 
+                                       class="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
+                            </div>
+
+                            <!-- List of Virtual Pins -->
+                            <div class="divide-y divide-slate-50">
+                                <template x-for="p in filteredPins" :key="p">
+                                    <div @click="selectedPin = p; openPinDropdown = false" 
+                                         :class="selectedPin === p ? 'bg-[#8E1616] text-white font-black' : 'text-slate-700 hover:bg-slate-100 font-bold'"
+                                         class="px-3 py-2 rounded-xl text-xs font-mono cursor-pointer flex items-center justify-between transition">
+                                        <span x-text="p"></span>
+                                        <span x-show="selectedPin === p" class="text-[10px]">✓</span>
+                                    </div>
+                                </template>
+                                <div x-show="filteredPins.length === 0" class="py-3 text-center text-xs text-slate-400 font-sans italic">
+                                    Pin tidak ditemukan
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Tipe Data *</label>
