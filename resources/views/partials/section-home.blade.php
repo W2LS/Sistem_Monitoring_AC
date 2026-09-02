@@ -53,7 +53,7 @@
             <div>
                 <span class="text-[11px] font-extrabold uppercase tracking-widest text-[#8E1616] flex items-center gap-1.5">
                     <span>⚡</span>
-                    <span>CENTRAL IOT OVERVIEW • PT PINDAD (PERSERO)</span>
+                    <span>CENTRAL IOT OVERVIEW • PT PINDAD</span>
                 </span>
                 <h2 class="text-2xl sm:text-3xl font-black text-[#1D1616] tracking-tight mt-0.5">
                     Armada Perangkat Pintar IoT

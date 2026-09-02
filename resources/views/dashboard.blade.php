@@ -61,10 +61,10 @@
                     <span>SISTEM KONTROL & MONITORING AC IOT</span>
                 </span>
                 <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-[#1D1616] tracking-tight mt-0.5">
-                    PT PINDAD <span class="text-sm font-extrabold text-[#D84040] bg-rose-50 px-3 py-1 rounded-full border border-rose-200 align-middle ml-1">(PERSERO)</span>
+                    PT PINDAD
                 </h1>
                 <p class="text-xs sm:text-sm font-semibold text-slate-500 mt-1">
-                    Divisi Sistem Informasi & Fasilitas Gedung • Platform Blynk Engine
+                    Divisi Sistem Informasi & Fasilitas Gedung
                 </p>
             </div>
 
