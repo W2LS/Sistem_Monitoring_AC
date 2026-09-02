@@ -674,7 +674,7 @@ class DashboardController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        Template::create([
+        $tmpl = Template::create([
             'name' => $request->input('name'),
             'hardware_type' => $request->input('hardware_type'),
             'connection_type' => $request->input('connection_type'),
@@ -683,7 +683,9 @@ class DashboardController extends Controller
             'datastreams' => [], // Kosongan secara default agar user bebas menambahkan Datastream sendiri
         ]);
 
-        return redirect()->back()->with('success', "Template {$request->input('name')} berhasil dibuat (kosongan)! Silakan tambahkan Datastream sesuai kebutuhan.");
+        return redirect()->back()
+            ->with('success', "Template {$request->input('name')} berhasil dibuat (kosongan)! Silakan tambahkan Datastream sesuai kebutuhan.")
+            ->with('selected_template_id', (string)$tmpl->id);
     }
 
     /**
@@ -702,7 +704,9 @@ class DashboardController extends Controller
         $template = Template::findOrFail($id);
         $template->update($request->only('name', 'hardware_type', 'connection_type', 'icon', 'description'));
 
-        return redirect()->back()->with('success', "Template {$template->name} berhasil diperbarui!");
+        return redirect()->back()
+            ->with('success', "Template {$template->name} berhasil diperbarui!")
+            ->with('selected_template_id', (string)$template->id);
     }
 
     /**
@@ -739,7 +743,9 @@ class DashboardController extends Controller
         // Check if pin exists
         foreach ($streams as $s) {
             if ($s['pin'] === strtoupper($request->input('pin'))) {
-                return redirect()->back()->with('error', "Pin {$request->input('pin')} sudah terdaftar pada template ini!");
+                return redirect()->back()
+                    ->with('error', "Pin {$request->input('pin')} sudah terdaftar pada template ini!")
+                    ->with('selected_template_id', (string)$template->id);
             }
         }
 
@@ -757,7 +763,9 @@ class DashboardController extends Controller
         $template->datastreams = $streams;
         $template->save();
 
-        return redirect()->back()->with('success', "Datastream {$request->input('pin')} ({$request->input('name')}) berhasil ditambahkan ke template {$template->name}!");
+        return redirect()->back()
+            ->with('success', "Datastream {$request->input('pin')} ({$request->input('name')}) berhasil ditambahkan ke template {$template->name}!")
+            ->with('selected_template_id', (string)$template->id);
     }
 
     /**
@@ -773,7 +781,9 @@ class DashboardController extends Controller
         $template->datastreams = $streams;
         $template->save();
 
-        return redirect()->back()->with('success', "Datastream {$pin} berhasil dihapus dari template {$template->name}.");
+        return redirect()->back()
+            ->with('success', "Datastream {$pin} berhasil dihapus dari template {$template->name}.")
+            ->with('selected_template_id', (string)$template->id);
     }
 
     /**

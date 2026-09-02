@@ -1,11 +1,22 @@
 <!-- ================= MODUL 2: DEVELOPER ZONE (BLYNK IOT TEMPLATES & DATASTREAMS CONSOLE) ================= -->
 <div class="space-y-6 pb-20" x-data="{ 
-    selectedTemplateId: '{{ $templates->first()->id ?? '' }}',
+    selectedTemplateId: '{{ session('selected_template_id') }}' || localStorage.getItem('pindad_selected_template_id') || '{{ $templates->first()->id ?? '' }}',
     modalNewTemplate: false,
     modalEditTemplate: false,
     modalNewDatastream: false,
     editTemplate: { id: '', name: '', hardware_type: '', connection_type: '', icon: '', description: '' }
-}">
+}" x-init="
+    if ('{{ session('selected_template_id') }}') {
+        selectedTemplateId = '{{ session('selected_template_id') }}';
+        localStorage.setItem('pindad_selected_template_id', '{{ session('selected_template_id') }}');
+    } else {
+        const saved = localStorage.getItem('pindad_selected_template_id');
+        if (saved) selectedTemplateId = saved;
+    }
+    $watch('selectedTemplateId', val => {
+        if (val) localStorage.setItem('pindad_selected_template_id', val);
+    });
+">
 
     <!-- 1. PAGE HEADER & ACTION BUTTONS -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#8E1616]/20 pb-4">
@@ -40,7 +51,7 @@
             <h3 class="text-xs font-black uppercase tracking-wider text-slate-400 px-1">Pilih Blueprint Template</h3>
             
             @foreach($templates as $tmpl)
-            <div @click="selectedTemplateId = '{{ $tmpl->id }}'"
+            <div @click="selectedTemplateId = '{{ $tmpl->id }}'; localStorage.setItem('pindad_selected_template_id', '{{ $tmpl->id }}')"
                  class="p-4 rounded-[24px] border-2 cursor-pointer transition-all duration-200 flex items-center justify-between gap-3 shadow-xs"
                  :class="selectedTemplateId === '{{ $tmpl->id }}' ? 'bg-[#1D1616] border-[#8E1616] text-white shadow-md' : 'bg-white border-slate-100 hover:border-slate-200 text-[#1D1616]'">
                 
