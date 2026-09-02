@@ -40,6 +40,9 @@ class RunAcScheduler extends Command
                 }
 
                 foreach ($deviceIds as $devId) {
+                    $dev = $devices->firstWhere('device_id', $devId);
+                    $numAc = max(1, (int)($dev->num_ac ?? 2));
+
                     $devSchedules = $activeSchedules->filter(function($s) use ($devId) {
                         if ($devId === 'RPI3B_PINDAD_ROOM_1') {
                             return empty($s->device_id) || $s->device_id === 'RPI3B_PINDAD_ROOM_1';
@@ -47,8 +50,11 @@ class RunAcScheduler extends Command
                         return $s->device_id === $devId;
                     });
 
-                    $ac1DesiredOn = false;
-                    $ac2DesiredOn = false;
+                    // Track desired states for all 1..N units
+                    $desiredStates = [];
+                    for ($i = 1; $i <= $numAc; $i++) {
+                        $desiredStates[$i] = false;
+                    }
 
                     foreach ($devSchedules as $schedule) {
                         $start = Carbon::parse($schedule->start_time)->format('H:i');
@@ -63,33 +69,44 @@ class RunAcScheduler extends Command
 
                         $targetAc = $schedule->target_ac ?? 'all';
                         if ($isInsideWindow) {
-                            if ($targetAc === '1' || $targetAc === 'all') $ac1DesiredOn = true;
-                            if ($targetAc === '2' || $targetAc === 'all') $ac2DesiredOn = true;
+                            if ($targetAc === 'all') {
+                                for ($i = 1; $i <= $numAc; $i++) {
+                                    $desiredStates[$i] = true;
+                                }
+                            } elseif (is_numeric($targetAc)) {
+                                $tNum = (int)$targetAc;
+                                if (isset($desiredStates[$tNum])) {
+                                    $desiredStates[$tNum] = true;
+                                }
+                            }
                         }
                     }
 
-                    // AC 1 evaluation for this device
-                    $key1 = "{$devId}_1";
-                    if (!isset($lastStates[$key1]) || $lastStates[$key1] !== $ac1DesiredOn) {
-                        $lastStates[$key1] = $ac1DesiredOn;
-                        $cmd = $ac1DesiredOn ? 'ON' : 'OFF';
-                        if ($devId === 'RPI3B_PINDAD_ROOM_1') {
-                            $mqttService->publish('pindad/ac/schedule', json_encode(['relay' => 1, 'command' => $cmd, 'source' => 'schedule']));
-                        }
-                        $mqttService->publish("pindad/devices/{$devId}/schedule", json_encode(['relay' => 1, 'command' => $cmd, 'source' => 'schedule']));
-                        $this->info("[{$nowTime} WIB] [{$devId}] Sinyal Transisi Terkirim -> AC 1: {$cmd}");
-                    }
+                    // Evaluate and publish state transitions for each relay 1..N
+                    for ($relay = 1; $relay <= $numAc; $relay++) {
+                        $stateKey = "{$devId}_{$relay}";
+                        $isDesiredOn = $desiredStates[$relay];
 
-                    // AC 2 evaluation for this device
-                    $key2 = "{$devId}_2";
-                    if (!isset($lastStates[$key2]) || $lastStates[$key2] !== $ac2DesiredOn) {
-                        $lastStates[$key2] = $ac2DesiredOn;
-                        $cmd = $ac2DesiredOn ? 'ON' : 'OFF';
-                        if ($devId === 'RPI3B_PINDAD_ROOM_1') {
-                            $mqttService->publish('pindad/ac/schedule', json_encode(['relay' => 2, 'command' => $cmd, 'source' => 'schedule']));
+                        if (!isset($lastStates[$stateKey]) || $lastStates[$stateKey] !== $isDesiredOn) {
+                            $lastStates[$stateKey] = $isDesiredOn;
+                            $cmd = $isDesiredOn ? 'ON' : 'OFF';
+                            $payload = json_encode([
+                                'device_id' => $devId,
+                                'relay' => $relay,
+                                'ac_number' => $relay,
+                                'command' => $cmd,
+                                'state' => $cmd,
+                                'source' => 'schedule',
+                                'timestamp' => Carbon::now('Asia/Jakarta')->toIso8601String()
+                            ]);
+
+                            if ($devId === 'RPI3B_PINDAD_ROOM_1') {
+                                $mqttService->publish('pindad/ac/schedule', $payload);
+                            }
+                            $mqttService->publish("pindad/devices/{$devId}/schedule", $payload);
+                            $mqttService->publish("pindad/devices/{$devId}/control", $payload);
+                            $this->info("[{$nowTime} WIB] [{$devId}] Sinyal Transisi Terkirim -> AC {$relay}: {$cmd}");
                         }
-                        $mqttService->publish("pindad/devices/{$devId}/schedule", json_encode(['relay' => 2, 'command' => $cmd, 'source' => 'schedule']));
-                        $this->info("[{$nowTime} WIB] [{$devId}] Sinyal Transisi Terkirim -> AC 2: {$cmd}");
                     }
                 }
             } catch (\Exception $e) {

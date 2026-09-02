@@ -46,9 +46,9 @@ class MqttSubscriber extends Command
                     ->setLastWillQualityOfService(1);
 
                 $mqtt->connect($connectionSettings, true);
-                $this->info("Connected successfully! Subscribing to topic: {$topic}");
+                $this->info("Connected successfully! Subscribing to multi-device telemetry topics...");
 
-                $mqtt->subscribe($topic, function (string $topic, string $message) {
+                $processMessage = function (string $topic, string $message) {
                     $this->info("Received message on [{$topic}]: {$message}");
 
                     try {
@@ -65,25 +65,49 @@ class MqttSubscriber extends Command
                             return;
                         }
 
-                        // Parse or fallback recorded_at
+                        $deviceId = $data['device_id'];
                         $recordedAt = isset($data['recorded_at']) 
                             ? Carbon::parse($data['recorded_at']) 
                             : now();
 
-                        // Insert into DB
+                        // Insert into AcLog
                         $log = AcLog::create([
-                            'device_id'      => $data['device_id'],
+                            'device_id'      => $deviceId,
                             'active_ac'      => $data['active_ac'],
                             'current_ampere' => (float) $data['current_ampere'],
                             'recorded_at'    => $recordedAt,
                         ]);
+
+                        // Sync with Device current_values if present
+                        $dev = \App\Models\Device::where('device_id', $deviceId)->first();
+                        if ($dev) {
+                            $vals = $dev->current_values ?? [];
+                            $numAc = max(1, (int)($dev->num_ac ?? 2));
+                            
+                            // Extract ac number from active_ac (e.g. AC_1_ON -> 1)
+                            if (preg_match('/AC_(\d+)_([A-Z]+)/', $data['active_ac'], $matches)) {
+                                $uNum = (int)$matches[1];
+                                $uState = $matches[2];
+                                $vals["V" . ($uNum - 1)] = ($uState === 'ON') ? 1 : 0;
+                                $vals["V" . ($numAc + $uNum - 1)] = (float)$data['current_ampere'];
+                            }
+                            
+                            $dev->status = 'online';
+                            $dev->current_values = $vals;
+                            $dev->save();
+                        }
 
                         $this->info("Saved log ID {$log->id} to database (Device: {$log->device_id}, Current: {$log->current_ampere} A)");
 
                     } catch (\Exception $e) {
                         $this->error("Error processing message: " . $e->getMessage());
                     }
-                }, 0);
+                };
+
+                $mqtt->subscribe('pindad/ac/logs', $processMessage, 0);
+                $mqtt->subscribe('pindad/ac/telemetry', $processMessage, 0);
+                $mqtt->subscribe('pindad/devices/+/logs', $processMessage, 0);
+                $mqtt->subscribe('pindad/devices/+/telemetry', $processMessage, 0);
 
                 // Start loop to stay connected and process incoming messages
                 $mqtt->loop(true);
