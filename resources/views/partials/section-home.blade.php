@@ -14,7 +14,7 @@ function homeFleetComponent() {
         openRpiSetup(dev) {
             const cleanId = (dev.device_id || '').toLowerCase().replace(/[^a-z0-9_]/g, '_');
             const scriptName = 'pindad_node_' + cleanId + '.py';
-            const command = `(crontab -l 2>/dev/null | grep -v 'pindad_node'; echo "@reboot sleep 10 && cd /home/alex && python3 /home/alex/${scriptName} > /home/alex/node.log 2>&1 &") | crontab - && nohup python3 /home/alex/${scriptName} > /home/alex/node.log 2>&1 &`;
+            const command = `(crontab -l 2>/dev/null | grep -v 'pindad_node'; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/${scriptName} > /home/alex/node.log 2>&1 &") | crontab - && nohup python3 -u /home/alex/${scriptName} > /home/alex/node.log 2>&1 &`;
             
             this.rpiSetupData = {
                 name: dev.name || '',
