@@ -144,6 +144,7 @@
                                     <th class="py-2.5 px-3">Nama Datastream</th>
                                     <th class="py-2.5 px-3">Tipe Data</th>
                                     <th class="py-2.5 px-3">Rentang Nilai</th>
+                                    <th class="py-2.5 px-3">Default Value</th>
                                     <th class="py-2.5 px-3">Satuan</th>
                                     <th class="py-2.5 px-3 text-right">Aksi</th>
                                 </tr>
@@ -161,12 +162,15 @@
                                         <div class="text-[10px] text-slate-400 font-normal">{{ $ds['desc'] ?? '-' }}</div>
                                     </td>
                                     <td class="py-3 px-3">
-                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase {{ $ds['type'] === 'Integer' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700' }}">
+                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase {{ $ds['type'] === 'Integer' ? 'bg-blue-50 text-blue-700' : ($ds['type'] === 'Double' ? 'bg-emerald-50 text-emerald-700' : 'bg-purple-50 text-purple-700') }}">
                                             {{ $ds['type'] }}
                                         </span>
                                     </td>
                                     <td class="py-3 px-3 font-mono font-semibold text-slate-600">
                                         {{ $ds['min'] ?? 0 }} - {{ $ds['max'] ?? 1 }}
+                                    </td>
+                                    <td class="py-3 px-3 font-mono font-bold text-slate-700">
+                                        <span class="bg-slate-100 px-2 py-0.5 rounded text-xs border border-slate-200">{{ $ds['default_value'] ?? ($ds['min'] ?? 0) }}</span>
                                     </td>
                                     <td class="py-3 px-3 font-bold text-slate-700">
                                         {{ !empty($ds['unit']) ? $ds['unit'] : '-' }}
@@ -486,7 +490,7 @@
                     <input type="text" name="name" required placeholder="Contoh: Sensor Arus ACS712" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
                 </div>
 
-                <div class="grid grid-cols-3 gap-3">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div>
                         <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Min Value</label>
                         <input type="number" step="any" name="min" value="0" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
@@ -494,6 +498,10 @@
                     <div>
                         <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Max Value</label>
                         <input type="number" step="any" name="max" value="100" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Default Value</label>
+                        <input type="number" step="any" name="default_value" value="0" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Satuan Unit</label>

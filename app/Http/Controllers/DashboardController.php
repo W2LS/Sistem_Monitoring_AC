@@ -521,6 +521,18 @@ class DashboardController extends Controller
 
         $template = Template::find($request->input('template_id'));
 
+        $initialValues = [];
+        if ($template && !empty($template->datastreams)) {
+            foreach ($template->datastreams as $ds) {
+                $pin = $ds['pin'];
+                $def = $ds['default_value'] ?? 0;
+                $initialValues[$pin] = is_numeric($def) ? (float)$def : $def;
+            }
+        }
+        if (empty($initialValues)) {
+            $initialValues = ['V0' => 0, 'V1' => 0, 'V2' => 0, 'V3' => 0, 'V4' => 0];
+        }
+
         Device::create([
             'device_id' => $cleanId,
             'template_id' => $request->input('template_id'),
@@ -534,7 +546,7 @@ class DashboardController extends Controller
             'auth_token' => Str::random(32),
             'num_ac' => $request->input('num_ac', 2),
             'description' => $request->input('description', ''),
-            'current_values' => ['V0' => 0, 'V1' => 0, 'V2' => 0, 'V3' => 0, 'V4' => 0],
+            'current_values' => $initialValues,
         ]);
 
         return redirect()->route('dashboard')->with('success', "Node perangkat {$request->input('name')} ({$cleanId}) berhasil didaftarkan!");
@@ -716,6 +728,7 @@ class DashboardController extends Controller
             'type' => 'required|string|in:Integer,Double,String,Enum',
             'min' => 'nullable|numeric',
             'max' => 'nullable|numeric',
+            'default_value' => 'nullable|string|max:50',
             'unit' => 'nullable|string|max:20',
             'desc' => 'nullable|string|max:200',
         ]);
@@ -731,13 +744,14 @@ class DashboardController extends Controller
         }
 
         $streams[] = [
-            'pin' => strtoupper($request->input('pin')),
-            'name' => $request->input('name'),
-            'type' => $request->input('type'),
-            'min' => $request->input('min', 0),
-            'max' => $request->input('max', 100),
-            'unit' => $request->input('unit', ''),
-            'desc' => $request->input('desc', ''),
+            'pin'           => strtoupper($request->input('pin')),
+            'name'          => $request->input('name'),
+            'type'          => $request->input('type'),
+            'min'           => $request->input('min', 0),
+            'max'           => $request->input('max', 100),
+            'default_value' => $request->input('default_value', '0'),
+            'unit'          => $request->input('unit', ''),
+            'desc'          => $request->input('desc', ''),
         ];
 
         $template->datastreams = $streams;
