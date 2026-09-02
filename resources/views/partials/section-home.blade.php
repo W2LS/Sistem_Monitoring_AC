@@ -1,67 +1,73 @@
-<!-- ================= MODUL 1: HOME (UNIVERSAL IOT FLEET OVERVIEW & DEVICE DRILLDOWN) ================= -->
-<div class="space-y-8 pb-20" x-data="{ 
-    viewMode: localStorage.getItem('pindad_home_view') || 'fleet', // 'fleet' or 'detail'
-    modalNewDevice: false,
-    modalEditDevice: false,
-    modalSchedule: false,
-    modalEditSchedule: false,
-    modalRpiSetup: false,
-    rpiSetupData: { name: '', device_id: '', script_name: '', download_url: '', command: '' },
-    copySuccess: false,
-    editDeviceData: { id: '', name: '', template_id: '', location: '', device_id: '', ip_address: '', num_ac: 2 },
-    editScheduleData: { id: '', label: '', target_ac: 'all', start_time: '06:00', end_time: '18:00', is_active: true },
-    openRpiSetup(dev) {
-        const cleanId = dev.device_id.toLowerCase().replace(/[^a-z0-9_]/g, '_');
-        const scriptName = 'pindad_node_' + cleanId + '.py';
-        const command = `(crontab -l 2>/dev/null | grep -v 'pindad_node'; echo \"@reboot sleep 10 && cd /home/alex && python3 /home/alex/${scriptName} > /home/alex/node.log 2>&1 &\") | crontab - && nohup python3 /home/alex/${scriptName} > /home/alex/node.log 2>&1 &`;
-        
-        this.rpiSetupData = {
-            name: dev.name,
-            device_id: dev.device_id,
-            ip_address: dev.ip_address || '192.168.197.64',
-            script_name: scriptName,
-            download_url: '/scripts/download/device?device_id=' + dev.device_id,
-            command: command
-        };
-        this.copySuccess = false;
-        this.modalRpiSetup = true;
-    },
-    copyCommand() {
-        navigator.clipboard.writeText(this.rpiSetupData.command);
-        this.copySuccess = true;
-        setTimeout(() => { this.copySuccess = false; }, 3000);
-    },
-    openEditDevice(dev) {
-        this.editDeviceData = {
-            id: dev.id,
-            name: dev.name,
-            template_id: dev.template_id || '',
-            location: dev.location,
-            device_id: dev.device_id,
-            ip_address: dev.ip_address || '',
-            num_ac: dev.num_ac || 2
-        };
-        this.modalEditDevice = true;
-    },
-    openEditSchedule(sch) {
-        this.editScheduleData = {
-            id: sch.id,
-            label: sch.label,
-            target_ac: sch.target_ac || 'all',
-            start_time: sch.start_time ? sch.start_time.substring(0, 5) : '06:00',
-            end_time: sch.end_time ? sch.end_time.substring(0, 5) : '18:00',
-            is_active: sch.is_active ? true : false
-        };
-        this.modalEditSchedule = true;
-    },
-    setView(mode) {
-        this.viewMode = mode;
-        localStorage.setItem('pindad_home_view', mode);
-        if (mode === 'fleet' && window.history.pushState) {
-            window.history.pushState({}, '', '/');
+<script>
+function homeFleetComponent() {
+    return {
+        viewMode: localStorage.getItem('pindad_home_view') || 'fleet',
+        modalNewDevice: false,
+        modalEditDevice: false,
+        modalSchedule: false,
+        modalEditSchedule: false,
+        modalRpiSetup: false,
+        rpiSetupData: { name: '', device_id: '', script_name: '', download_url: '', command: '' },
+        copySuccess: false,
+        editDeviceData: { id: '', name: '', template_id: '', location: '', device_id: '', ip_address: '', num_ac: 2 },
+        editScheduleData: { id: '', label: '', target_ac: 'all', start_time: '06:00', end_time: '18:00', is_active: true },
+        openRpiSetup(dev) {
+            const cleanId = (dev.device_id || '').toLowerCase().replace(/[^a-z0-9_]/g, '_');
+            const scriptName = 'pindad_node_' + cleanId + '.py';
+            const command = `(crontab -l 2>/dev/null | grep -v 'pindad_node'; echo "@reboot sleep 10 && cd /home/alex && python3 /home/alex/${scriptName} > /home/alex/node.log 2>&1 &") | crontab - && nohup python3 /home/alex/${scriptName} > /home/alex/node.log 2>&1 &`;
+            
+            this.rpiSetupData = {
+                name: dev.name || '',
+                device_id: dev.device_id || '',
+                ip_address: dev.ip_address || '192.168.197.64',
+                script_name: scriptName,
+                download_url: '/scripts/download/device?device_id=' + (dev.device_id || ''),
+                command: command
+            };
+            this.copySuccess = false;
+            this.modalRpiSetup = true;
+        },
+        copyCommand() {
+            navigator.clipboard.writeText(this.rpiSetupData.command);
+            this.copySuccess = true;
+            setTimeout(() => { this.copySuccess = false; }, 3000);
+        },
+        openEditDevice(dev) {
+            this.editDeviceData = {
+                id: dev.id,
+                name: dev.name,
+                template_id: dev.template_id || '',
+                location: dev.location,
+                device_id: dev.device_id,
+                ip_address: dev.ip_address || '',
+                num_ac: dev.num_ac || 2
+            };
+            this.modalEditDevice = true;
+        },
+        openEditSchedule(sch) {
+            this.editScheduleData = {
+                id: sch.id,
+                label: sch.label,
+                target_ac: sch.target_ac || 'all',
+                start_time: sch.start_time ? sch.start_time.substring(0, 5) : '06:00',
+                end_time: sch.end_time ? sch.end_time.substring(0, 5) : '18:00',
+                is_active: sch.is_active ? true : false
+            };
+            this.modalEditSchedule = true;
+        },
+        setView(mode) {
+            this.viewMode = mode;
+            localStorage.setItem('pindad_home_view', mode);
+            if (mode === 'fleet' && window.history.pushState) {
+                window.history.pushState({}, '', '/');
+            }
         }
-    }
-}" @reset-home-view.window="setView('fleet')">
+    };
+}
+</script>
+
+<!-- ================= MODUL 1: HOME (UNIVERSAL IOT FLEET OVERVIEW & DEVICE DRILLDOWN) ================= -->
+<div class="space-y-8 pb-20" x-data="homeFleetComponent()" @reset-home-view.window="setView('fleet')">
 
     <!-- ========================================================================= -->
     <!-- VIEW MODE 1: FLEET CENTRAL OVERVIEW (DAFTAR SEMUA DEVICE & TOTAL DAYA) -->
