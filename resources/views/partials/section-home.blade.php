@@ -5,8 +5,32 @@
     modalEditDevice: false,
     modalSchedule: false,
     modalEditSchedule: false,
+    modalRpiSetup: false,
+    rpiSetupData: { name: '', device_id: '', script_name: '', download_url: '', command: '' },
+    copySuccess: false,
     editDeviceData: { id: '', name: '', template_id: '', location: '', device_id: '', ip_address: '', num_ac: 2 },
     editScheduleData: { id: '', label: '', target_ac: 'all', start_time: '06:00', end_time: '18:00', is_active: true },
+    openRpiSetup(dev) {
+        const cleanId = dev.device_id.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+        const scriptName = 'pindad_node_' + cleanId + '.py';
+        const command = `(crontab -l 2>/dev/null | grep -v 'pindad_node'; echo \"@reboot sleep 10 && cd /home/alex && python3 /home/alex/${scriptName} > /home/alex/node.log 2>&1 &\") | crontab - && nohup python3 /home/alex/${scriptName} > /home/alex/node.log 2>&1 &`;
+        
+        this.rpiSetupData = {
+            name: dev.name,
+            device_id: dev.device_id,
+            ip_address: dev.ip_address || '192.168.197.64',
+            script_name: scriptName,
+            download_url: '/scripts/download/device?device_id=' + dev.device_id,
+            command: command
+        };
+        this.copySuccess = false;
+        this.modalRpiSetup = true;
+    },
+    copyCommand() {
+        navigator.clipboard.writeText(this.rpiSetupData.command);
+        this.copySuccess = true;
+        setTimeout(() => { this.copySuccess = false; }, 3000);
+    },
     openEditDevice(dev) {
         this.editDeviceData = {
             id: dev.id,
@@ -197,14 +221,18 @@
                             <span class="shrink-0 text-xs">➔</span>
                         </a>
 
-                        <!-- Quick Download Standalone Python Script -->
-                        <a href="{{ route('scripts.download', 'device') }}?device_id={{ $dev->device_id }}" 
-                           class="w-10 h-10 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition cursor-pointer active:scale-95 flex items-center justify-center shrink-0 shadow-xs" 
-                           title="Unduh Skrip Python (.py) Siap Pakai untuk {{ $dev->name }}">
-                            <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                        </a>
+                        <!-- Setup Node & 1-Click Auto-Start Command Guide -->
+                        <button @click="openRpiSetup({
+                            name: '{{ addslashes($dev->name) }}',
+                            device_id: '{{ $dev->device_id }}',
+                            ip_address: '{{ $dev->ip_address }}'
+                        })" 
+                        type="button" 
+                        class="h-10 px-3.5 rounded-2xl bg-slate-900 hover:bg-[#8E1616] text-white transition cursor-pointer active:scale-95 flex items-center justify-center gap-1.5 shrink-0 shadow-xs font-black text-xs" 
+                        title="Panduan Setup & Salin Perintah Auto-Start Raspberry Pi untuk {{ $dev->name }}">
+                            <span>⚡</span>
+                            <span>Setup Node</span>
+                        </button>
 
                         <!-- Edit Device Button -->
                         <button @click="openEditDevice({
@@ -888,6 +916,96 @@
                     <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Perbarui Perangkat</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 5: PANDUAN CEPAT SETUP & SALIN PERINTAH AUTO-START RASPBERRY PI -->
+    <!-- ========================================================================= -->
+    <div x-show="modalRpiSetup" 
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100">
+        
+        <div @click.away="modalRpiSetup = false" 
+             class="bg-white rounded-[40px] p-7 sm:p-8 max-w-xl w-full shadow-2xl border border-slate-200 space-y-6 relative max-h-[90vh] overflow-y-auto">
+            
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-[22px] bg-slate-900 text-amber-400 flex items-center justify-center font-black text-2xl shadow-md">
+                        ⚡
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-black text-[#1D1616]" x-text="'Setup Node: ' + rpiSetupData.name"></h4>
+                        <p class="text-xs text-slate-500 font-semibold flex items-center gap-1.5">
+                            <span>ID MQTT:</span>
+                            <code class="text-[#D84040] font-mono font-bold bg-rose-50 px-1.5 py-0.5 rounded" x-text="rpiSetupData.device_id"></code>
+                        </p>
+                    </div>
+                </div>
+                <button @click="modalRpiSetup = false" class="text-slate-400 hover:text-[#D84040] text-2xl font-bold cursor-pointer">&times;</button>
+            </div>
+
+            <!-- STEP 1: UNDUH FILE SKRIP -->
+            <div class="bg-slate-50 rounded-2xl p-4 sm:p-5 border border-slate-200 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-[#1D1616] text-white flex items-center justify-center text-[10px]">1</span>
+                        <span>Unduh File Skrip Python (.py)</span>
+                    </span>
+                    <a :href="rpiSetupData.download_url" 
+                       class="px-4 py-2 rounded-xl bg-[#D84040] hover:bg-[#8E1616] text-white text-xs font-black uppercase tracking-wider shadow-md hover:shadow-lg transition flex items-center gap-1.5 cursor-pointer active:scale-95">
+                        <span>📥</span>
+                        <span>Unduh Skrip</span>
+                    </a>
+                </div>
+                <p class="text-[11px] text-slate-500">
+                    Unduh skrip <code class="font-bold text-[#1D1616] bg-white px-1.5 py-0.5 rounded border border-slate-200" x-text="rpiSetupData.script_name"></code> lalu letakkan pada folder <code class="font-mono text-slate-700 font-bold">/home/alex/</code> di Raspberry Pi.
+                </p>
+            </div>
+
+            <!-- STEP 2: SALIN PERINTAH 1-BARIS AUTO-START & JALANKAN -->
+            <div class="bg-slate-900 rounded-3xl p-5 border border-slate-800 space-y-3 text-white shadow-xl">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center text-[10px] font-black">2</span>
+                        <span>Perintah 1-Klik Auto-Start on Boot</span>
+                    </span>
+                    <button @click="copyCommand()" 
+                            type="button" 
+                            class="px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+                            :class="copySuccess ? 'bg-emerald-500 text-white' : 'bg-white/15 hover:bg-white/25 text-amber-300 border border-amber-400/30'">
+                        <span x-text="copySuccess ? '✓' : '📋'"></span>
+                        <span x-text="copySuccess ? 'Tersalin!' : 'Salin Perintah'"></span>
+                    </button>
+                </div>
+                
+                <div class="bg-black/60 rounded-2xl p-3.5 border border-white/10 font-mono text-[11px] text-emerald-400 break-all select-all leading-relaxed" x-text="rpiSetupData.command"></div>
+
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                    💡 <strong>Cara Pakai:</strong> Buka SSH terminal Raspberry Pi, <em>paste</em> perintah di atas lalu tekan <strong>Enter</strong>. Script akan langsung hidup di background dan otomatis menyala setiap kali Raspberry Pi dicolok listrik. Terminal SSH bisa langsung ditutup.
+                </p>
+            </div>
+
+            <!-- STEP 3: CEK LOG REAL-TIME -->
+            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-2">
+                <span class="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-slate-400 text-white flex items-center justify-center text-[10px]">3</span>
+                    <span>Periksa Log Berjalan (Opsional)</span>
+                </span>
+                <div class="flex items-center justify-between bg-white p-2.5 rounded-xl border border-slate-200">
+                    <code class="text-xs font-mono font-bold text-slate-700">tail -f /home/alex/node.log</code>
+                    <span class="text-[10px] font-semibold text-slate-400">Tekan Ctrl+C untuk keluar</span>
+                </div>
+            </div>
+
+            <div class="pt-2 flex items-center justify-end">
+                <button @click="modalRpiSetup = false" type="button" class="px-6 py-3 rounded-2xl bg-[#1D1616] hover:bg-[#8E1616] text-white font-black text-xs uppercase tracking-wider shadow-md transition cursor-pointer active:scale-95">
+                    Tutup Panduan
+                </button>
+            </div>
         </div>
     </div>
 </div>
