@@ -23,7 +23,6 @@ class RunAcScheduler extends Command
         $this->info("Checking active schedule rules every 5 seconds...");
 
         $lastStates = []; // Key: device_id . '_' . relay -> bool
-        $lastTelemetryTime = 0;
 
         while (true) {
             try {
@@ -107,41 +106,6 @@ class RunAcScheduler extends Command
                             $mqttService->publish("pindad/devices/{$devId}/schedule", $payload);
                             $mqttService->publish("pindad/devices/{$devId}/control", $payload);
                             $this->info("[{$nowTime} WIB] [{$devId}] Sinyal Transisi Terkirim -> AC {$relay}: {$cmd}");
-                        }
-                    }
-                }
-
-                // Continuous periodic telemetry log stream for all registered devices (every 30 seconds)
-                if (time() - $lastTelemetryTime >= 30) {
-                    $lastTelemetryTime = time();
-
-                    foreach ($deviceIds as $devId) {
-                        $dev = $devices->firstWhere('device_id', $devId);
-                        $numAc = max(1, (int)($dev->num_ac ?? 2));
-                        $vals = $dev ? ($dev->current_values ?? []) : [];
-
-                        for ($relay = 1; $relay <= $numAc; $relay++) {
-                            $pinVal = (int)($vals["V" . ($relay - 1)] ?? 0);
-                            $isOn = ($pinVal === 1);
-
-                            $ampere = 0.0;
-                            if ($isOn) {
-                                // Simulate compressor load current with subtle realistic fluctuations around 2.15A
-                                $ampere = round(2.10 + (mt_rand(0, 150) / 1000), 4);
-                            }
-
-                            $cmd = $isOn ? 'ON' : 'OFF';
-                            $telemetryPayload = json_encode([
-                                'device_id' => $devId,
-                                'active_ac' => "AC_{$relay}_{$cmd}",
-                                'ac_number' => $relay,
-                                'state' => $cmd,
-                                'current_ampere' => $ampere,
-                                'recorded_at' => $now->format('Y-m-d H:i:s'),
-                            ]);
-
-                            $mqttService->publish("pindad/devices/{$devId}/logs", $telemetryPayload);
-                            $mqttService->publish("pindad/devices/{$devId}/telemetry", $telemetryPayload);
                         }
                     }
                 }
