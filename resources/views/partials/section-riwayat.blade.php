@@ -1,10 +1,11 @@
 <!-- ================= MODUL 3: LOG TELEMETRI & AUDIT SENSOR (DENGAN FILTER PERANGKAT & EXPORT CSV) ================= -->
 <div class="space-y-6 pb-20" x-data="{ 
     selectedLogDevice: '{{ $filterDevice ?? 'all' }}',
-    logTab: 'all' 
+    logTab: 'all',
+    modalConfirmClearLogs: false
 }">
     
-    <!-- 1. PAGE HEADER & DOWNLOAD CSV ACTION -->
+    <!-- 1. PAGE HEADER & ACTIONS (DOWNLOAD CSV & CLEAR LOGS) -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#8E1616]/20 pb-4">
         <div>
             <span class="text-[11px] font-extrabold uppercase tracking-widest text-[#8E1616] flex items-center gap-1.5">
@@ -19,12 +20,23 @@
             </p>
         </div>
 
-        <!-- DOWNLOAD CSV BUTTON (FLEKSIBEL PER DEVICE) -->
-        <a :href="'{{ route('logs.export') }}?device_id=' + selectedLogDevice" 
-           class="inline-flex items-center justify-center space-x-2 bg-[#D84040] hover:bg-[#8E1616] text-white text-xs font-black uppercase tracking-wider py-3.5 px-6 rounded-[24px] shadow-lg shadow-[#D84040]/30 transition w-full sm:w-auto shrink-0 cursor-pointer active:scale-95 text-center">
-            <span>📥</span>
-            <span>Unduh Log Perangkat (CSV)</span>
-        </a>
+        <!-- ACTION BUTTONS: DOWNLOAD CSV & CLEAR LOGS -->
+        <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto shrink-0">
+            <!-- DOWNLOAD CSV BUTTON (FLEKSIBEL PER DEVICE) -->
+            <a :href="'{{ route('logs.export') }}?device_id=' + selectedLogDevice" 
+               class="inline-flex items-center justify-center space-x-2 bg-[#D84040] hover:bg-[#8E1616] text-white text-xs font-black uppercase tracking-wider py-3.5 px-5 rounded-[22px] shadow-md shadow-[#D84040]/25 transition flex-1 sm:flex-initial shrink-0 cursor-pointer active:scale-95 text-center">
+                <span>📥</span>
+                <span>Unduh CSV</span>
+            </a>
+
+            <!-- CLEAR LOGS BUTTON (WITH MODAL CONFIRMATION) -->
+            <button @click="modalConfirmClearLogs = true"
+                    type="button"
+                    class="inline-flex items-center justify-center space-x-2 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border border-rose-200 text-xs font-black uppercase tracking-wider py-3.5 px-5 rounded-[22px] transition flex-1 sm:flex-initial shrink-0 cursor-pointer active:scale-95 text-center shadow-2xs">
+                <span>🗑️</span>
+                <span>Bersihkan Log</span>
+            </button>
+        </div>
     </div>
 
     <!-- 2. FILTER BAR (DUAL CUSTOM DROPDOWNS ALA DEVZONE V-PIN) -->
@@ -317,5 +329,62 @@
             @endforelse
         </div>
         @endfor
+    </div>
+
+    <!-- ================= MODAL KONFIRMASI BERSIHKAN LOG ================= -->
+    <div x-show="modalConfirmClearLogs" 
+         x-cloak 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1D1616]/60 backdrop-blur-sm"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        
+        <div @click.away="modalConfirmClearLogs = false"
+             class="bg-white rounded-[32px] max-w-md w-full p-6 sm:p-7 shadow-2xl border border-rose-100 space-y-5"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100">
+            
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-[22px] bg-rose-100 text-rose-600 flex items-center justify-center text-2xl font-black shrink-0">
+                    🗑️
+                </div>
+                <div>
+                    <h3 class="text-lg font-black text-[#1D1616]">Konfirmasi Pembersihan Log</h3>
+                    <p class="text-xs text-slate-500 font-semibold">Tindakan permanen & tidak dapat dibatalkan</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-xs space-y-2">
+                <span class="font-bold text-slate-500 uppercase tracking-wider block text-[10px]">Target Perangkat:</span>
+                <div class="flex items-center gap-2 font-mono font-black text-slate-800 bg-white p-2.5 rounded-xl border border-slate-200">
+                    <span x-text="selectedLogDevice === 'all' ? '🌐' : '📱'"></span>
+                    <span class="truncate text-xs" x-text="selectedLogDevice === 'all' ? 'Seluruh Armada (Semua Perangkat)' : selectedLogDevice"></span>
+                </div>
+                <p class="text-[11px] text-slate-500 leading-relaxed pt-1">
+                    Seluruh riwayat telemetri sensor ACS712 dan histori saklar relay untuk target di atas akan dihapus bersih dari database MongoDB.
+                </p>
+            </div>
+
+            <form action="{{ route('logs.clear') }}" method="POST" class="flex items-center justify-end gap-3 pt-2">
+                @csrf
+                <input type="hidden" name="device_id" :value="selectedLogDevice">
+
+                <button type="button" 
+                        @click="modalConfirmClearLogs = false"
+                        class="px-5 py-3 rounded-2xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-xs uppercase tracking-wider cursor-pointer transition">
+                    Batal
+                </button>
+
+                <button type="submit" 
+                        class="px-6 py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-rose-600/30 cursor-pointer active:scale-95 transition flex items-center gap-2">
+                    <span>🗑️</span>
+                    <span>Ya, Bersihkan Sekarang</span>
+                </button>
+            </form>
+        </div>
     </div>
 </div>

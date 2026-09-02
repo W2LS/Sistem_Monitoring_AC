@@ -45,8 +45,9 @@ Route::middleware('auth.session')->group(function () {
     Route::post('/profile/update', [DashboardController::class, 'updateProfile'])->name('profile.update');
     Route::post('/profile/password', [DashboardController::class, 'updatePassword'])->name('profile.password');
 
-    // Ekspor Log Telemetri CSV (Bisa per-device)
+    // Ekspor & Pembersihan Log Telemetri CSV (Bisa per-device)
     Route::get('/logs/export', [DashboardController::class, 'exportCsv'])->name('logs.export');
+    Route::post('/logs/clear', [DashboardController::class, 'clearLogs'])->name('logs.clear');
 
     // Download Skrip & Konfigurasi IoT Raspberry Pi
     Route::get('/scripts/download/{type}', [DashboardController::class, 'downloadScript'])->name('scripts.download');

@@ -977,6 +977,36 @@ class DashboardController extends Controller
     }
 
     /**
+     * Clear / Delete telemetry logs (scoped per device or all devices).
+     */
+    public function clearLogs(Request $request)
+    {
+        $deviceId = $request->input('device_id', 'all');
+
+        if ($deviceId === 'all' || empty($deviceId)) {
+            AcLog::truncate();
+            $msg = "Seluruh log telemetri armada berhasil dibersihkan!";
+        } elseif ($deviceId === 'RPI3B_PINDAD_ROOM_1') {
+            AcLog::where(function($q) {
+                $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
+            })->delete();
+            $msg = "Seluruh log telemetri untuk Ruang Server 1 (RPI3B_PINDAD_ROOM_1) berhasil dibersihkan!";
+        } else {
+            AcLog::where('device_id', $deviceId)->delete();
+            $msg = "Seluruh log telemetri untuk perangkat {$deviceId} berhasil dibersihkan!";
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+            ]);
+        }
+
+        return redirect()->back()->with('success', $msg);
+    }
+
+    /**
      * Download IoT Scripts and Configs for Raspberry Pi Nodes.
      */
     public function downloadScript(Request $request, string $type)
