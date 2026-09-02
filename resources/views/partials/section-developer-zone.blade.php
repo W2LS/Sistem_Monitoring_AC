@@ -432,14 +432,52 @@
                             </div>
                         </div>
                     </div>
-                    <div>
+                    <div x-data="{ 
+                        openTypeDropdown: false, 
+                        selectedType: 'Integer',
+                        types: [
+                            { value: 'Integer', label: 'Integer (0, 1, Bilangan Bulat)', badge: 'INT', color: 'bg-blue-50 text-blue-700' },
+                            { value: 'Double', label: 'Double (Desimal / Float)', badge: 'DBL', color: 'bg-emerald-50 text-emerald-700' },
+                            { value: 'String', label: 'String (Teks / JSON)', badge: 'STR', color: 'bg-amber-50 text-amber-700' },
+                            { value: 'Enum', label: 'Enum (Status Pilihan)', badge: 'ENUM', color: 'bg-purple-50 text-purple-700' }
+                        ],
+                        get currentLabel() {
+                            const found = this.types.find(t => t.value === this.selectedType);
+                            return found ? found.label : this.selectedType;
+                        }
+                    }" class="relative">
                         <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Tipe Data *</label>
-                        <select name="type" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#8E1616] outline-none">
-                            <option value="Integer">Integer (0, 1, Bilangan Bulat)</option>
-                            <option value="Double">Double (Desimal / Float)</option>
-                            <option value="String">String (Teks / JSON)</option>
-                            <option value="Enum">Enum (Status Pilihan)</option>
-                        </select>
+                        
+                        <!-- Hidden input for form submit -->
+                        <input type="hidden" name="type" :value="selectedType" required>
+
+                        <!-- Trigger Button -->
+                        <div @click="openTypeDropdown = !openTypeDropdown" 
+                             @click.away="openTypeDropdown = false"
+                             class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-xs sm:text-sm font-bold text-[#1D1616] bg-white focus-within:ring-2 focus-within:ring-[#8E1616] flex items-center justify-between cursor-pointer shadow-2xs hover:border-slate-300 transition truncate">
+                            <span class="truncate pr-2" x-text="currentLabel"></span>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0" :class="openTypeDropdown ? 'rotate-180 text-[#8E1616]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+
+                        <!-- Dropdown Panel -->
+                        <div x-show="openTypeDropdown" 
+                             x-cloak
+                             x-transition:enter="transition ease-out duration-150 transform opacity-0 scale-95"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             class="absolute left-0 right-0 z-50 mt-1.5 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 space-y-1">
+                            <template x-for="t in types" :key="t.value">
+                                <div @click="selectedType = t.value; openTypeDropdown = false" 
+                                     :class="selectedType === t.value ? 'bg-[#8E1616] text-white font-black' : 'text-slate-700 hover:bg-slate-100 font-bold'"
+                                     class="px-3 py-2.5 rounded-xl text-xs cursor-pointer flex items-center justify-between transition">
+                                    <span x-text="t.label" class="truncate pr-2"></span>
+                                    <span x-show="selectedType === t.value" class="text-[10px] shrink-0 font-black">✓</span>
+                                    <span x-show="selectedType !== t.value" :class="t.color" class="text-[9px] font-black px-1.5 py-0.5 rounded shrink-0 uppercase" x-text="t.badge"></span>
+                                </div>
+                            </template>
+                        </div>
                     </div>
                 </div>
 
