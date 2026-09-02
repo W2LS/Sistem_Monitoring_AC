@@ -25,17 +25,24 @@ class DashboardController extends Controller
     /**
      * Get active shift description for a specific AC unit based on current time.
      */
-    private function getActiveShiftText(int $acNum): string
+    private function getActiveShiftText(int $acNum, ?string $deviceId = null): string
     {
         $nowTime = Carbon::now('Asia/Jakarta')->format('H:i');
         
-        $schedules = Schedule::where('is_active', true)
+        $query = Schedule::where('is_active', true)
             ->where(function($q) use ($acNum) {
                 $q->where('target_ac', (string) $acNum)
                   ->orWhere('target_ac', 'all')
                   ->orWhereNull('target_ac');
-            })
-            ->get();
+            });
+            
+        if ($deviceId) {
+            $query->where(function($q) use ($deviceId) {
+                $q->where('device_id', $deviceId)->orWhereNull('device_id');
+            });
+        }
+        
+        $schedules = $query->get();
 
         foreach ($schedules as $s) {
             $start = Carbon::parse($s->start_time)->format('H:i');
@@ -60,7 +67,7 @@ class DashboardController extends Controller
             return "Standby: {$upcoming->label} ({$start} - {$end} WIB)";
         }
 
-        return $acNum === 1 ? "Shift Siang (06:00 - 18:00 WIB)" : "Shift Malam (18:00 - 06:00 WIB)";
+        return $acNum % 2 === 1 ? "Shift Pagi (06:00 - 18:00 WIB)" : "Shift Malam (18:00 - 06:00 WIB)";
     }
 
     /**
@@ -75,19 +82,76 @@ class DashboardController extends Controller
         $selectedDeviceId = $request->query('device_id', $devices->first()->device_id ?? 'RPI3B_PINDAD_ROOM_1');
         $currentDevice = $devices->firstWhere('device_id', $selectedDeviceId) ?? $devices->first();
 
-        // 2. Fetch Latest Telemetry for AC 1 and AC 2 with Strict Device Isolation
-        if ($selectedDeviceId === 'RPI3B_PINDAD_ROOM_1') {
-            $latestAc1 = AcLog::where(function($q) {
-                $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
-            })->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
+        // 2. Build Dynamic Unit Data for the selected device (1, 2, 4, or N AC units)
+        $numAc = max(1, (int)($currentDevice->num_ac ?? 2));
+        $tmpl = $currentDevice->template ?? ($currentDevice->template_id ? Template::find($currentDevice->template_id) : null);
+        $tmplStreams = $tmpl->datastreams ?? [];
+        $unitData = [];
 
-            $latestAc2 = AcLog::where(function($q) {
-                $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
-            })->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
-        } else {
-            $latestAc1 = AcLog::where('device_id', $selectedDeviceId)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
-            $latestAc2 = AcLog::where('device_id', $selectedDeviceId)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
+        for ($i = 1; $i <= $numAc; $i++) {
+            $pinKey = 'V' . ($i - 1);
+            $vState = (int)($currentDevice->current_values[$pinKey] ?? 0);
+            
+            if ($selectedDeviceId === 'RPI3B_PINDAD_ROOM_1') {
+                $log = AcLog::where(function($q) {
+                    $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
+                })->where(function($q) use ($i) {
+                    $q->where('active_ac', 'like', "AC_{$i}%")->orWhere('ac_number', $i);
+                })->latest('recorded_at')->first();
+            } else {
+                $log = AcLog::where('device_id', $selectedDeviceId)
+                    ->where(function($q) use ($i) {
+                        $q->where('active_ac', 'like', "AC_{$i}%")->orWhere('ac_number', $i);
+                    })->latest('recorded_at')->first();
+            }
+            
+            $isOn = ($vState === 1) || ($log && str_contains($log->active_ac, 'ON'));
+            $curPin = 'V' . ($numAc + $i - 1);
+            $ampere = $log ? (float)$log->current_ampere : (float)($currentDevice->current_values[$curPin] ?? ($isOn ? 1.5 : 0.0));
+            if (!$isOn) $ampere = 0.0;
+            $watt = round($ampere * 220);
+            $shift = $this->getActiveShiftText($i, $selectedDeviceId);
+            
+            $gpioPin = match($i) {
+                1 => 17,
+                2 => 27,
+                3 => 22,
+                4 => 23,
+                5 => 24,
+                6 => 25,
+                7 => 5,
+                8 => 6,
+                default => 17 + $i,
+            };
+            
+            $unitName = "Unit AC {$i}";
+            if ($selectedDeviceId === 'RPI3B_PINDAD_ROOM_1') {
+                $unitName = ($i === 1 ? 'Panasonic 1 (Lampu Bawah)' : ($i === 2 ? 'Panasonic 2 (Lampu Atas)' : "Panasonic {$i}"));
+            } else {
+                $streamName = collect($tmplStreams)->firstWhere('pin', $pinKey)['name'] ?? null;
+                if ($streamName) {
+                    $unitName = "{$streamName} (AC {$i})";
+                } else {
+                    $unitName = "AC {$i} (Unit {$i})";
+                }
+            }
+
+            $unitData[$i] = [
+                'number' => $i,
+                'name' => $unitName,
+                'gpio' => $gpioPin,
+                'is_on' => $isOn,
+                'ampere' => $ampere,
+                'watt' => $watt,
+                'shift' => $shift,
+                'log' => $log,
+            ];
         }
+
+        $latestAc1 = $unitData[1]['log'] ?? null;
+        $latestAc2 = $unitData[2]['log'] ?? null;
+        $shiftAc1 = $unitData[1]['shift'] ?? $this->getActiveShiftText(1, $selectedDeviceId);
+        $shiftAc2 = $unitData[2]['shift'] ?? $this->getActiveShiftText(2, $selectedDeviceId);
 
         // 3. Fetch Recent Telemetry Logs for Charts & Tables based on $filterDevice
         $filterDevice = $request->query('filter_device', $selectedDeviceId);
@@ -145,36 +209,23 @@ class DashboardController extends Controller
                 $onlineCount++;
             }
 
-            $devAc1 = null;
-            $devAc2 = null;
-            if ($dev->device_id === 'RPI3B_PINDAD_ROOM_1') {
-                $devAc1 = AcLog::where(function($q) {
-                    $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
-                })->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
-                $devAc2 = AcLog::where(function($q) {
-                    $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
-                })->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
-            } else {
-                $devAc1 = AcLog::where('device_id', $dev->device_id)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
-                $devAc2 = AcLog::where('device_id', $dev->device_id)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
+            $devNumAc = max(1, (int)($dev->num_ac ?? 2));
+            $devCur = 0;
+            for ($k = 1; $k <= $devNumAc; $k++) {
+                $devRelayOn = ($dev->current_values['V' . ($k - 1)] ?? 0) == 1;
+                $devCurPin = (float)($dev->current_values['V' . ($devNumAc + $k - 1)] ?? 0.0);
+                if (!$devRelayOn) $devCurPin = 0.0;
+                $devCur += $devCurPin;
             }
 
-            $c1 = $devAc1 ? (float)$devAc1->current_ampere : ($dev->current_values['V2'] ?? 0.0);
-            $c2 = $devAc2 ? (float)$devAc2->current_ampere : ($dev->current_values['V3'] ?? 0.0);
-            $totalCur = round($c1 + $c2, 4);
-            $w = ($dev->type === 'smart_lighting') ? ($dev->current_values['V2'] ?? 120) : round($totalCur * 220);
-            if ($dev->type === 'smart_lighting') {
-                $c1 = round($w / 220, 2);
-                $totalCur = $c1;
-            }
-
+            $w = round($devCur * 220);
             $totalFleetWatt += $w;
-            $totalFleetCurrent += $totalCur;
+            $totalFleetCurrent += $devCur;
 
             $fleetStats[$dev->device_id] = [
                 'is_online' => $isDevOnline,
                 'total_watt' => $w,
-                'total_current' => round($totalCur, 2),
+                'total_current' => round($devCur, 2),
                 'last_seen' => $devLast ? Carbon::parse($devLast->recorded_at)->diffForHumans() : ($isDevOnline ? 'Online' : 'Standby'),
             ];
         }
@@ -183,13 +234,12 @@ class DashboardController extends Controller
         $schedules = Schedule::where(function($q) use ($selectedDeviceId) {
             $q->where('device_id', $selectedDeviceId)->orWhereNull('device_id');
         })->orderBy('created_at', 'asc')->orderBy('_id', 'asc')->get();
-        $shiftAc1 = $this->getActiveShiftText(1);
-        $shiftAc2 = $this->getActiveShiftText(2);
 
         // 6. User Profile
         $user = auth()->user() ?? User::first();
 
         return view('dashboard', compact(
+            'unitData', 'numAc',
             'latestAc1', 'latestAc2', 'recentLogsAll', 'recentLogsAc1', 'recentLogsAc2', 
             'schedules', 'shiftAc1', 'shiftAc2', 'devices', 'templates', 'selectedDeviceId', 
             'currentDevice', 'fleetStats', 'totalFleetWatt', 'totalFleetCurrent', 'onlineCount', 
@@ -315,7 +365,7 @@ class DashboardController extends Controller
     public function toggleAc(Request $request)
     {
         $request->validate([
-            'ac_number' => 'required|integer|in:1,2',
+            'ac_number' => 'required|integer|min:1|max:8',
             'state' => 'required|string|in:ON,OFF',
             'device_id' => 'nullable|string',
         ]);
@@ -352,17 +402,21 @@ class DashboardController extends Controller
             $vals = $dev->current_values ?? [];
             $vals["V" . ($acNumber - 1)] = ($state === 'ON' ? 1 : 0);
             
-            // If turning OFF, immediately reset measured current to 0.0
+            $numAc = max(1, (int)($dev->num_ac ?? 2));
+            $curPin = "V" . ($numAc + $acNumber - 1);
             if ($state === 'OFF') {
-                $vals["V" . ($acNumber + 1)] = 0.0;
+                $vals[$curPin] = 0.0;
             }
 
             // Recalculate combined wattage strictly from measured pin values
-            $cur1 = (float)($vals["V2"] ?? 0.0);
-            $cur2 = (float)($vals["V3"] ?? 0.0);
-            if (!($vals["V0"] ?? 0)) $cur1 = 0.0;
-            if (!($vals["V1"] ?? 0)) $cur2 = 0.0;
-            $vals["V4"] = round(($cur1 + $cur2) * 220);
+            $totalCur = 0.0;
+            for ($k = 1; $k <= $numAc; $k++) {
+                $kRelayOn = ($vals["V" . ($k - 1)] ?? 0) == 1;
+                $kCur = (float)($vals["V" . ($numAc + $k - 1)] ?? 0.0);
+                if (!$kRelayOn) $kCur = 0.0;
+                $totalCur += $kCur;
+            }
+            $vals["V" . ($numAc * 2)] = round($totalCur * 220);
 
             $dev->current_values = $vals;
             $dev->save();

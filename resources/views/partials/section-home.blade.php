@@ -312,20 +312,21 @@
             </div>
         </div>
 
-        <!-- 3. DUAL AC KONTROL SAKLAR & ARUS (PANASONIC 1 VS PANASONIC 2) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6"
+        <!-- 3. KONTROL SAKLAR & ARUS PER UNIT AC (FLEKSIBEL 1, 2, 4, ATAU N UNIT) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 {{ count($unitData ?? []) > 2 ? 'xl:grid-cols-2 2xl:grid-cols-4' : '' }} gap-6"
              x-data="{
-                 ac1On: {{ (($latestAc1 && str_contains($latestAc1->active_ac, 'ON')) || (($currentDevice->current_values['V0'] ?? 0) == 1)) ? 'true' : 'false' }},
-                 ac2On: {{ (($latestAc2 && str_contains($latestAc2->active_ac, 'ON')) || (($currentDevice->current_values['V1'] ?? 0) == 1)) ? 'true' : 'false' }},
-                 loading1: false,
-                 loading2: false,
+                 @foreach($unitData ?? [] as $uNum => $u)
+                     ac{{ $uNum }}On: {{ $u['is_on'] ? 'true' : 'false' }},
+                 @endforeach
+                 loadingNum: null,
                  async toggleSwitch(acNumber) {
-                     let currentState = acNumber === 1 ? this.ac1On : this.ac2On;
+                     let key = 'ac' + acNumber + 'On';
+                     let currentState = this[key];
                      let nextState = !currentState;
                      
                      // Instant visual state transition (0ms UI lag)
-                     if (acNumber === 1) { this.ac1On = nextState; this.loading1 = true; }
-                     if (acNumber === 2) { this.ac2On = nextState; this.loading2 = true; }
+                     this[key] = nextState;
+                     this.loadingNum = acNumber;
 
                      try {
                          let res = await fetch('{{ route('ac.control') }}', {
@@ -344,21 +345,19 @@
                          });
                          let json = await res.json();
                          if (!json.success) {
-                             if (acNumber === 1) this.ac1On = currentState;
-                             if (acNumber === 2) this.ac2On = currentState;
+                             this[key] = currentState;
                          }
                      } catch (e) {
                          console.error('Toggle error:', e);
-                         if (acNumber === 1) this.ac1On = currentState;
-                         if (acNumber === 2) this.ac2On = currentState;
+                         this[key] = currentState;
                      } finally {
-                         if (acNumber === 1) this.loading1 = false;
-                         if (acNumber === 2) this.loading2 = false;
+                         this.loadingNum = null;
                      }
                  }
              }">
             
-            <!-- AC UNIT 1 CARD -->
+            @foreach($unitData ?? [] as $acNum => $unit)
+            <!-- AC UNIT {{ $acNum }} CARD -->
             <div class="bg-white rounded-[40px] p-6 sm:p-7 shadow-[0_20px_50px_-12px_rgba(29,22,22,0.08)] border border-[#8E1616]/20 space-y-6 flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -367,136 +366,67 @@
                                 ❄️
                             </div>
                             <div>
-                                <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616]">UNIT 1 • PIN GPIO 17</span>
-                                <h3 class="text-xl font-black text-[#1D1616]">Panasonic 1 (Lampu Bawah)</h3>
+                                <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616]">UNIT {{ $acNum }} • PIN GPIO {{ $unit['gpio'] }}</span>
+                                <h3 class="text-xl font-black text-[#1D1616]">{{ $unit['name'] }}</h3>
                             </div>
                         </div>
-                        <span id="badge-status-ac1" 
+                        <span id="badge-status-ac{{ $acNum }}" 
                               class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider transition-colors"
-                              :class="ac1On ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'"
-                              x-text="ac1On ? 'ONLINE' : 'STANDBY'">
-                            {{ (($latestAc1 && str_contains($latestAc1->active_ac, 'ON')) || (($currentDevice->current_values['V0'] ?? 0) == 1)) ? 'ONLINE' : 'STANDBY' }}
+                              :class="ac{{ $acNum }}On ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'"
+                              x-text="ac{{ $acNum }}On ? 'ONLINE' : 'STANDBY'">
+                            {{ $unit['is_on'] ? 'ONLINE' : 'STANDBY' }}
                         </span>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4 mt-5">
                         <div class="bg-[#EEEEEE]/60 rounded-[28px] p-4 border border-[#8E1616]/10">
                             <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">Beban Arus Real-Time</span>
-                            <span id="val-current-ac1" class="text-2xl font-black font-mono text-[#1D1616] mt-1 block">
-                                {{ $latestAc1 ? number_format((float)$latestAc1->current_ampere, 4) : '0.0000' }} A
+                            <span id="val-current-ac{{ $acNum }}" class="text-2xl font-black font-mono text-[#1D1616] mt-1 block">
+                                {{ number_format((float)$unit['ampere'], 4) }} A
                             </span>
-                            <span id="val-watt-ac1" class="text-xs font-bold text-slate-400 block mt-0.5">
-                                ≈ {{ $latestAc1 ? round((float)$latestAc1->current_ampere * 220) : '0' }} Watt
-                            </span>
-                        </div>
-
-                        <div class="bg-[#EEEEEE]/60 rounded-[28px] p-4 border border-[#8E1616]/10">
-                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">Jadwal Shift DS3231</span>
-                            <span id="shift-text-ac1" class="text-xs font-extrabold text-[#8E1616] mt-1.5 block leading-snug">
-                                {{ $shiftAc1 }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Toggle Switch AC 1 (Zero Reload AJAX) -->
-                <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <div>
-                        <span class="text-xs font-black text-[#1D1616] block">Saklar Manual AC 1</span>
-                        <span class="text-[10px] text-slate-400 font-semibold">Klik saklar untuk ON/OFF langsung</span>
-                    </div>
-
-                    <button @click="toggleSwitch(1)" 
-                            type="button" 
-                            :title="ac1On ? 'Klik untuk mematikan AC 1' : 'Klik untuk menyalakan AC 1'"
-                            class="group relative inline-flex items-center h-10 w-24 rounded-full transition-all duration-300 p-1 cursor-pointer select-none shadow-md active:scale-95"
-                            :class="ac1On ? 'bg-gradient-to-r from-emerald-500 to-teal-600 ring-2 ring-emerald-400/50 shadow-emerald-200' : 'bg-gradient-to-r from-slate-300 to-slate-400 shadow-slate-200'">
-                        
-                        <!-- Label Text Inside Switch -->
-                        <span class="w-full text-center text-[10px] font-black uppercase tracking-wider transition-all font-mono"
-                              :class="ac1On ? 'text-white pr-7' : 'text-slate-600 pl-7'"
-                              x-text="ac1On ? 'ON' : 'OFF'">
-                        </span>
-
-                        <!-- Sliding Circular Knob -->
-                        <span class="absolute top-1 left-1 bg-white w-8 h-8 rounded-full shadow-lg transform transition-transform duration-300 flex items-center justify-center"
-                              :class="ac1On ? 'translate-x-14' : 'translate-x-0'">
-                            <span class="w-2.5 h-2.5 rounded-full transition-colors"
-                                  :class="ac1On ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-slate-400'"></span>
-                        </span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- AC UNIT 2 CARD -->
-            <div class="bg-white rounded-[40px] p-6 sm:p-7 shadow-[0_20px_50px_-12px_rgba(29,22,22,0.08)] border border-[#8E1616]/20 space-y-6 flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-12 h-12 rounded-[20px] bg-[#EEEEEE] text-[#8E1616] font-black text-xl flex items-center justify-center">
-                                ❄️
-                            </div>
-                            <div>
-                                <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616]">UNIT 2 • PIN GPIO 27</span>
-                                <h3 class="text-xl font-black text-[#1D1616]">Panasonic 2 (Lampu Atas)</h3>
-                            </div>
-                        </div>
-                        <span id="badge-status-ac2" 
-                              class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider transition-colors"
-                              :class="ac2On ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'"
-                              x-text="ac2On ? 'ONLINE' : 'STANDBY'">
-                            {{ (($latestAc2 && str_contains($latestAc2->active_ac, 'ON')) || (($currentDevice->current_values['V1'] ?? 0) == 1)) ? 'ONLINE' : 'STANDBY' }}
-                        </span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4 mt-5">
-                        <div class="bg-[#EEEEEE]/60 rounded-[28px] p-4 border border-[#8E1616]/10">
-                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">Beban Arus Real-Time</span>
-                            <span id="val-current-ac2" class="text-2xl font-black font-mono text-[#1D1616] mt-1 block">
-                                {{ $latestAc2 ? number_format((float)$latestAc2->current_ampere, 4) : '0.0000' }} A
-                            </span>
-                            <span id="val-watt-ac2" class="text-xs font-bold text-slate-400 block mt-0.5">
-                                ≈ {{ $latestAc2 ? round((float)$latestAc2->current_ampere * 220) : '0' }} Watt
+                            <span id="val-watt-ac{{ $acNum }}" class="text-xs font-bold text-slate-400 block mt-0.5">
+                                ≈ {{ $unit['watt'] }} Watt
                             </span>
                         </div>
 
                         <div class="bg-[#EEEEEE]/60 rounded-[28px] p-4 border border-[#8E1616]/10">
                             <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">Jadwal Shift DS3231</span>
-                            <span id="shift-text-ac2" class="text-xs font-extrabold text-[#8E1616] mt-1.5 block leading-snug">
-                                {{ $shiftAc2 }}
+                            <span id="shift-text-ac{{ $acNum }}" class="text-xs font-extrabold text-[#8E1616] mt-1.5 block leading-snug">
+                                {{ $unit['shift'] }}
                             </span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Toggle Switch AC 2 (Zero Reload AJAX) -->
+                <!-- Toggle Switch AC {{ $acNum }} (Zero Reload AJAX) -->
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
                     <div>
-                        <span class="text-xs font-black text-[#1D1616] block">Saklar Manual AC 2</span>
+                        <span class="text-xs font-black text-[#1D1616] block">Saklar Manual AC {{ $acNum }}</span>
                         <span class="text-[10px] text-slate-400 font-semibold">Klik saklar untuk ON/OFF langsung</span>
                     </div>
 
-                    <button @click="toggleSwitch(2)" 
+                    <button @click="toggleSwitch({{ $acNum }})" 
                             type="button" 
-                            :title="ac2On ? 'Klik untuk mematikan AC 2' : 'Klik untuk menyalakan AC 2'"
+                            :title="ac{{ $acNum }}On ? 'Klik untuk mematikan AC {{ $acNum }}' : 'Klik untuk menyalakan AC {{ $acNum }}'"
                             class="group relative inline-flex items-center h-10 w-24 rounded-full transition-all duration-300 p-1 cursor-pointer select-none shadow-md active:scale-95"
-                            :class="ac2On ? 'bg-gradient-to-r from-emerald-500 to-teal-600 ring-2 ring-emerald-400/50 shadow-emerald-200' : 'bg-gradient-to-r from-slate-300 to-slate-400 shadow-slate-200'">
+                            :class="ac{{ $acNum }}On ? 'bg-gradient-to-r from-emerald-500 to-teal-600 ring-2 ring-emerald-400/50 shadow-emerald-200' : 'bg-gradient-to-r from-slate-300 to-slate-400 shadow-slate-200'">
                         
                         <!-- Label Text Inside Switch -->
                         <span class="w-full text-center text-[10px] font-black uppercase tracking-wider transition-all font-mono"
-                              :class="ac2On ? 'text-white pr-7' : 'text-slate-600 pl-7'"
-                              x-text="ac2On ? 'ON' : 'OFF'">
+                              :class="ac{{ $acNum }}On ? 'text-white pr-7' : 'text-slate-600 pl-7'"
+                              x-text="ac{{ $acNum }}On ? 'ON' : 'OFF'">
                         </span>
 
                         <!-- Sliding Circular Knob -->
                         <span class="absolute top-1 left-1 bg-white w-8 h-8 rounded-full shadow-lg transform transition-transform duration-300 flex items-center justify-center"
-                              :class="ac2On ? 'translate-x-14' : 'translate-x-0'">
+                              :class="ac{{ $acNum }}On ? 'translate-x-14' : 'translate-x-0'">
                             <span class="w-2.5 h-2.5 rounded-full transition-colors"
-                                  :class="ac2On ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-slate-400'"></span>
+                                  :class="ac{{ $acNum }}On ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-slate-400'"></span>
                         </span>
                     </button>
                 </div>
             </div>
+            @endforeach
         </div>
 
         <!-- 5. PUSAT PENJADWALAN SHIFT 12 JAM KHUSUS RUANGAN INI -->
@@ -530,7 +460,14 @@
                             ⏰ {{ substr($sch->start_time, 0, 5) }} - {{ substr($sch->end_time, 0, 5) }} WIB
                         </p>
                         <p class="text-[11px] text-slate-500">
-                            Target: {{ $sch->target_ac === '1' ? 'Panasonic 1 (Bawah)' : ($sch->target_ac === '2' ? 'Panasonic 2 (Atas)' : 'Semua Unit AC') }}
+                            Target: 
+                            @if($sch->target_ac === 'all')
+                                Seluruh Unit AC Sekaligus ({{ count($unitData ?? []) }} Unit)
+                            @elseif(isset($unitData[(int)$sch->target_ac]))
+                                {{ $unitData[(int)$sch->target_ac]['name'] }}
+                            @else
+                                Unit AC {{ $sch->target_ac }}
+                            @endif
                         </p>
                     </div>
 
@@ -598,72 +535,68 @@
                   x-data="{ 
                       devName: '', 
                       devId: '', 
-                      generateId() {
-                          if (!this.devName) { this.devId = ''; return; }
-                          let clean = this.devName.toUpperCase().replace(/[^A-Z0-9]/g, '_').replace(/_+/g, '_').replace(/^_+|_+$/g, '');
-                          this.devId = 'RPI3B_' + clean;
+                      selectedTmpl: '{{ $templates->first()->id ?? '' }}',
+                      templatesMap: {
+                          @foreach($templates as $t)
+                          '{{ $t->id }}': {
+                              name: '{{ addslashes($t->name) }}',
+                              hardware: '{{ addslashes($t->hardware_type) }}',
+                              conn: '{{ addslashes($t->connection_type) }}',
+                              icon: '{{ addslashes($t->icon ?? '⚡') }}',
+                              numAc: {{ count(collect($t->datastreams ?? [])->filter(fn($ds) => str_starts_with($ds['pin'], 'V') && (int)substr($ds['pin'], 1) < 8)) ?: 2 }}
+                          },
+                          @endforeach
+                      },
+                      updateSlug() {
+                          this.devId = 'RPI3B_' + this.devName.toUpperCase().replace(/[^A-Z0-9]/g, '_').replace(/_+/g, '_');
                       }
                   }">
                 @csrf
                 
                 <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Pilih Template Blueprint *</label>
-                    <select name="template_id" required class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#D84040] outline-none">
-                        @foreach($templates as $tmpl)
-                        <option value="{{ $tmpl->id }}">{{ $tmpl->icon }} {{ $tmpl->name }} ({{ $tmpl->hardware_type }})</option>
+                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Blueprint Template Perangkat *</label>
+                    <select name="template_id" 
+                            x-model="selectedTmpl"
+                            required
+                            class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#D84040] outline-none cursor-pointer">
+                        @foreach($templates as $t)
+                        <option value="{{ $t->id }}">{{ $t->icon ?? '⚡' }} {{ $t->name }} ({{ $t->hardware_type }})</option>
                         @endforeach
                     </select>
                 </div>
 
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Nama Perangkat / Ruangan *</label>
+                        <input type="text" name="name" x-model="devName" @input="updateSlug()" required placeholder="Contoh: AC Ruang Server 2" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Lokasi Gedung / Ruangan *</label>
+                        <input type="text" name="location" required placeholder="Contoh: Gedung TIK Lantai 2" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                    </div>
+                </div>
+
                 <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Nama Perangkat / Ruangan *</label>
-                    <input type="text" 
-                           name="name" 
-                           x-model="devName"
-                           @input="generateId()"
-                           required 
-                           placeholder="Contoh: Monitoring AC Ruang Server 2" 
-                           class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">ID Perangkat (Device ID MQTT) *</label>
+                    <input type="text" name="device_id" x-model="devId" required placeholder="RPI3B_RUANG_SERVER_2" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono uppercase bg-slate-50 focus:ring-2 focus:ring-[#D84040] outline-none">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Lokasi / Gedung *</label>
-                        <input type="text" name="location" required placeholder="Gedung TIK" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">IP Address Perangkat</label>
+                        <input type="text" name="ip_address" value="192.168.196.50" placeholder="192.168.196.x" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#D84040] outline-none">
                     </div>
-                    <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-xs font-black uppercase text-slate-700 tracking-wider">ID Perangkat (MQTT) *</label>
-                            <span class="text-[9px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                <span>Auto-Generated</span>
-                            </span>
-                        </div>
-                        <input type="text" 
-                               name="device_id" 
-                               x-model="devId"
-                               readonly
-                               required 
-                               placeholder="Otomatis terisi saat nama diketik..." 
-                               class="w-full px-4 py-3 rounded-2xl border-2 border-dashed border-slate-300 text-xs sm:text-sm font-mono uppercase bg-slate-100/90 text-slate-700 font-bold cursor-not-allowed select-all outline-none">
-                        <p class="text-[10px] text-slate-400 mt-1">Dibuat otomatis dari nama ruangan untuk keamanan jalur MQTT.</p>
-                    </div>
-                </div>
 
-                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Alamat IP Perangkat</label>
-                        <input type="text" name="ip_address" placeholder="192.168.196.45" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#D84040] outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Kapasitas AC (Unit)</label>
-                        <input type="number" name="num_ac" min="0" max="8" value="2" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Jumlah Unit AC (Kapasitas Relai)</label>
+                        <input type="number" name="num_ac" min="1" max="8" value="2" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#D84040] outline-none">
                     </div>
                 </div>
 
                 <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
                     <button @click="modalNewDevice = false" type="button" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-[#D84040] to-[#8E1616] text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Simpan Perangkat</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-[#D84040] to-[#8E1616] text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Daftarkan Node</button>
                 </div>
             </form>
         </div>
@@ -702,15 +635,16 @@
 
                 <div>
                     <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Label / Nama Shift *</label>
-                    <input type="text" name="label" required placeholder="Contoh: Shift Siang (Panasonic 1)" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
+                    <input type="text" name="label" required placeholder="Contoh: Shift Siang (AC 1)" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
                 </div>
 
                 <div>
                     <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Target Unit AC *</label>
-                    <select name="target_ac" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#8E1616] outline-none">
-                        <option value="1">Panasonic 1 (Lampu Bawah • Pin GPIO 17)</option>
-                        <option value="2">Panasonic 2 (Lampu Atas • Pin GPIO 27)</option>
-                        <option value="all">Kedua Unit AC Sekaligus</option>
+                    <select name="target_ac" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#8E1616] outline-none cursor-pointer">
+                        @foreach($unitData ?? [] as $acNum => $unit)
+                            <option value="{{ $acNum }}">{{ $unit['name'] }} (Pin GPIO {{ $unit['gpio'] }})</option>
+                        @endforeach
+                        <option value="all">Seluruh Unit AC Sekaligus (Semua {{ count($unitData ?? []) }} Unit)</option>
                     </select>
                 </div>
 
@@ -770,7 +704,7 @@
                            name="label" 
                            x-model="editScheduleData.label"
                            required 
-                           placeholder="Contoh: Shift Siang (Panasonic 1)" 
+                           placeholder="Contoh: Shift Siang (AC 1)" 
                            class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
                 </div>
 
@@ -778,10 +712,11 @@
                     <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Target Unit AC *</label>
                     <select name="target_ac" 
                             x-model="editScheduleData.target_ac"
-                            class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#8E1616] outline-none">
-                        <option value="1">Panasonic 1 (Lampu Bawah • Pin GPIO 17)</option>
-                        <option value="2">Panasonic 2 (Lampu Atas • Pin GPIO 27)</option>
-                        <option value="all">Kedua Unit AC Sekaligus</option>
+                            class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#8E1616] outline-none cursor-pointer">
+                        @foreach($unitData ?? [] as $acNum => $unit)
+                            <option value="{{ $acNum }}">{{ $unit['name'] }} (Pin GPIO {{ $unit['gpio'] }})</option>
+                        @endforeach
+                        <option value="all">Seluruh Unit AC Sekaligus (Semua {{ count($unitData ?? []) }} Unit)</option>
                     </select>
                 </div>
 

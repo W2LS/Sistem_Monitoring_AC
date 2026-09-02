@@ -31,4 +31,9 @@ class Device extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function template()
+    {
+        return $this->belongsTo(Template::class, 'template_id', '_id');
+    }
 }
