@@ -376,7 +376,17 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Virtual Pin *</label>
-                        <input type="text" name="pin" required placeholder="V0, V1, V2..." class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono uppercase focus:ring-2 focus:ring-[#8E1616] outline-none">
+                        <select name="pin" required class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono font-bold text-[#1D1616] bg-white focus:ring-2 focus:ring-[#8E1616] outline-none cursor-pointer">
+                            <option value="" disabled selected>-- Pilih Virtual Pin --</option>
+                            @for($i = 0; $i <= 32; $i++)
+                                <option value="V{{ $i }}">V{{ $i }}</option>
+                            @endfor
+                            <optgroup label="Extended Virtual Pins (V33 - V100)">
+                                @for($i = 33; $i <= 100; $i++)
+                                    <option value="V{{ $i }}">V{{ $i }}</option>
+                                @endfor
+                            </optgroup>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Tipe Data *</label>
