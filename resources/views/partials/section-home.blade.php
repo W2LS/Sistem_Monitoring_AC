@@ -578,8 +578,15 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">ID Perangkat (Device ID MQTT) *</label>
-                    <input type="text" name="device_id" x-model="devId" required placeholder="RPI3B_RUANG_SERVER_2" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono uppercase bg-slate-50 focus:ring-2 focus:ring-[#D84040] outline-none">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider">ID Perangkat (Device ID MQTT) *</label>
+                        <span class="text-[10px] font-bold text-slate-400 flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-md">
+                            <span>🔒</span>
+                            <span>Auto-Generated (Read-Only)</span>
+                        </span>
+                    </div>
+                    <input type="text" name="device_id" x-model="devId" readonly required placeholder="RPI3B_..." class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono font-bold uppercase bg-slate-100 text-slate-600 cursor-not-allowed outline-none select-none shadow-2xs">
+                    <p class="text-[11px] text-slate-400 mt-1">ID MQTT digenerate otomatis dari nama perangkat untuk meminimalisir kesalahan penulisan topic broker.</p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
