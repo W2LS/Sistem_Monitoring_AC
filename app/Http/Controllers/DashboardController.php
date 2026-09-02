@@ -157,30 +157,53 @@ class DashboardController extends Controller
         $filterDevice = $request->query('filter_device', $selectedDeviceId);
         
         $queryLogs = AcLog::query();
-        $queryAc1 = AcLog::query()->where('active_ac', 'like', 'AC_1%');
-        $queryAc2 = AcLog::query()->where('active_ac', 'like', 'AC_2%');
 
         if ($filterDevice && $filterDevice !== 'all') {
             if ($filterDevice === 'RPI3B_PINDAD_ROOM_1') {
                 $queryLogs->where(function($q) {
                     $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
                 });
-                $queryAc1->where(function($q) {
-                    $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
-                });
-                $queryAc2->where(function($q) {
-                    $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
-                });
             } else {
                 $queryLogs->where('device_id', $filterDevice);
-                $queryAc1->where('device_id', $filterDevice);
-                $queryAc2->where('device_id', $filterDevice);
             }
         }
 
         $recentLogsAll = $queryLogs->latest('recorded_at')->take(50)->get();
-        $recentLogsAc1 = $queryAc1->latest('recorded_at')->take(50)->get();
-        $recentLogsAc2 = $queryAc2->latest('recorded_at')->take(50)->get();
+
+        // Calculate dynamic AC unit capacity and unit log queries for Module 3
+        if ($filterDevice && $filterDevice !== 'all') {
+            $logDev = $devices->firstWhere('device_id', $filterDevice) ?? $currentDevice;
+            $logNumAc = max(1, (int)($logDev->num_ac ?? 2));
+            $logTmpl = $logDev->template ?? ($logDev->template_id ? Template::find($logDev->template_id) : null);
+            $logStreams = $logTmpl->datastreams ?? [];
+        } else {
+            $logNumAc = max(2, (int)($devices->max('num_ac') ?? 2));
+            $logStreams = [];
+        }
+
+        $recentLogsByUnit = [];
+        $unitLogNames = [];
+
+        for ($u = 1; $u <= $logNumAc; $u++) {
+            $uName = "AC {$u}";
+            if ($filterDevice === 'RPI3B_PINDAD_ROOM_1') {
+                $uName = $u === 1 ? 'Panasonic 1' : ($u === 2 ? 'Panasonic 2' : "AC {$u}");
+            } else {
+                $streamName = collect($logStreams)->firstWhere('pin', 'V' . ($u - 1))['name'] ?? null;
+                if ($streamName) {
+                    $uName = $streamName;
+                }
+            }
+            $unitLogNames[$u] = $uName;
+
+            $uQuery = (clone $queryLogs)->where(function($q) use ($u) {
+                $q->where('active_ac', 'like', "AC_{$u}%")->orWhere('ac_number', $u);
+            });
+            $recentLogsByUnit[$u] = $uQuery->latest('recorded_at')->take(50)->get();
+        }
+
+        $recentLogsAc1 = $recentLogsByUnit[1] ?? collect();
+        $recentLogsAc2 = $recentLogsByUnit[2] ?? collect();
 
         // 4. Calculate Fleet Real-Time Summary Stats
         $fleetStats = [];
@@ -241,6 +264,7 @@ class DashboardController extends Controller
         return view('dashboard', compact(
             'unitData', 'numAc',
             'latestAc1', 'latestAc2', 'recentLogsAll', 'recentLogsAc1', 'recentLogsAc2', 
+            'recentLogsByUnit', 'unitLogNames', 'logNumAc',
             'schedules', 'shiftAc1', 'shiftAc2', 'devices', 'templates', 'selectedDeviceId', 
             'currentDevice', 'fleetStats', 'totalFleetWatt', 'totalFleetCurrent', 'onlineCount', 
             'filterDevice', 'user'

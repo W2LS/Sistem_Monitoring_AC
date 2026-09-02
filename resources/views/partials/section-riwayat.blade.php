@@ -43,23 +43,24 @@
             </select>
         </div>
 
-        <!-- AC Unit Sub-filter -->
-        <div class="grid grid-cols-3 sm:flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl w-full md:w-auto">
+        <!-- AC Unit Sub-filter (Dynamic based on Device Capacity) -->
+        <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl w-full md:w-auto overflow-x-auto">
             <button @click="logTab = 'all'" 
                     :class="logTab === 'all' ? 'bg-[#1D1616] text-white font-black shadow-xs' : 'text-slate-600 font-bold hover:text-[#D84040]'"
-                    class="px-3 py-2 rounded-xl text-[11px] sm:text-xs transition uppercase tracking-wider cursor-pointer text-center truncate">
+                    class="px-3.5 py-2 rounded-xl text-[11px] sm:text-xs transition uppercase tracking-wider cursor-pointer text-center whitespace-nowrap">
                 Semua ({{ count($recentLogsAll) }})
             </button>
-            <button @click="logTab = 'ac1'" 
-                    :class="logTab === 'ac1' ? 'bg-[#D84040] text-white font-black shadow-xs' : 'text-slate-600 font-bold hover:text-[#D84040]'"
-                    class="px-3 py-2 rounded-xl text-[11px] sm:text-xs transition uppercase tracking-wider cursor-pointer text-center truncate">
-                AC 1 ({{ count($recentLogsAc1) }})
+            @for($u = 1; $u <= ($logNumAc ?? 2); $u++)
+            @php
+                $tabCount = count($recentLogsByUnit[$u] ?? []);
+                $tabName = $unitLogNames[$u] ?? ("AC {$u}");
+            @endphp
+            <button @click="logTab = 'ac{{ $u }}'" 
+                    :class="logTab === 'ac{{ $u }}' ? 'bg-[#D84040] text-white font-black shadow-xs' : 'text-slate-600 font-bold hover:text-[#D84040]'"
+                    class="px-3.5 py-2 rounded-xl text-[11px] sm:text-xs transition uppercase tracking-wider cursor-pointer text-center whitespace-nowrap">
+                {{ $tabName }} ({{ $tabCount }})
             </button>
-            <button @click="logTab = 'ac2'" 
-                    :class="logTab === 'ac2' ? 'bg-[#8E1616] text-white font-black shadow-xs' : 'text-slate-600 font-bold hover:text-[#8E1616]'"
-                    class="px-3 py-2 rounded-xl text-[11px] sm:text-xs transition uppercase tracking-wider cursor-pointer text-center truncate">
-                AC 2 ({{ count($recentLogsAc2) }})
-            </button>
+            @endfor
         </div>
     </div>
 
@@ -80,6 +81,25 @@
         <!-- 1. TAB: SEMUA LOG -->
         <div x-show="logTab === 'all'" class="space-y-2 font-mono text-xs max-h-[520px] overflow-y-auto pr-1">
             @forelse($recentLogsAll as $log)
+                @php
+                    $acUnitNumber = 1;
+                    $acState = 'OFF';
+                    if (preg_match('/AC_(\d+)_([A-Z]+)/', $log->active_ac, $m)) {
+                        $acUnitNumber = (int)$m[1];
+                        $acState = $m[2];
+                    } elseif (str_contains($log->active_ac, 'ON')) {
+                        $acState = 'ON';
+                    }
+                    $badgeColor = match($acUnitNumber) {
+                        1 => 'bg-rose-50 text-[#D84040] border-rose-200',
+                        2 => 'bg-[#8E1616]/10 text-[#8E1616] border-[#8E1616]/20',
+                        3 => 'bg-amber-50 text-amber-800 border-amber-200',
+                        4 => 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                        5 => 'bg-cyan-50 text-cyan-800 border-cyan-200',
+                        default => 'bg-purple-50 text-purple-800 border-purple-200',
+                    };
+                    $customUnitLabel = $unitLogNames[$acUnitNumber] ?? ("AC {$acUnitNumber}");
+                @endphp
                 <div class="py-3 px-3 hover:bg-slate-50 rounded-2xl transition border border-slate-100 bg-white flex flex-col md:flex-row md:items-center justify-between gap-2.5 shadow-2xs">
                     <!-- Mobile Top Row / Desktop Left Side -->
                     <div class="flex items-center justify-between md:justify-start gap-2 sm:gap-3 flex-wrap">
@@ -87,15 +107,9 @@
                             <span class="text-slate-500 font-bold text-[11px] bg-slate-100 px-2 py-0.5 rounded-md font-mono">
                                 {{ \Illuminate\Support\Carbon::parse($log->recorded_at)->format('H:i:s') }}
                             </span>
-                            @if(str_contains($log->active_ac, 'AC_1'))
-                                <span class="bg-rose-50 text-[#D84040] border border-rose-200 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider">
-                                    AC 1 • {{ str_contains($log->active_ac, 'ON') ? 'ON' : 'OFF' }}
-                                </span>
-                            @else
-                                <span class="bg-[#8E1616]/10 text-[#8E1616] border border-[#8E1616]/20 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider">
-                                    AC 2 • {{ str_contains($log->active_ac, 'ON') ? 'ON' : 'OFF' }}
-                                </span>
-                            @endif
+                            <span class="{{ $badgeColor }} border px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider whitespace-nowrap">
+                                {{ $customUnitLabel }} • {{ $acState }}
+                            </span>
                         </div>
                         <span class="text-[#1D1616] font-bold text-xs font-mono bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
                             {{ $log->device_id ?? 'RPI3B_PINDAD_ROOM_1' }}
@@ -126,17 +140,33 @@
             @endforelse
         </div>
 
-        <!-- 2. TAB: KHUSUS AC 1 -->
-        <div x-show="logTab === 'ac1'" class="space-y-2 font-mono text-xs max-h-[520px] overflow-y-auto pr-1">
-            @forelse($recentLogsAc1 as $log)
+        <!-- 2. TABS: KHUSUS UNIT AC (1..N) -->
+        @for($u = 1; $u <= ($logNumAc ?? 2); $u++)
+        @php
+            $unitLogs = $recentLogsByUnit[$u] ?? [];
+            $customUnitLabel = $unitLogNames[$u] ?? ("AC {$u}");
+            $badgeColor = match($u) {
+                1 => 'bg-rose-50 text-[#D84040] border-rose-200',
+                2 => 'bg-[#8E1616]/10 text-[#8E1616] border-[#8E1616]/20',
+                3 => 'bg-amber-50 text-amber-800 border-amber-200',
+                4 => 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                5 => 'bg-cyan-50 text-cyan-800 border-cyan-200',
+                default => 'bg-purple-50 text-purple-800 border-purple-200',
+            };
+        @endphp
+        <div x-show="logTab === 'ac{{ $u }}'" class="space-y-2 font-mono text-xs max-h-[520px] overflow-y-auto pr-1">
+            @forelse($unitLogs as $log)
+                @php
+                    $acState = str_contains($log->active_ac, 'ON') ? 'ON' : 'OFF';
+                @endphp
                 <div class="py-3 px-3 hover:bg-slate-50 rounded-2xl transition border border-slate-100 bg-white flex flex-col md:flex-row md:items-center justify-between gap-2.5 shadow-2xs">
                     <div class="flex items-center justify-between md:justify-start gap-2 sm:gap-3 flex-wrap">
                         <div class="flex items-center gap-2">
                             <span class="text-slate-500 font-bold text-[11px] bg-slate-100 px-2 py-0.5 rounded-md font-mono">
                                 {{ \Illuminate\Support\Carbon::parse($log->recorded_at)->format('H:i:s') }}
                             </span>
-                            <span class="bg-rose-50 text-[#D84040] border border-rose-200 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider">
-                                AC 1 • {{ str_contains($log->active_ac, 'ON') ? 'ON' : 'OFF' }}
+                            <span class="{{ $badgeColor }} border px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider whitespace-nowrap">
+                                {{ $customUnitLabel }} • {{ $acState }}
                             </span>
                         </div>
                         <span class="text-[#1D1616] font-bold text-xs font-mono bg-slate-50 px-2 py-0.5 rounded border border-slate-200">{{ $log->device_id ?? 'RPI3B_PINDAD_ROOM_1' }}</span>
@@ -159,45 +189,9 @@
                     </div>
                 </div>
             @empty
-                <div class="p-8 text-center text-slate-400 italic">Belum ada riwayat khusus AC 1.</div>
+                <div class="p-8 text-center text-slate-400 italic">Belum ada riwayat khusus {{ $customUnitLabel }}.</div>
             @endforelse
         </div>
-
-        <!-- 3. TAB: KHUSUS AC 2 -->
-        <div x-show="logTab === 'ac2'" class="space-y-2 font-mono text-xs max-h-[520px] overflow-y-auto pr-1">
-            @forelse($recentLogsAc2 as $log)
-                <div class="py-3 px-3 hover:bg-slate-50 rounded-2xl transition border border-slate-100 bg-white flex flex-col md:flex-row md:items-center justify-between gap-2.5 shadow-2xs">
-                    <div class="flex items-center justify-between md:justify-start gap-2 sm:gap-3 flex-wrap">
-                        <div class="flex items-center gap-2">
-                            <span class="text-slate-500 font-bold text-[11px] bg-slate-100 px-2 py-0.5 rounded-md font-mono">
-                                {{ \Illuminate\Support\Carbon::parse($log->recorded_at)->format('H:i:s') }}
-                            </span>
-                            <span class="bg-[#8E1616]/10 text-[#8E1616] border border-[#8E1616]/20 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider">
-                                AC 2 • {{ str_contains($log->active_ac, 'ON') ? 'ON' : 'OFF' }}
-                            </span>
-                        </div>
-                        <span class="text-[#1D1616] font-bold text-xs font-mono bg-slate-50 px-2 py-0.5 rounded border border-slate-200">{{ $log->device_id ?? 'RPI3B_PINDAD_ROOM_1' }}</span>
-                        <span class="hidden md:inline text-slate-300">→</span>
-                        <div class="hidden md:flex items-center gap-1.5 text-xs text-slate-600 font-mono">
-                            <span>Arus:</span>
-                            <strong class="text-[#1D1616] font-black">{{ number_format($log->current_ampere, 4) }} A</strong>
-                            <span class="text-[10.5px] text-slate-400 font-medium">({{ round($log->current_ampere * 220) }} W @ 220V)</span>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between md:justify-end gap-3 pt-1.5 md:pt-0 border-t border-slate-100 md:border-0">
-                        <div class="md:hidden flex items-center gap-1.5 text-xs text-slate-600 font-mono bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
-                            <span class="text-[11px] text-slate-500">Arus:</span>
-                            <strong class="text-[#1D1616] font-black">{{ number_format($log->current_ampere, 4) }} A</strong>
-                            <span class="text-[10px] text-slate-400 font-semibold">({{ round($log->current_ampere * 220) }}W)</span>
-                        </div>
-                        <span class="text-slate-400 text-[10px] font-sans shrink-0">
-                            {{ \Illuminate\Support\Carbon::parse($log->recorded_at)->diffForHumans() }}
-                        </span>
-                    </div>
-                </div>
-            @empty
-                <div class="p-8 text-center text-slate-400 italic">Belum ada riwayat khusus AC 2.</div>
-            @endforelse
-        </div>
+        @endfor
     </div>
 </div>
