@@ -80,19 +80,19 @@ class DashboardController extends Controller
         $templates = Template::all();
 
         // Bi-directional synchronization between device_id and filter_device so Home and Module 3 never desync
-        $selectedDeviceId = $request->query('device_id') ?? $request->query('filter_device') ?? ($devices->first()->device_id ?? 'RPI3B_PINDAD_ROOM_1');
+        $selectedDeviceId = $request->query('device_id') ?? $request->query('filter_device') ?? ($devices->first()?->device_id ?? 'RPI3B_PINDAD_ROOM_1');
         $filterDevice = $request->query('filter_device') ?? $request->query('device_id') ?? $selectedDeviceId;
         $currentDevice = $devices->firstWhere('device_id', $selectedDeviceId) ?? $devices->first();
 
         // 2. Build Dynamic Unit Data for the selected device (1, 2, 4, or N AC units)
-        $numAc = max(1, (int)($currentDevice->num_ac ?? 2));
-        $tmpl = $currentDevice->template ?? ($currentDevice->template_id ? Template::find($currentDevice->template_id) : null);
+        $numAc = max(1, (int)($currentDevice?->num_ac ?? 2));
+        $tmpl = $currentDevice?->template ?? ($currentDevice?->template_id ? Template::find($currentDevice->template_id) : null);
         $tmplStreams = $tmpl->datastreams ?? [];
         $unitData = [];
 
         for ($i = 1; $i <= $numAc; $i++) {
             $pinKey = 'V' . ($i - 1);
-            $vState = (int)($currentDevice->current_values[$pinKey] ?? 0);
+            $vState = (int)($currentDevice?->current_values[$pinKey] ?? 0);
             
             if ($selectedDeviceId === 'RPI3B_PINDAD_ROOM_1') {
                 $log = AcLog::where(function($q) {
@@ -115,7 +115,7 @@ class DashboardController extends Controller
             
             $isOn = ($vState === 1) || ($log && str_contains($log->active_ac, 'ON'));
             $curPin = 'V' . ($numAc + $i - 1);
-            $ampere = $log ? (float)$log->current_ampere : (float)($currentDevice->current_values[$curPin] ?? ($isOn ? 1.5 : 0.0));
+            $ampere = $log ? (float)$log->current_ampere : (float)($currentDevice?->current_values[$curPin] ?? ($isOn ? 1.5 : 0.0));
             if (!$isOn) $ampere = 0.0;
             $watt = round($ampere * 220);
             $shift = $this->getActiveShiftText($i, $selectedDeviceId);
@@ -181,8 +181,8 @@ class DashboardController extends Controller
         // Calculate dynamic AC unit capacity and unit log queries for Module 3
         if ($filterDevice && $filterDevice !== 'all') {
             $logDev = $devices->firstWhere('device_id', $filterDevice) ?? $currentDevice;
-            $logNumAc = max(1, (int)($logDev->num_ac ?? 2));
-            $logTmpl = $logDev->template ?? ($logDev->template_id ? Template::find($logDev->template_id) : null);
+            $logNumAc = max(1, (int)($logDev?->num_ac ?? 2));
+            $logTmpl = $logDev?->template ?? ($logDev?->template_id ? Template::find($logDev->template_id) : null);
             $logStreams = $logTmpl->datastreams ?? [];
         } else {
             $logNumAc = max(2, (int)($devices->max('num_ac') ?? 2));
