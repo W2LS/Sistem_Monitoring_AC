@@ -70,11 +70,29 @@ class MqttSubscriber extends Command
                             ? Carbon::parse($data['recorded_at']) 
                             : now();
 
+                        $activeAc = $data['active_ac'] ?? '';
+                        $uNum = 1;
+                        $uState = 'ON';
+
+                        if (preg_match('/(?:AC|IN)[_\s]?(\d+)(?:[_\s]+([A-Za-z]+))?/i', $activeAc, $matches)) {
+                            $uNum = (int)$matches[1];
+                            $uState = isset($matches[2]) ? strtoupper($matches[2]) : (str_contains(strtoupper($activeAc), 'ON') ? 'ON' : 'OFF');
+                        } elseif (isset($data['relay']) || isset($data['ac_number'])) {
+                            $uNum = (int)($data['relay'] ?? $data['ac_number']);
+                            $uState = strtoupper($data['command'] ?? $data['state'] ?? 'ON');
+                        } elseif (str_contains(strtoupper($activeAc), 'OFF')) {
+                            $uState = 'OFF';
+                        }
+
+                        $normalizedActiveAc = "AC_{$uNum}_{$uState}";
+
                         // Insert into AcLog
                         $log = AcLog::create([
                             'device_id'      => $deviceId,
-                            'active_ac'      => $data['active_ac'],
-                            'current_ampere' => (float) $data['current_ampere'],
+                            'active_ac'      => $normalizedActiveAc,
+                            'ac_number'      => $uNum,
+                            'state'          => $uState,
+                            'current_ampere' => (float) ($data['current_ampere'] ?? 0.0),
                             'recorded_at'    => $recordedAt,
                         ]);
 
@@ -84,20 +102,16 @@ class MqttSubscriber extends Command
                             $vals = $dev->current_values ?? [];
                             $numAc = max(1, (int)($dev->num_ac ?? 2));
                             
-                            // Extract ac number from active_ac (e.g. AC_1_ON -> 1)
-                            if (preg_match('/AC_(\d+)_([A-Z]+)/', $data['active_ac'], $matches)) {
-                                $uNum = (int)$matches[1];
-                                $uState = $matches[2];
-                                $vals["V" . ($uNum - 1)] = ($uState === 'ON') ? 1 : 0;
-                                $vals["V" . ($numAc + $uNum - 1)] = (float)$data['current_ampere'];
-                            }
+                            $vals["V" . ($uNum - 1)] = ($uState === 'ON') ? 1 : 0;
+                            $curPin = "V" . ($numAc + $uNum - 1);
+                            $vals[$curPin] = ($uState === 'OFF') ? 0.0 : (float)($data['current_ampere'] ?? 0.0);
                             
                             $dev->status = 'online';
                             $dev->current_values = $vals;
                             $dev->save();
                         }
 
-                        $this->info("Saved log ID {$log->id} to database (Device: {$log->device_id}, Current: {$log->current_ampere} A)");
+                        $this->info("Saved log ID {$log->id} to database (Device: {$log->device_id}, Unit: AC {$uNum} {$uState}, Current: {$log->current_ampere} A)");
 
                     } catch (\Exception $e) {
                         $this->error("Error processing message: " . $e->getMessage());

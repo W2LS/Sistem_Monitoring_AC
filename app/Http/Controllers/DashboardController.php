@@ -79,7 +79,9 @@ class DashboardController extends Controller
         $devices = Device::all();
         $templates = Template::all();
 
-        $selectedDeviceId = $request->query('device_id', $devices->first()->device_id ?? 'RPI3B_PINDAD_ROOM_1');
+        // Bi-directional synchronization between device_id and filter_device so Home and Module 3 never desync
+        $selectedDeviceId = $request->query('device_id') ?? $request->query('filter_device') ?? ($devices->first()->device_id ?? 'RPI3B_PINDAD_ROOM_1');
+        $filterDevice = $request->query('filter_device') ?? $request->query('device_id') ?? $selectedDeviceId;
         $currentDevice = $devices->firstWhere('device_id', $selectedDeviceId) ?? $devices->first();
 
         // 2. Build Dynamic Unit Data for the selected device (1, 2, 4, or N AC units)
@@ -96,12 +98,18 @@ class DashboardController extends Controller
                 $log = AcLog::where(function($q) {
                     $q->where('device_id', 'RPI3B_PINDAD_ROOM_1')->orWhereNull('device_id');
                 })->where(function($q) use ($i) {
-                    $q->where('active_ac', 'like', "AC_{$i}%")->orWhere('ac_number', $i);
+                    $q->where('active_ac', 'like', "AC_{$i}%")
+                      ->orWhere('active_ac', 'like', "AC {$i}%")
+                      ->orWhere('active_ac', 'like', "IN{$i}%")
+                      ->orWhere('ac_number', $i);
                 })->latest('recorded_at')->first();
             } else {
                 $log = AcLog::where('device_id', $selectedDeviceId)
                     ->where(function($q) use ($i) {
-                        $q->where('active_ac', 'like', "AC_{$i}%")->orWhere('ac_number', $i);
+                        $q->where('active_ac', 'like', "AC_{$i}%")
+                          ->orWhere('active_ac', 'like', "AC {$i}%")
+                          ->orWhere('active_ac', 'like', "IN{$i}%")
+                          ->orWhere('ac_number', $i);
                     })->latest('recorded_at')->first();
             }
             
@@ -447,10 +455,16 @@ class DashboardController extends Controller
         }
 
         // 2. Immediately record AcLog so ON/OFF relay switch state persists 100% on page reload (F5) without injecting fake ampere
+        $devNumAc = $dev ? max(1, (int)($dev->num_ac ?? 2)) : 2;
+        $curPin = "V" . ($devNumAc + $acNumber - 1);
+        $measuredCurrent = ($state === 'OFF') ? 0.0 : (float)($vals[$curPin] ?? 0.0);
+
         AcLog::create([
             'device_id' => $deviceId,
             'active_ac' => "AC_{$acNumber}_{$state}",
-            'current_ampere' => ($state === 'OFF') ? 0.0 : (float)($vals["V" . ($acNumber + 1)] ?? 0.0),
+            'ac_number' => $acNumber,
+            'state' => $state,
+            'current_ampere' => $measuredCurrent,
             'recorded_at' => now(),
         ]);
 
