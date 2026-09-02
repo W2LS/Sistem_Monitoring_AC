@@ -266,6 +266,9 @@ def on_local_connect(client, userdata, flags, rc, *args):
     if rc == 0:
         print(">>> [MQTT LOKAL] Terhubung ke Mosquitto Dashboard!")
         client.subscribe(TOPIC_SUB_LOCAL)
+        client.subscribe("pindad/ac/control")
+        client.subscribe("pindad/devices/+/control")
+        client.subscribe("pindad/devices/RPI3B_PINDAD_ROOM_1/control")
     else:
         print(f"[MQTT LOKAL ERROR] Kode: {rc}")
 

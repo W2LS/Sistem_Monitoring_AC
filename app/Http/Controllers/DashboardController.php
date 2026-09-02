@@ -612,8 +612,11 @@ class DashboardController extends Controller
                     'source'    => 'manual',
                     'timestamp' => now()->toIso8601String(),
                 ];
-                $this->mqttService->publish('pindad/ac/control', json_encode($payloadRelay));
-                $this->mqttService->publish("pindad/devices/{$dev->device_id}/control", json_encode($payloadRelay));
+                $jsonRelay = json_encode($payloadRelay);
+                $this->mqttService->publish('pindad/ac/schedule', $jsonRelay);
+                $this->mqttService->publish('pindad/ac/control', $jsonRelay);
+                $this->mqttService->publish("pindad/devices/{$dev->device_id}/control", $jsonRelay);
+                $this->mqttService->publish("pindad/devices/{$dev->device_id}/schedule", $jsonRelay);
             }
 
             // 3. Also send Master command payload
@@ -625,8 +628,10 @@ class DashboardController extends Controller
                 'source'    => 'manual',
                 'timestamp' => now()->toIso8601String(),
             ];
-            $this->mqttService->publish('pindad/ac/control', json_encode($payloadMaster));
-            $this->mqttService->publish("pindad/devices/{$dev->device_id}/control", json_encode($payloadMaster));
+            $jsonMaster = json_encode($payloadMaster);
+            $this->mqttService->publish('pindad/ac/schedule', $jsonMaster);
+            $this->mqttService->publish('pindad/ac/control', $jsonMaster);
+            $this->mqttService->publish("pindad/devices/{$dev->device_id}/control", $jsonMaster);
 
             // 4. Create log record
             AcLog::create([
