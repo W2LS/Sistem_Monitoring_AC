@@ -197,6 +197,15 @@
                             <span class="shrink-0 text-xs">➔</span>
                         </a>
 
+                        <!-- Quick Download Standalone Python Script -->
+                        <a href="{{ route('scripts.download', 'device') }}?device_id={{ $dev->device_id }}" 
+                           class="w-10 h-10 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition cursor-pointer active:scale-95 flex items-center justify-center shrink-0 shadow-xs" 
+                           title="Unduh Skrip Python (.py) Siap Pakai untuk {{ $dev->name }}">
+                            <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                        </a>
+
                         <!-- Edit Device Button -->
                         <button @click="openEditDevice({
                             id: '{{ $dev->id }}',
