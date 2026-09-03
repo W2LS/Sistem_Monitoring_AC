@@ -201,7 +201,9 @@
                                     </td>
                                     <td class="py-3 px-3 font-bold text-[#1D1616]">
                                         {{ $ds['name'] }}
-                                        <div class="text-[10px] text-slate-400 font-normal">{{ $ds['desc'] ?? '-' }}</div>
+                                        @if(!empty($ds['desc']) && $ds['desc'] !== '-')
+                                            <div class="text-[10px] text-slate-400 font-normal">{{ $ds['desc'] }}</div>
+                                        @endif
                                     </td>
                                     <td class="py-3 px-3">
                                         <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase {{ $ds['type'] === 'Integer' ? 'bg-blue-50 text-blue-700' : ($ds['type'] === 'Double' ? 'bg-emerald-50 text-emerald-700' : 'bg-purple-50 text-purple-700') }}">
@@ -619,9 +621,11 @@
                             <p class="text-[11px] text-slate-600 leading-snug">
                                 Kontrol 1 unit AC / Beban Tunggal. Termasuk Pin Saklar V0 & Sensor Arus ACS712 V1.
                             </p>
-                            <div class="flex items-center gap-1.5 text-[10px] font-mono text-slate-500">
-                                <span class="bg-white px-2 py-0.5 rounded border border-slate-200">V0: Relay</span>
-                                <span class="bg-white px-2 py-0.5 rounded border border-slate-200">V1: Arus (A)</span>
+                            <div class="flex flex-wrap gap-1 text-[10px] font-mono text-slate-500">
+                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V0: AC 1</span>
+                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V1: Arus AC1</span>
+                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V2: Total Arus</span>
+                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V3: Turbo</span>
                             </div>
                         </div>
 
@@ -644,8 +648,10 @@
                                 Standar Ruang Server 2 AC dengan rotasi shift RTC DS3231 & dual sensor ACS712.
                             </p>
                             <div class="flex flex-wrap gap-1 text-[10px] font-mono text-slate-500">
-                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V0, V1: Relay</span>
+                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V0, V1: AC 1-2</span>
                                 <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V2, V3: Arus</span>
+                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V4: Total W</span>
+                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V5: Turbo</span>
                             </div>
                         </div>
 
@@ -667,8 +673,10 @@
                                 Kapasitas 4 unit AC / Ruang Data Center dengan monitoring 4 saklar & 4 sensor arus.
                             </p>
                             <div class="flex flex-wrap gap-1 text-[10px] font-mono text-slate-500">
-                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V0-V3: Relay</span>
+                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V0-V3: AC 1-4</span>
                                 <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V4-V7: Arus</span>
+                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V8: Total W</span>
+                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V9: Turbo</span>
                             </div>
                         </div>
 
@@ -687,11 +695,13 @@
                                 </span>
                             </div>
                             <p class="text-[11px] text-slate-600 leading-snug">
-                                Kapasitas penuh 8 unit pendingin pabrik / chiller dengan total 16 Virtual Pins.
+                                Kapasitas penuh 8 unit pendingin pabrik / chiller dengan total 18 Virtual Pins.
                             </p>
                             <div class="flex flex-wrap gap-1 text-[10px] font-mono text-slate-500">
-                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V0-V7: Relay</span>
+                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V0-V7: AC 1-8</span>
                                 <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V8-V15: Arus</span>
+                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V16: Total W</span>
+                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V17: Turbo</span>
                             </div>
                         </div>
 
