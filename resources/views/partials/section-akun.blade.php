@@ -21,7 +21,7 @@
     <!-- 2. ACCORDIONS SECTION -->
     <div class="space-y-4">
 
-        <!-- ITEM 0: TUTORIAL & PANDUAN CEPAT SETUP NODE IOT (IDENTIK DENGAN MODAL HOME) -->
+        <!-- ITEM 0: TUTORIAL & PANDUAN LENGKAP PENGGUNAAN PLATFORM (SOP END-TO-END) -->
         <div class="bg-white rounded-[32px] border-2 border-[#D84040]/40 shadow-md overflow-hidden transition-all duration-300">
             <button @click="openItem = openItem === 'tutorial' ? null : 'tutorial'" 
                     type="button" 
@@ -33,9 +33,9 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <h3 class="text-base font-black text-[#1D1616]">Panduan Praktis Setup Perangkat IoT</h3>
-                            <span class="bg-emerald-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full">SOP 3 LANGKAH</span>
+                            <span class="bg-emerald-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full">SOP LENGKAP</span>
                         </div>
-                        <p class="text-xs font-semibold text-slate-500">Panduan standar mengunduh skrip, mengaktifkan auto-start on boot, dan memantau log</p>
+                        <p class="text-xs font-semibold text-slate-500">Panduan standar dari memilih template, mendaftarkan node, hingga menjalankan skrip di Raspberry Pi</p>
                     </div>
                 </div>
                 <div class="w-8 h-8 rounded-full bg-[#EEEEEE] flex items-center justify-center text-slate-600 font-bold text-sm transition-transform duration-300 shrink-0 ml-2"
@@ -44,7 +44,7 @@
                 </div>
             </button>
 
-            <!-- ACCORDION CONTENT: 3 STEP SETUP GUIDE IDENTIK DENGAN HOME -->
+            <!-- ACCORDION CONTENT: COMPLETE STEP-BY-STEP SOP -->
             <div x-show="openItem === 'tutorial'" x-cloak x-transition class="px-5 sm:px-6 pb-6 pt-4 border-t border-[#8E1616]/10 space-y-4 bg-slate-50/70"
                  x-data="{
                      copyAccSuccess: false,
@@ -56,26 +56,54 @@
                      }
                  }">
                 
-                <!-- STEP 1: UNDUH FILE SKRIP -->
+                <!-- STEP 1: PILIH / BUAT TEMPLATE DEVZONE -->
                 <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-2">
                     <div class="flex items-center justify-between gap-2">
                         <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
                             <span class="w-5 h-5 rounded-full bg-[#1D1616] text-white flex items-center justify-center text-[10px] font-black">1</span>
-                            <span>UNDUH FILE SKRIP PYTHON (.PY)</span>
+                            <span>PILIH / BUAT TEMPLATE HARDWARE (MODUL DEVZONE)</span>
                         </span>
-                        <span class="text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-sans">Tombol di Home</span>
+                        <span class="text-[9px] font-black uppercase bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-sans">Modul 2</span>
                     </div>
                     <p class="text-xs text-slate-600 leading-relaxed">
-                        Buka detail perangkat di halaman <b>Home</b>, lalu klik tombol <b>`📥 Unduh Skrip (.py)`</b>. Simpan file skrip (contoh: <code class="font-bold text-[#1D1616] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 font-mono text-[11px]">pindad_node_ruang_server.py</code>) ke folder <code class="font-mono text-slate-800 font-bold bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">/home/alex/</code> (atau <code class="font-mono text-slate-800 font-bold bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">/home/pi/</code>) di Raspberry Pi.
+                        Buka menu <b>DevZone</b> untuk memilih blueprint template yang sesuai (misal: <i>Module Relay 1, 2, 4, atau 8 Channel</i>) atau buat template kustom baru dengan susunan <b>Virtual Pin</b> relay dan sensor yang diinginkan.
                     </p>
                 </div>
 
-                <!-- STEP 2: PERINTAH 1-KLIK AUTO-START ON BOOT -->
+                <!-- STEP 2: DAFTARKAN RUANGAN BARU DI HOME -->
+                <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-[#1D1616] text-white flex items-center justify-center text-[10px] font-black">2</span>
+                            <span>DAFTARKAN RUANGAN / PERANGKAT (MODUL HOME)</span>
+                        </span>
+                        <span class="text-[9px] font-black uppercase bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-sans">Modul 1</span>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Buka menu <b>Home</b> &rarr; klik <b>`+ Tambah Perangkat Baru`</b>. Masukkan Nama Ruangan (misal: <i>Server Telepon</i>), IP Address Raspberry Pi, dan pilih template yang telah ditentukan di langkah 1.
+                    </p>
+                </div>
+
+                <!-- STEP 3: UNDUH FILE SKRIP -->
+                <div class="bg-white rounded-2xl p-4 sm:p-5 border-2 border-emerald-400/80 shadow-xs space-y-2 bg-emerald-50/20">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black">3</span>
+                            <span>UNDUH FILE SKRIP PYTHON (.PY)</span>
+                        </span>
+                        <span class="text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-sans">Auto-Config</span>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Buka detail kartu perangkat di halaman <b>Home</b>, lalu klik tombol <b>`📥 Unduh Skrip (.py)`</b>. Simpan file skrip (contoh: <code class="font-bold text-[#1D1616] bg-white px-1.5 py-0.5 rounded border border-slate-200 font-mono text-[11px]">pindad_node_ruang_server.py</code>) ke folder <code class="font-mono text-slate-800 font-bold bg-white px-1.5 py-0.5 rounded text-[11px]">/home/alex/</code> (atau <code class="font-mono text-slate-800 font-bold bg-white px-1.5 py-0.5 rounded text-[11px]">/home/pi/</code>) di Raspberry Pi.
+                    </p>
+                </div>
+
+                <!-- STEP 4: PERINTAH 1-KLIK AUTO-START ON BOOT -->
                 <div class="bg-slate-900 rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-800 space-y-3 text-white shadow-lg">
                     <div class="flex items-center justify-between gap-2">
                         <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-400 flex items-center gap-2">
-                            <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center text-[10px] font-black">2</span>
-                            <span>PERINTAH 1-KLIK AUTO-START ON BOOT</span>
+                            <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center text-[10px] font-black">4</span>
+                            <span>PERINTAH 1-KLIK AUTO-START ON BOOT & JALANKAN</span>
                         </span>
                         <button @click="copyAccCmd()" 
                                 type="button" 
@@ -93,10 +121,10 @@
                     </p>
                 </div>
 
-                <!-- STEP 3: CEK LOG BERJALAN -->
+                <!-- STEP 5: CEK LOG BERJALAN -->
                 <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-2">
                     <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-full bg-slate-500 text-white flex items-center justify-center text-[10px] font-black">3</span>
+                        <span class="w-5 h-5 rounded-full bg-slate-500 text-white flex items-center justify-center text-[10px] font-black">5</span>
                         <span>PERIKSA LOG BERJALAN (OPSIONAL)</span>
                     </span>
                     <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200">
