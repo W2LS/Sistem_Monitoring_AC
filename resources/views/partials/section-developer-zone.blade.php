@@ -104,67 +104,91 @@
                  class="space-y-6">
                 
                 <!-- Blueprint Summary Card -->
-                <div class="bg-white rounded-[32px] p-6 shadow-sm border border-[#8E1616]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2">
-                            <span class="text-2xl">{{ $tmpl->icon ?? '⚡' }}</span>
-                            <h3 class="text-xl font-black text-[#1D1616]">{{ $tmpl->name }}</h3>
+                <div class="bg-white rounded-[32px] p-6 sm:p-7 shadow-sm border border-[#8E1616]/20 space-y-4">
+                    <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+                        
+                        <!-- Left: Icon & Info Column -->
+                        <div class="flex items-start gap-4 min-w-0 flex-1">
+                            <div class="w-13 h-13 rounded-2xl bg-rose-50 border border-rose-200 text-[#8E1616] font-black text-2xl flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                                {{ $tmpl->icon ?? '⚡' }}
+                            </div>
+                            <div class="min-w-0 space-y-1.5 flex-1">
+                                <div class="flex flex-wrap items-center gap-2.5">
+                                    <h3 class="text-lg sm:text-xl font-black text-[#1D1616] tracking-tight leading-snug">
+                                        {{ $tmpl->name }}
+                                    </h3>
+                                    <span class="bg-[#8E1616]/10 text-[#8E1616] text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full whitespace-nowrap">
+                                        {{ count($tmpl->datastreams ?? []) }} Virtual Pins
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-500 leading-relaxed max-w-3xl">
+                                    {{ $tmpl->description }}
+                                </p>
+                                <div class="flex flex-wrap items-center gap-2 pt-1 text-[11px] font-bold text-slate-700">
+                                    <span class="bg-slate-100 px-3 py-1 rounded-xl border border-slate-200 flex items-center gap-1.5">
+                                        <span>📟</span>
+                                        <span>Hardware: <b class="text-slate-900">{{ $tmpl->hardware_type }}</b></span>
+                                    </span>
+                                    <span class="bg-slate-100 px-3 py-1 rounded-xl border border-slate-200 flex items-center gap-1.5">
+                                        <span>🌐</span>
+                                        <span>Koneksi: <b class="text-slate-900">{{ $tmpl->connection_type }}</b></span>
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <p class="text-xs text-slate-500">{{ $tmpl->description }}</p>
-                        <div class="flex items-center gap-2 pt-2 text-[11px] font-bold text-slate-700">
-                            <span class="bg-slate-100 px-2.5 py-1 rounded-lg">📟 Hardware: {{ $tmpl->hardware_type }}</span>
-                            <span class="bg-slate-100 px-2.5 py-1 rounded-lg">🌐 Koneksi: {{ $tmpl->connection_type }}</span>
-                        </div>
-                    </div>
 
-                    <div class="flex items-center gap-2 shrink-0">
-                        <button @click="modalNewDatastream = true"
-                                type="button"
-                                class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#D84040] to-[#8E1616] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:opacity-95 transition cursor-pointer flex items-center gap-1.5 active:scale-95">
-                            <span>+ Add Datastream</span>
-                        </button>
-
-                        <!-- Export JSON Button -->
-                        <a href="{{ route('templates.export', $tmpl->id) }}" 
-                           class="p-2.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer flex items-center gap-1 text-xs font-bold shadow-xs active:scale-95" 
-                           title="Unduh / Backup Blueprint Template ke File JSON">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            <span class="hidden sm:inline">Export (.json)</span>
-                        </a>
-
-                        <!-- Rename / Edit Button -->
-                        <button @click="editTemplate = {
-                                    id: '{{ $tmpl->id }}',
-                                    name: '{{ addslashes($tmpl->name) }}',
-                                    hardware_type: '{{ addslashes($tmpl->hardware_type) }}',
-                                    connection_type: '{{ addslashes($tmpl->connection_type) }}',
-                                    icon: '{{ addslashes($tmpl->icon ?? '⚡') }}',
-                                    description: '{{ addslashes($tmpl->description ?? '') }}'
-                                }; modalEditTemplate = true"
-                                type="button"
-                                class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition cursor-pointer flex items-center gap-1 text-xs font-bold"
-                                title="Rename / Edit Informasi Template">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                            </svg>
-                            <span class="hidden sm:inline">Rename</span>
-                        </button>
-
-                        <!-- Delete Button -->
-                        <form action="{{ route('templates.destroy', $tmpl->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus Template {{ $tmpl->name }} beserta seluruh Datastreams-nya?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" 
-                                    class="p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition cursor-pointer flex items-center gap-1 text-xs font-bold" 
-                                    title="Hapus Template Ini">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                                <span class="hidden sm:inline">Hapus</span>
+                        <!-- Right: Action Buttons (Responsive Clean Alignment) -->
+                        <div class="flex flex-wrap items-center gap-2 shrink-0 pt-3 xl:pt-0 self-start xl:self-center border-t xl:border-t-0 border-slate-100">
+                            <!-- Add Datastream -->
+                            <button @click="modalNewDatastream = true"
+                                    type="button"
+                                    class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#D84040] to-[#8E1616] text-white font-black text-xs uppercase tracking-wider shadow-md hover:opacity-95 transition cursor-pointer flex items-center gap-1.5 active:scale-95">
+                                <span class="text-sm font-black">+</span>
+                                <span>Add Datastream</span>
                             </button>
-                        </form>
+
+                            <!-- Export JSON Button -->
+                            <a href="{{ route('templates.export', $tmpl->id) }}" 
+                               class="px-3.5 py-2.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow-xs active:scale-95" 
+                               title="Unduh / Backup Blueprint Template ke File JSON">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                <span>Export (.json)</span>
+                            </a>
+
+                            <!-- Rename / Edit Button -->
+                            <button @click="editTemplate = {
+                                        id: '{{ $tmpl->id }}',
+                                        name: '{{ addslashes($tmpl->name) }}',
+                                        hardware_type: '{{ addslashes($tmpl->hardware_type) }}',
+                                        connection_type: '{{ addslashes($tmpl->connection_type) }}',
+                                        icon: '{{ addslashes($tmpl->icon ?? '⚡') }}',
+                                        description: '{{ addslashes($tmpl->description ?? '') }}'
+                                    }; modalEditTemplate = true"
+                                    type="button"
+                                    class="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+                                    title="Rename / Edit Informasi Template">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                                <span>Rename</span>
+                            </button>
+
+                            <!-- Delete Button -->
+                            <form action="{{ route('templates.destroy', $tmpl->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus Template {{ $tmpl->name }} beserta seluruh Datastreams-nya?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" 
+                                        class="px-3 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition cursor-pointer flex items-center gap-1 text-xs font-bold" 
+                                        title="Hapus Template Ini">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    <span>Hapus</span>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
