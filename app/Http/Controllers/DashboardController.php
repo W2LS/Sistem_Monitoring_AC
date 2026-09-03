@@ -1426,7 +1426,7 @@ class DashboardController extends Controller
     public function manualPdf()
     {
         $user = auth()->user() ?? (object)[
-            'name' => 'Dicky Akbar Syahputra',
+            'name' => 'Dicky Akbar Syah Putra',
             'email' => 'dicky.akbar@pindad.com'
         ];
         $devices = Device::all();

@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'dicky.akbar@pindad.com'],
             [
-                'name' => 'Dicky Akbar Syahputra',
+                'name' => 'Dicky Akbar Syah Putra',
                 'password' => Hash::make('pindad123'),
             ]
         );

@@ -37,13 +37,13 @@ class AuthController extends Controller
         $validAccounts = [
             'PINDAD-IOT-2026' => [
                 'password' => 'pindad123',
-                'name' => 'Dicky Akbar Syahputra',
+                'name' => 'Dicky Akbar Syah Putra',
                 'division' => 'Divisi Sistem Informasi & Fasilitas',
                 'role' => 'Operator System Control'
             ],
             'operator' => [
                 'password' => 'pindad123',
-                'name' => 'Dicky Akbar Syahputra',
+                'name' => 'Dicky Akbar Syah Putra',
                 'division' => 'Divisi Sistem Informasi & Fasilitas',
                 'role' => 'Operator System Control'
             ],

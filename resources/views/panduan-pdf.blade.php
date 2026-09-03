@@ -115,7 +115,7 @@
                 </div>
                 <div>
                     <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Penyusun / Operator</span>
-                    <span class="font-bold text-slate-800 text-[11px] block mt-0.5">{{ $user->name ?? 'Dicky Akbar Syahputra' }}</span>
+                    <span class="font-bold text-slate-800 text-[11px] block mt-0.5">{{ $user->name ?? 'Dicky Akbar Syah Putra' }}</span>
                 </div>
             </div>
         </div>
@@ -139,7 +139,7 @@
                 </a>
                 <a href="#bab3" class="hover:text-[#8E1616] transition flex items-center gap-2">
                     <span class="font-mono font-bold text-[#8E1616]">BAB 3.</span>
-                    <span>Perakitan Hardware Node RPi & Skema Pinout</span>
+                    <span>Perakitan Hardware & Pilihan Pinout Relay (1 s/d 8 Channel)</span>
                 </a>
                 <a href="#bab4" class="hover:text-[#8E1616] transition flex items-center gap-2">
                     <span class="font-mono font-bold text-[#8E1616]">BAB 4.</span>
@@ -299,7 +299,7 @@
 
             <!-- TABEL SKEMA WIRING / PINOUT -->
             <div class="space-y-3 avoid-break">
-                <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">3.2 Skema Pengkabelan (Wiring Pinout Table)</h3>
+                <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">3.2 Skema Pengkabelan Inti (Core Wiring Table)</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden">
                         <thead class="bg-slate-900 text-white text-[11px] uppercase tracking-wider">
@@ -312,7 +312,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-200 text-slate-700 bg-white">
                             <tr class="bg-slate-50/50">
-                                <td class="p-2.5 font-bold" rowspan="4">ADS1115 (ADC 16-Bit)</td>
+                                <td class="p-2.5 font-bold" rowspan="4">ADS1115 (ADC 16-Bit I2C)</td>
                                 <td class="p-2.5 font-mono">VDD</td>
                                 <td class="p-2.5 font-mono font-bold text-rose-700">Pin 1 (3.3V DC)</td>
                                 <td class="p-2.5 text-slate-500">Daya positif modul ADC</td>
@@ -333,15 +333,15 @@
                                 <td class="p-2.5 text-slate-500">Jalur clock I2C Bus</td>
                             </tr>
                             <tr>
-                                <td class="p-2.5 font-bold" rowspan="4">DS3231 (RTC Clock)</td>
+                                <td class="p-2.5 font-bold" rowspan="4">DS3231 (RTC Clock I2C)</td>
                                 <td class="p-2.5 font-mono">VCC</td>
                                 <td class="p-2.5 font-mono font-bold text-rose-700">Pin 17 (3.3V DC)</td>
-                                <td class="p-2.5 text-slate-500">Daya RTC</td>
+                                <td class="p-2.5 text-slate-500">Daya modul RTC</td>
                             </tr>
                             <tr>
                                 <td class="p-2.5 font-mono">GND</td>
                                 <td class="p-2.5 font-mono font-bold text-slate-800">Pin 9 (GND)</td>
-                                <td class="p-2.5 text-slate-500">Ground</td>
+                                <td class="p-2.5 text-slate-500">Ground RTC</td>
                             </tr>
                             <tr>
                                 <td class="p-2.5 font-mono">SDA</td>
@@ -360,30 +360,20 @@
                                 <td class="p-2.5 text-slate-500">Daya sensor efek Hall</td>
                             </tr>
                             <tr class="bg-slate-50/50">
-                                <td class="p-2.5 font-mono">OUT (AC 1)</td>
+                                <td class="p-2.5 font-mono">OUT Sensor AC 1</td>
                                 <td class="p-2.5 font-mono font-bold text-emerald-700">ADS1115 Pin A0</td>
-                                <td class="p-2.5 text-slate-500">Output tegangan analog AC 1</td>
+                                <td class="p-2.5 text-slate-500">Input analog pembacaan arus AC 1</td>
                             </tr>
                             <tr class="bg-slate-50/50">
-                                <td class="p-2.5 font-mono">OUT (AC 2)</td>
+                                <td class="p-2.5 font-mono">OUT Sensor AC 2</td>
                                 <td class="p-2.5 font-mono font-bold text-emerald-700">ADS1115 Pin A1</td>
-                                <td class="p-2.5 text-slate-500">Output tegangan analog AC 2</td>
+                                <td class="p-2.5 text-slate-500">Input analog pembacaan arus AC 2</td>
                             </tr>
                             <tr>
-                                <td class="p-2.5 font-bold" rowspan="4">Modul Relay 5V</td>
+                                <td class="p-2.5 font-bold" rowspan="2">Modul Relay Daya</td>
                                 <td class="p-2.5 font-mono">VCC / GND</td>
-                                <td class="p-2.5 font-mono font-bold text-rose-700">Pin 4 (5V) & Pin 20 (GND)</td>
-                                <td class="p-2.5 text-slate-500">Daya koil optocoupler</td>
-                            </tr>
-                            <tr>
-                                <td class="p-2.5 font-mono">IN1 (Relay 1)</td>
-                                <td class="p-2.5 font-mono font-bold text-indigo-700">Pin 11 (GPIO 17)</td>
-                                <td class="p-2.5 text-slate-500">Triger On/Off AC 1 (Active LOW)</td>
-                            </tr>
-                            <tr>
-                                <td class="p-2.5 font-mono">IN2 (Relay 2)</td>
-                                <td class="p-2.5 font-mono font-bold text-indigo-700">Pin 13 (GPIO 27)</td>
-                                <td class="p-2.5 text-slate-500">Triger On/Off AC 2 (Active LOW)</td>
+                                <td class="p-2.5 font-mono font-bold text-rose-700">Pin 4 (5V DC) & Pin 20 (GND)</td>
+                                <td class="p-2.5 text-slate-500">Daya koil modul relay 5V</td>
                             </tr>
                             <tr>
                                 <td class="p-2.5 font-mono">COM & NO</td>
@@ -392,6 +382,108 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- SUB-SECTION 3.3: OPSI PIN MODUL RELAY 1, 2, 3, 4, S/D 8 CHANNEL -->
+            <div class="space-y-3 avoid-break">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">
+                        3.3 Pilihan Pin Modul Relay (Skema 1, 2, 3, 4, hingga 8 Channel)
+                    </h3>
+                    <span class="text-[9.5px] font-black uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-sans">1 s/d 8 Channel</span>
+                </div>
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    Gunakan tabel pemetaan GPIO di bawah ini sesuai dengan modul relay fisik yang Anda pasang. Skrip Python otomatis dari web SIKOMAT telah memprogram nomor-nomor GPIO ini secara presisi:
+                </p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden">
+                        <thead class="bg-[#1D1616] text-white text-[10.5px] uppercase tracking-wider">
+                            <tr>
+                                <th class="p-2.5">Channel Relay</th>
+                                <th class="p-2.5">Target Perangkat / Beban</th>
+                                <th class="p-2.5">Pin Fisik RPi 3B+</th>
+                                <th class="p-2.5">Nomor BCM GPIO</th>
+                                <th class="p-2.5">Channel ADC ACS712</th>
+                                <th class="p-2.5">Virtual Pin Web</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-slate-700 bg-white">
+                            <tr class="bg-rose-50/30">
+                                <td class="p-2.5 font-bold text-[#8E1616]">Relay 1 (IN 1)</td>
+                                <td class="p-2.5 font-medium">Unit AC 1 (Lampu Bawah)</td>
+                                <td class="p-2.5 font-mono font-bold text-slate-900">Pin 11</td>
+                                <td class="p-2.5 font-mono font-bold text-indigo-700">GPIO 17</td>
+                                <td class="p-2.5 font-mono text-emerald-700 font-bold">ADS1115 A0</td>
+                                <td class="p-2.5 font-mono font-bold text-slate-800">V0 (V20)</td>
+                            </tr>
+                            <tr class="bg-rose-50/30">
+                                <td class="p-2.5 font-bold text-[#8E1616]">Relay 2 (IN 2)</td>
+                                <td class="p-2.5 font-medium">Unit AC 2 (Lampu Atas)</td>
+                                <td class="p-2.5 font-mono font-bold text-slate-900">Pin 13</td>
+                                <td class="p-2.5 font-mono font-bold text-indigo-700">GPIO 27</td>
+                                <td class="p-2.5 font-mono text-emerald-700 font-bold">ADS1115 A1</td>
+                                <td class="p-2.5 font-mono font-bold text-slate-800">V1 (V21)</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2.5 font-bold text-slate-800">Relay 3 (IN 3)</td>
+                                <td class="p-2.5 font-medium">Unit AC 3 / Fan Exhaust 1</td>
+                                <td class="p-2.5 font-mono font-bold text-slate-900">Pin 15</td>
+                                <td class="p-2.5 font-mono font-bold text-indigo-700">GPIO 22</td>
+                                <td class="p-2.5 font-mono text-emerald-700 font-bold">ADS1115 A2</td>
+                                <td class="p-2.5 font-mono font-bold text-slate-800">V2 (V22)</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2.5 font-bold text-slate-800">Relay 4 (IN 4)</td>
+                                <td class="p-2.5 font-medium">Unit AC 4 / Fan Exhaust 2</td>
+                                <td class="p-2.5 font-mono font-bold text-slate-900">Pin 16</td>
+                                <td class="p-2.5 font-mono font-bold text-indigo-700">GPIO 23</td>
+                                <td class="p-2.5 font-mono text-emerald-700 font-bold">ADS1115 A3</td>
+                                <td class="p-2.5 font-mono font-bold text-slate-800">V3 (V23)</td>
+                            </tr>
+                            <tr class="bg-slate-50/60">
+                                <td class="p-2.5 font-bold text-slate-600">Relay 5 (IN 5)</td>
+                                <td class="p-2.5 font-medium text-slate-500">Auxiliary Relay 5 (Ekspansi)</td>
+                                <td class="p-2.5 font-mono font-bold text-slate-700">Pin 18</td>
+                                <td class="p-2.5 font-mono font-bold text-slate-600">GPIO 24</td>
+                                <td class="p-2.5 font-mono text-slate-400">ADC 2 (0x49 A0)</td>
+                                <td class="p-2.5 font-mono text-slate-600">V4 (V24)</td>
+                            </tr>
+                            <tr class="bg-slate-50/60">
+                                <td class="p-2.5 font-bold text-slate-600">Relay 6 (IN 6)</td>
+                                <td class="p-2.5 font-medium text-slate-500">Auxiliary Relay 6 (Ekspansi)</td>
+                                <td class="p-2.5 font-mono font-bold text-slate-700">Pin 22</td>
+                                <td class="p-2.5 font-mono font-bold text-slate-600">GPIO 25</td>
+                                <td class="p-2.5 font-mono text-slate-400">ADC 2 (0x49 A1)</td>
+                                <td class="p-2.5 font-mono text-slate-600">V5 (V25)</td>
+                            </tr>
+                            <tr class="bg-slate-50/60">
+                                <td class="p-2.5 font-bold text-slate-600">Relay 7 (IN 7)</td>
+                                <td class="p-2.5 font-medium text-slate-500">Auxiliary Relay 7 (Ekspansi)</td>
+                                <td class="p-2.5 font-mono font-bold text-slate-700">Pin 29</td>
+                                <td class="p-2.5 font-mono font-bold text-slate-600">GPIO 5</td>
+                                <td class="p-2.5 font-mono text-slate-400">ADC 2 (0x49 A2)</td>
+                                <td class="p-2.5 font-mono text-slate-600">V6 (V26)</td>
+                            </tr>
+                            <tr class="bg-slate-50/60">
+                                <td class="p-2.5 font-bold text-slate-600">Relay 8 (IN 8)</td>
+                                <td class="p-2.5 font-medium text-slate-500">Auxiliary Relay 8 (Ekspansi)</td>
+                                <td class="p-2.5 font-mono font-bold text-slate-700">Pin 31</td>
+                                <td class="p-2.5 font-mono font-bold text-slate-600">GPIO 6</td>
+                                <td class="p-2.5 font-mono text-slate-400">ADC 2 (0x49 A3)</td>
+                                <td class="p-2.5 font-mono text-slate-600">V7 (V27)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-1">
+                    <p>💡 <b>Panduan Pemilihan Modul Relay:</b></p>
+                    <ul class="list-disc pl-5 space-y-0.5">
+                        <li><strong>Jika pakai Modul Relay 1 Channel:</strong> Hubungkan ke <b>Pin 11 (GPIO 17)</b> saja.</li>
+                        <li><strong>Jika pakai Modul Relay 2 Channel:</strong> Hubungkan ke <b>Pin 11 (GPIO 17)</b> dan <b>Pin 13 (GPIO 27)</b>.</li>
+                        <li><strong>Jika pakai Modul Relay 4 Channel:</strong> Hubungkan ke <b>Pin 11, 13, 15, dan 16 (GPIO 17, 27, 22, 23)</b>.</li>
+                        <li><strong>Jika pakai Modul Relay 8 Channel:</strong> Hubungkan ke <b>Pin 11, 13, 15, 16, 18, 22, 29, dan 31</b>.</li>
+                    </ul>
                 </div>
             </div>
 
@@ -557,7 +649,7 @@
                 <div class="space-y-12">
                     <span class="text-slate-500 font-bold block">Disiapkan Oleh (Teknisi IoT):</span>
                     <div>
-                        <span class="font-black text-slate-900 block underline">{{ $user->name ?? 'Dicky Akbar Syahputra' }}</span>
+                        <span class="font-black text-slate-900 block underline">{{ $user->name ?? 'Dicky Akbar Syah Putra' }}</span>
                         <span class="text-[10px] text-slate-500 block">Operator & Administrator Sistem SIKOMAT</span>
                     </div>
                 </div>
