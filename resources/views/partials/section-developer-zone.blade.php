@@ -65,10 +65,10 @@
     </div>
 
     <!-- 2. TEMPLATE SELECTOR TABS & BLUEPRINT DETAILS -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <!-- LEFT: TEMPLATES LIST -->
-        <div class="space-y-3">
+        <div class="lg:col-span-4 xl:col-span-3 space-y-3">
             <h3 class="text-xs font-black uppercase tracking-wider text-slate-400 px-1">Pilih Blueprint Template</h3>
             
             @foreach($templates as $tmpl)
@@ -95,7 +95,7 @@
         </div>
 
         <!-- RIGHT: ACTIVE TEMPLATE DATASTREAMS CONSOLE -->
-        <div class="lg:col-span-2 space-y-6">
+        <div class="lg:col-span-8 xl:col-span-9 space-y-6">
             @foreach($templates as $tmpl)
             <div x-show="selectedTemplateId === '{{ $tmpl->id }}'" 
                  x-transition:enter="transition ease-out duration-200 transform opacity-0"
@@ -104,41 +104,28 @@
                  class="space-y-6">
                 
                 <!-- Blueprint Summary Card -->
-                <div class="bg-white rounded-[32px] p-6 sm:p-7 shadow-sm border border-[#8E1616]/20 space-y-4">
-                    <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-5">
-                        
-                        <!-- Left: Icon & Info Column -->
-                        <div class="flex items-start gap-4 min-w-0 flex-1">
-                            <div class="w-13 h-13 rounded-2xl bg-rose-50 border border-rose-200 text-[#8E1616] font-black text-2xl flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                <div class="bg-white rounded-[32px] p-6 sm:p-7 shadow-sm border border-[#8E1616]/20 space-y-5">
+                    
+                    <!-- TOP ROW: TITLE & ALL ACTION BUTTONS -->
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div class="flex items-center gap-3.5 min-w-0">
+                            <div class="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 text-[#8E1616] font-black text-2xl flex items-center justify-center shrink-0 shadow-xs">
                                 {{ $tmpl->icon ?? '⚡' }}
                             </div>
-                            <div class="min-w-0 space-y-1.5 flex-1">
-                                <div class="flex flex-wrap items-center gap-2.5">
-                                    <h3 class="text-lg sm:text-xl font-black text-[#1D1616] tracking-tight leading-snug">
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-lg sm:text-xl font-black text-[#1D1616] tracking-tight truncate">
                                         {{ $tmpl->name }}
                                     </h3>
-                                    <span class="bg-[#8E1616]/10 text-[#8E1616] text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full whitespace-nowrap">
-                                        {{ count($tmpl->datastreams ?? []) }} Virtual Pins
-                                    </span>
                                 </div>
-                                <p class="text-xs text-slate-500 leading-relaxed max-w-3xl">
-                                    {{ $tmpl->description }}
-                                </p>
-                                <div class="flex flex-wrap items-center gap-2 pt-1 text-[11px] font-bold text-slate-700">
-                                    <span class="bg-slate-100 px-3 py-1 rounded-xl border border-slate-200 flex items-center gap-1.5">
-                                        <span>📟</span>
-                                        <span>Hardware: <b class="text-slate-900">{{ $tmpl->hardware_type }}</b></span>
-                                    </span>
-                                    <span class="bg-slate-100 px-3 py-1 rounded-xl border border-slate-200 flex items-center gap-1.5">
-                                        <span>🌐</span>
-                                        <span>Koneksi: <b class="text-slate-900">{{ $tmpl->connection_type }}</b></span>
-                                    </span>
-                                </div>
+                                <span class="text-[11px] font-bold text-[#8E1616]">
+                                    {{ count($tmpl->datastreams ?? []) }} Virtual Pins Terdaftar
+                                </span>
                             </div>
                         </div>
 
-                        <!-- Right: Action Buttons (Responsive Clean Alignment) -->
-                        <div class="flex flex-wrap items-center gap-2 shrink-0 pt-3 xl:pt-0 self-start xl:self-center border-t xl:border-t-0 border-slate-100">
+                        <!-- ACTION BUTTONS: Neat Horizontal Bar -->
+                        <div class="flex flex-wrap items-center gap-2 shrink-0">
                             <!-- Add Datastream -->
                             <button @click="modalNewDatastream = true"
                                     type="button"
@@ -188,6 +175,24 @@
                                     <span>Hapus</span>
                                 </button>
                             </form>
+                        </div>
+                    </div>
+
+                    <!-- BOTTOM ROW: FULL WIDTH DESCRIPTION & METADATA -->
+                    <div class="space-y-3">
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            {{ $tmpl->description }}
+                        </p>
+
+                        <div class="flex flex-wrap items-center gap-2.5 text-xs font-bold text-slate-700">
+                            <span class="bg-slate-50 px-3.5 py-1.5 rounded-xl border border-slate-200 flex items-center gap-2">
+                                <span>📟</span>
+                                <span>Hardware: <b class="text-[#1D1616]">{{ $tmpl->hardware_type }}</b></span>
+                            </span>
+                            <span class="bg-slate-50 px-3.5 py-1.5 rounded-xl border border-slate-200 flex items-center gap-2">
+                                <span>🌐</span>
+                                <span>Koneksi: <b class="text-[#1D1616]">{{ $tmpl->connection_type }}</b></span>
+                            </span>
                         </div>
                     </div>
                 </div>
