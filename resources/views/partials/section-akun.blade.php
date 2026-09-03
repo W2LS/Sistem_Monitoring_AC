@@ -22,20 +22,20 @@
     <div class="space-y-4">
 
         <!-- ITEM 0: TUTORIAL & PANDUAN LENGKAP PENGGUNAAN PLATFORM (SOP END-TO-END) -->
-        <div class="bg-white rounded-[32px] border-2 border-[#D84040]/40 shadow-md overflow-hidden transition-all duration-300">
+        <div class="bg-white rounded-[32px] border border-[#8E1616]/20 shadow-xs overflow-hidden transition-all duration-300">
             <button @click="openItem = openItem === 'tutorial' ? null : 'tutorial'" 
                     type="button" 
-                    class="w-full p-4 sm:p-6 text-left flex items-center justify-between hover:bg-slate-50 transition cursor-pointer bg-gradient-to-r from-rose-50/50 to-white">
+                    class="w-full p-4 sm:p-6 text-left flex items-center justify-between hover:bg-slate-50 transition cursor-pointer">
                 <div class="flex items-center space-x-3 sm:space-x-4 min-w-0">
-                    <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#D84040] text-white flex items-center justify-center font-black text-lg sm:text-xl shrink-0 shadow-md shadow-[#D84040]/30">
+                    <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-rose-100 text-[#8E1616] flex items-center justify-center font-black text-lg sm:text-xl shrink-0">
                         📖
                     </div>
                     <div class="min-w-0">
-                        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                            <h3 class="text-sm sm:text-base font-black text-[#1D1616] leading-snug">Panduan Praktis Setup Perangkat IoT</h3>
-                            <span class="bg-emerald-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 tracking-wider">SOP LENGKAP</span>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm sm:text-base font-black text-[#1D1616] leading-tight truncate">Panduan Setup Node IoT</h3>
+                            <span class="bg-emerald-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 tracking-wider">SOP</span>
                         </div>
-                        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5 truncate sm:whitespace-normal">Panduan standar dari memilih template, mendaftarkan node, hingga menjalankan skrip di Raspberry Pi</p>
+                        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5 truncate sm:whitespace-normal">SOP template, pendaftaran node, dan skrip Raspberry Pi</p>
                     </div>
                 </div>
                 <div class="w-8 h-8 rounded-full bg-[#EEEEEE] flex items-center justify-center text-slate-600 font-bold text-sm transition-transform duration-300 shrink-0 ml-2"
@@ -155,24 +155,24 @@
         </div>
         
         <!-- ITEM: NOTIFIKASI BOT TELEGRAM (PERINGATAN ANOMALI KEGAGALAN AC) -->
-        <div class="bg-white rounded-[32px] border-2 border-sky-400/50 shadow-md overflow-hidden transition-all duration-300">
+        <div class="bg-white rounded-[32px] border border-[#8E1616]/20 shadow-xs overflow-hidden transition-all duration-300">
             <button @click="openItem = openItem === 'telegram' ? null : 'telegram'" 
                     type="button" 
-                    class="w-full p-4 sm:p-6 text-left flex items-center justify-between hover:bg-slate-50 transition cursor-pointer bg-gradient-to-r from-sky-50/50 to-white">
+                    class="w-full p-4 sm:p-6 text-left flex items-center justify-between hover:bg-slate-50 transition cursor-pointer">
                 <div class="flex items-center space-x-3 sm:space-x-4 min-w-0">
-                    <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-sky-500 text-white flex items-center justify-center font-black text-xl sm:text-2xl shrink-0 shadow-md shadow-sky-500/30">
+                    <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-rose-100 text-[#8E1616] flex items-center justify-center font-black text-xl sm:text-2xl shrink-0">
                         🤖
                     </div>
                     <div class="min-w-0">
-                        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                            <h3 class="text-sm sm:text-base font-black text-[#1D1616] leading-snug">Notifikasi Bot Telegram</h3>
-                            <span class="bg-sky-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 tracking-wider">REAL-TIME</span>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm sm:text-base font-black text-[#1D1616] leading-tight truncate">Notifikasi Bot Telegram</h3>
+                            <span class="bg-sky-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 tracking-wider">ALARM</span>
                         </div>
-                        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5 truncate sm:whitespace-normal">Kirim pesan darurat otomatis ke teknisi saat AC gagal hidup, kompresor mati, atau anomali arus</p>
+                        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5 truncate sm:whitespace-normal">Alarm darurat otomatis teknisi saat anomali atau kegagalan AC</p>
                     </div>
                 </div>
                 <div class="w-8 h-8 rounded-full bg-[#EEEEEE] flex items-center justify-center text-slate-600 font-bold text-sm transition-transform duration-300 shrink-0 ml-2"
-                     :class="openItem === 'telegram' ? 'rotate-90 bg-sky-600 text-white' : ''">
+                     :class="openItem === 'telegram' ? 'rotate-90 bg-[#8E1616] text-white' : ''">
                     ➔
                 </div>
             </button>
