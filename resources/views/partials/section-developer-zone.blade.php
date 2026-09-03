@@ -72,20 +72,31 @@
             <h3 class="text-xs font-black uppercase tracking-wider text-slate-400 px-1">Pilih Blueprint Template</h3>
             
             @foreach($templates as $tmpl)
+            @php
+                $relayChCount = count(collect($tmpl->datastreams ?? [])->filter(fn($ds) => str_starts_with($ds['pin'], 'V') && ($ds['type'] ?? '') === 'Integer' && ($ds['max'] ?? 1) == 1 && !str_contains(strtolower($ds['name'] ?? ''), 'total') && !str_contains(strtolower($ds['name'] ?? ''), 'turbo') && !str_contains(strtolower($ds['name'] ?? ''), 'priority') && !str_contains(strtolower($ds['name'] ?? ''), 'arus') && !str_contains(strtolower($ds['name'] ?? ''), 'ampere'))) ?: 1;
+                $cleanTmplName = trim(preg_replace('/\s*\([^)]*\)\s*$/', '', $tmpl->name));
+            @endphp
             <div @click="selectedTemplateId = '{{ $tmpl->id }}'; localStorage.setItem('pindad_selected_template_id', '{{ $tmpl->id }}')"
-                 class="p-4 rounded-[24px] border-2 cursor-pointer transition-all duration-200 flex items-center justify-between gap-3 shadow-xs"
-                 :class="selectedTemplateId === '{{ $tmpl->id }}' ? 'bg-[#1D1616] border-[#8E1616] text-white shadow-md' : 'bg-white border-slate-100 hover:border-slate-200 text-[#1D1616]'">
+                 class="p-4 rounded-[24px] border-2 cursor-pointer transition-all duration-200 flex items-center justify-between gap-3 shadow-xs group"
+                 :class="selectedTemplateId === '{{ $tmpl->id }}' ? 'bg-[#1D1616] border-[#8E1616] text-white shadow-md' : 'bg-white border-slate-100 hover:border-slate-300 text-[#1D1616]'">
                 
-                <div class="flex items-center gap-3 min-w-0">
-                    <span class="text-2xl shrink-0">{{ $tmpl->icon ?? '⚡' }}</span>
-                    <div class="min-w-0">
-                        <h4 class="font-black text-sm truncate">{{ $tmpl->name }}</h4>
-                        <p class="text-[11px] opacity-70 truncate">{{ $tmpl->hardware_type }}</p>
+                <div class="flex items-start gap-3 min-w-0 flex-1">
+                    <span class="text-2xl shrink-0 mt-0.5">{{ $tmpl->icon ?? '⚡' }}</span>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="font-black text-xs sm:text-sm leading-snug break-words">{{ $cleanTmplName }}</h4>
+                        <div class="flex items-center gap-1.5 mt-1 text-[11px]">
+                            <span class="font-extrabold px-1.5 py-0.5 rounded text-[10px] tracking-wide"
+                                  :class="selectedTemplateId === '{{ $tmpl->id }}' ? 'bg-amber-400/20 text-amber-300' : 'bg-rose-50 text-[#8E1616]'">
+                                {{ $relayChCount }} Channel
+                            </span>
+                            <span class="opacity-40">•</span>
+                            <span class="truncate opacity-75 text-[10px]">{{ $tmpl->hardware_type }}</span>
+                        </div>
                     </div>
                 </div>
 
                 <div class="text-right shrink-0">
-                    <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full"
+                    <span class="text-[9.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full whitespace-nowrap"
                           :class="selectedTemplateId === '{{ $tmpl->id }}' ? 'bg-[#D84040] text-white' : 'bg-slate-100 text-slate-600'">
                         {{ count($tmpl->datastreams ?? []) }} Pins
                     </span>

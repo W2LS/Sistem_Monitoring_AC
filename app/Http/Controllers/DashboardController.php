@@ -1036,7 +1036,7 @@ class DashboardController extends Controller
 
         $presetsConfig = [
             'relay_1ch' => [
-                'name'            => 'Module Relay 1 Channel (Raspberry Pi 3B+)',
+                'name'            => 'Module Relay 1 Channel',
                 'hardware_type'   => 'Raspberry Pi 3B+',
                 'connection_type' => 'WiFi / Ethernet (MQTT)',
                 'icon'            => '⚡',
@@ -1049,7 +1049,7 @@ class DashboardController extends Controller
                 ],
             ],
             'relay_2ch' => [
-                'name'            => 'Module Relay 2 Channel (Raspberry Pi 3B+)',
+                'name'            => 'Module Relay 2 Channel',
                 'hardware_type'   => 'Raspberry Pi 3B+',
                 'connection_type' => 'WiFi / Ethernet (MQTT)',
                 'icon'            => '⚡',
@@ -1064,7 +1064,7 @@ class DashboardController extends Controller
                 ],
             ],
             'relay_4ch' => [
-                'name'            => 'Module Relay 4 Channel (Raspberry Pi 3B+)',
+                'name'            => 'Module Relay 4 Channel',
                 'hardware_type'   => 'Raspberry Pi 3B+',
                 'connection_type' => 'WiFi / Ethernet (MQTT)',
                 'icon'            => '⚡',
@@ -1083,7 +1083,7 @@ class DashboardController extends Controller
                 ],
             ],
             'relay_8ch' => [
-                'name'            => 'Module Relay 8 Channel (Raspberry Pi 3B+)',
+                'name'            => 'Module Relay 8 Channel',
                 'hardware_type'   => 'Raspberry Pi 3B+',
                 'connection_type' => 'WiFi / Ethernet (MQTT)',
                 'icon'            => '⚡',
