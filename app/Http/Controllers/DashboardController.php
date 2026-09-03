@@ -909,6 +909,200 @@ class DashboardController extends Controller
     }
 
     /**
+     * Developer Zone: Export Template as JSON file.
+     */
+    public function exportTemplate(string $id)
+    {
+        $template = Template::findOrFail($id);
+
+        $exportData = [
+            'pindad_iot_version' => '1.0',
+            'exported_at'        => now('Asia/Jakarta')->toDateTimeString(),
+            'name'               => $template->name,
+            'hardware_type'      => $template->hardware_type,
+            'connection_type'    => $template->connection_type,
+            'icon'               => $template->icon ?? '⚡',
+            'description'        => $template->description ?? '',
+            'datastreams'        => $template->datastreams ?? [],
+        ];
+
+        $json = json_encode($exportData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $fileName = 'pindad_template_' . Str::slug($template->name, '_') . '.json';
+
+        return response($json, 200, [
+            'Content-Type'        => 'application/json',
+            'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
+        ]);
+    }
+
+    /**
+     * Developer Zone: Import Template from JSON file or JSON string.
+     */
+    public function importTemplate(Request $request)
+    {
+        $jsonContent = null;
+
+        if ($request->hasFile('template_file')) {
+            $file = $request->file('template_file');
+            $jsonContent = file_get_contents($file->getRealPath());
+        } elseif ($request->filled('template_json')) {
+            $jsonContent = $request->input('template_json');
+        }
+
+        if (!$jsonContent) {
+            return redirect()->back()->with('error', 'Silakan unggah file JSON atau tempel teks JSON template.');
+        }
+
+        try {
+            $data = json_decode($jsonContent, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Format file JSON tidak valid: ' . $e->getMessage());
+        }
+
+        if (empty($data['name'])) {
+            return redirect()->back()->with('error', 'File JSON tidak memiliki nama template yang valid.');
+        }
+
+        // Clean & validate datastreams
+        $datastreams = [];
+        if (!empty($data['datastreams']) && is_array($data['datastreams'])) {
+            foreach ($data['datastreams'] as $ds) {
+                if (!empty($ds['pin']) && !empty($ds['name'])) {
+                    $datastreams[] = [
+                        'pin'           => strtoupper(trim($ds['pin'])),
+                        'name'          => trim($ds['name']),
+                        'type'          => $ds['type'] ?? 'Integer',
+                        'min'           => $ds['min'] ?? 0,
+                        'max'           => $ds['max'] ?? 100,
+                        'default_value' => (string)($ds['default_value'] ?? '0'),
+                        'unit'          => $ds['unit'] ?? '',
+                        'desc'          => $ds['desc'] ?? '',
+                    ];
+                }
+            }
+        }
+
+        // Create new imported template
+        $template = Template::create([
+            'name'            => $data['name'],
+            'hardware_type'   => $data['hardware_type'] ?? 'Raspberry Pi 3B+',
+            'connection_type' => $data['connection_type'] ?? 'WiFi / Ethernet (MQTT)',
+            'icon'            => $data['icon'] ?? '⚡',
+            'description'     => $data['description'] ?? 'Blueprint diimpor dari file JSON',
+            'datastreams'     => $datastreams,
+        ]);
+
+        return redirect()->back()
+            ->with('success', "Template {$template->name} berhasil diimpor dengan " . count($datastreams) . " Datastream!")
+            ->with('selected_template_id', (string)$template->id);
+    }
+
+    /**
+     * Developer Zone: Create Standard Preset Template (1, 2, 4, 8 Channel Relay).
+     */
+    public function createPresetTemplate(Request $request)
+    {
+        $preset = $request->input('preset_type', 'relay_2ch');
+
+        $presetsConfig = [
+            'relay_1ch' => [
+                'name'            => 'Module Relay 1 Channel (Raspberry Pi 3B+)',
+                'hardware_type'   => 'Raspberry Pi 3B+',
+                'connection_type' => 'WiFi / Ethernet (MQTT)',
+                'icon'            => '⚡',
+                'description'     => 'Blueprint kontrol 1 unit AC / Beban Tunggal dengan pembacaan sensor arus ACS712.',
+                'datastreams'     => [
+                    ['pin' => 'V0', 'name' => 'IN1 Relay AC1', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => 'Relay Saklar AC 1 (GPIO 17)'],
+                    ['pin' => 'V1', 'name' => 'Arus AC 1', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0.0', 'unit' => 'Ampere', 'desc' => 'Sensor Arus ACS712 (ADS1115 A0)'],
+                ],
+            ],
+            'relay_2ch' => [
+                'name'            => 'Module Relay 2 Channel (Raspberry Pi 3B+)',
+                'hardware_type'   => 'Raspberry Pi 3B+',
+                'connection_type' => 'WiFi / Ethernet (MQTT)',
+                'icon'            => '⚡',
+                'description'     => 'Blueprint standar dual AC Ruang Server dengan rotasi shift 12 jam DS3231 dan fail-safe recovery.',
+                'datastreams'     => [
+                    ['pin' => 'V0', 'name' => 'IN1 Relay AC1', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => 'Relay Saklar AC 1 (GPIO 17)'],
+                    ['pin' => 'V1', 'name' => 'IN2 Relay AC2', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => 'Relay Saklar AC 2 (GPIO 27)'],
+                    ['pin' => 'V2', 'name' => 'Arus AC 1', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0.0', 'unit' => 'Ampere', 'desc' => 'Sensor Arus ACS712 AC 1 (ADS1115 A0)'],
+                    ['pin' => 'V3', 'name' => 'Arus AC 2', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0.0', 'unit' => 'Ampere', 'desc' => 'Sensor Arus ACS712 AC 2 (ADS1115 A1)'],
+                ],
+            ],
+            'relay_4ch' => [
+                'name'            => 'Module Relay 4 Channel (Raspberry Pi 3B+)',
+                'hardware_type'   => 'Raspberry Pi 3B+',
+                'connection_type' => 'WiFi / Ethernet (MQTT)',
+                'icon'            => '⚡',
+                'description'     => 'Blueprint industri 4 unit AC / Ruang Data Center dengan monitoring beban 4 kanal.',
+                'datastreams'     => [
+                    ['pin' => 'V0', 'name' => 'IN1 Relay AC1', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => 'Relay Saklar AC 1 (GPIO 17)'],
+                    ['pin' => 'V1', 'name' => 'IN2 Relay AC2', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => 'Relay Saklar AC 2 (GPIO 27)'],
+                    ['pin' => 'V2', 'name' => 'IN3 Relay AC3', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => 'Relay Saklar AC 3 (GPIO 22)'],
+                    ['pin' => 'V3', 'name' => 'IN4 Relay AC4', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => 'Relay Saklar AC 4 (GPIO 23)'],
+                    ['pin' => 'V4', 'name' => 'Arus AC 1', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0.0', 'unit' => 'Ampere', 'desc' => 'Sensor Arus ACS712 AC 1 (ADS1115 A0)'],
+                    ['pin' => 'V5', 'name' => 'Arus AC 2', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0.0', 'unit' => 'Ampere', 'desc' => 'Sensor Arus ACS712 AC 2 (ADS1115 A1)'],
+                    ['pin' => 'V6', 'name' => 'Arus AC 3', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0.0', 'unit' => 'Ampere', 'desc' => 'Sensor Arus ACS712 AC 3 (ADS1115 A2)'],
+                    ['pin' => 'V7', 'name' => 'Arus AC 4', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0.0', 'unit' => 'Ampere', 'desc' => 'Sensor Arus ACS712 AC 4 (ADS1115 A3)'],
+                ],
+            ],
+            'relay_8ch' => [
+                'name'            => 'Module Relay 8 Channel (Raspberry Pi 3B+)',
+                'hardware_type'   => 'Raspberry Pi 3B+',
+                'connection_type' => 'WiFi / Ethernet (MQTT)',
+                'icon'            => '⚡',
+                'description'     => 'Blueprint kapasitas penuh 8 unit pendingin pabrik / chiller dengan telemetri multi-ADC.',
+                'datastreams'     => [
+                    ['pin' => 'V0', 'name' => 'IN1 Relay AC1', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => 'Relay AC 1 (GPIO 17)'],
+                    ['pin' => 'V1', 'name' => 'IN2 Relay AC2', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => 'Relay AC 2 (GPIO 27)'],
+                    ['pin' => 'V2', 'name' => 'IN3 Relay AC3', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => 'Relay AC 3 (GPIO 22)'],
+                    ['pin' => 'V3', 'name' => 'IN4 Relay AC4', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => 'Relay AC 4 (GPIO 23)'],
+                    ['pin' => 'V4', 'name' => 'IN5 Relay AC5', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => 'Relay AC 5 (GPIO 24)'],
+                    ['pin' => 'V5', 'name' => 'IN6 Relay AC6', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => 'Relay AC 6 (GPIO 25)'],
+                    ['pin' => 'V6', 'name' => 'IN7 Relay AC7', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => 'Relay AC 7 (GPIO 5)'],
+                    ['pin' => 'V7', 'name' => 'IN8 Relay AC8', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => 'Relay AC 8 (GPIO 6)'],
+                    ['pin' => 'V8', 'name' => 'Arus AC 1', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0.0', 'unit' => 'Ampere', 'desc' => 'Sensor ACS712 AC 1'],
+                    ['pin' => 'V9', 'name' => 'Arus AC 2', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0.0', 'unit' => 'Ampere', 'desc' => 'Sensor ACS712 AC 2'],
+                    ['pin' => 'V10', 'name' => 'Arus AC 3', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0.0', 'unit' => 'Ampere', 'desc' => 'Sensor ACS712 AC 3'],
+                    ['pin' => 'V11', 'name' => 'Arus AC 4', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0.0', 'unit' => 'Ampere', 'desc' => 'Sensor ACS712 AC 4'],
+                    ['pin' => 'V12', 'name' => 'Arus AC 5', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0.0', 'unit' => 'Ampere', 'desc' => 'Sensor ACS712 AC 5'],
+                    ['pin' => 'V13', 'name' => 'Arus AC 6', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0.0', 'unit' => 'Ampere', 'desc' => 'Sensor ACS712 AC 6'],
+                    ['pin' => 'V14', 'name' => 'Arus AC 7', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0.0', 'unit' => 'Ampere', 'desc' => 'Sensor ACS712 AC 7'],
+                    ['pin' => 'V15', 'name' => 'Arus AC 8', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0.0', 'unit' => 'Ampere', 'desc' => 'Sensor ACS712 AC 8'],
+                ],
+            ],
+            'corridor_lighting' => [
+                'name'            => 'Smart Corridor Lighting (ESP32 / RPi)',
+                'hardware_type'   => 'Raspberry Pi 3B+ / ESP32',
+                'connection_type' => 'WiFi (MQTT)',
+                'icon'            => '💡',
+                'description'     => 'Blueprint otomasi 4 zona pencahayaan lorong & gedung PT PINDAD.',
+                'datastreams'     => [
+                    ['pin' => 'V0', 'name' => 'Lampu Zona A (Utara)', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => 'Saklar Lampu Zona A'],
+                    ['pin' => 'V1', 'name' => 'Lampu Zona B (Selatan)', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => 'Saklar Lampu Zona B'],
+                    ['pin' => 'V2', 'name' => 'Lampu Zona C (Timur)', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => 'Saklar Lampu Zona C'],
+                    ['pin' => 'V3', 'name' => 'Lampu Zona D (Barat)', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => 'Saklar Lampu Zona D'],
+                ],
+            ],
+        ];
+
+        $cfg = $presetsConfig[$preset] ?? $presetsConfig['relay_2ch'];
+
+        $template = Template::create([
+            'name'            => $cfg['name'],
+            'hardware_type'   => $cfg['hardware_type'],
+            'connection_type' => $cfg['connection_type'],
+            'icon'            => $cfg['icon'],
+            'description'     => $cfg['description'],
+            'datastreams'     => $cfg['datastreams'],
+        ]);
+
+        return redirect()->back()
+            ->with('success', "Preset {$template->name} berhasil dibuat dengan " . count($cfg['datastreams']) . " Datastreams!")
+            ->with('selected_template_id', (string)$template->id);
+    }
+
+    /**
      * Update Profile Operator.
      */
     public function updateProfile(Request $request)

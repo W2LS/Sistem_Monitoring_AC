@@ -4,6 +4,10 @@
     modalNewTemplate: false,
     modalEditTemplate: false,
     modalNewDatastream: false,
+    modalPresetTemplate: false,
+    modalImportTemplate: false,
+    selectedPreset: 'relay_2ch',
+    importFileName: '',
     editTemplate: { id: '', name: '', hardware_type: '', connection_type: '', icon: '', description: '' }
 }" x-init="
     if ('{{ session('selected_template_id') }}') {
@@ -33,12 +37,29 @@
             </p>
         </div>
 
-        <div class="flex items-center gap-3 shrink-0">
+        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+            <!-- 1-Click Relay Presets -->
+            <button @click="modalPresetTemplate = true" 
+                    type="button"
+                    class="bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-[22px] text-xs font-black uppercase tracking-wider py-3 px-4 shadow-md shadow-amber-500/20 transition flex items-center gap-1.5 cursor-pointer active:scale-95">
+                <span>⚡</span>
+                <span>Preset Modul Relay</span>
+            </button>
+
+            <!-- Import Blueprint JSON -->
+            <button @click="modalImportTemplate = true" 
+                    type="button"
+                    class="bg-slate-900 hover:bg-black text-white rounded-[22px] text-xs font-black uppercase tracking-wider py-3 px-4 shadow-md transition flex items-center gap-1.5 cursor-pointer active:scale-95 border border-slate-800">
+                <span>📤</span>
+                <span>Import (.json)</span>
+            </button>
+
+            <!-- Manual Custom Template -->
             <button @click="modalNewTemplate = true" 
                     type="button"
-                    class="bg-[#D84040] hover:bg-[#8E1616] text-white rounded-[24px] text-xs font-black uppercase tracking-wider py-3.5 px-6 shadow-lg shadow-[#D84040]/30 transition flex items-center space-x-2 shrink-0 cursor-pointer active:scale-95">
+                    class="bg-[#D84040] hover:bg-[#8E1616] text-white rounded-[22px] text-xs font-black uppercase tracking-wider py-3 px-4.5 shadow-lg shadow-[#D84040]/30 transition flex items-center gap-1.5 cursor-pointer active:scale-95">
                 <span class="text-base leading-none font-black">+</span>
-                <span>Tambah Template Baru</span>
+                <span>Buat Kustom</span>
             </button>
         </div>
     </div>
@@ -102,6 +123,16 @@
                                 class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#D84040] to-[#8E1616] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:opacity-95 transition cursor-pointer flex items-center gap-1.5 active:scale-95">
                             <span>+ Add Datastream</span>
                         </button>
+
+                        <!-- Export JSON Button -->
+                        <a href="{{ route('templates.export', $tmpl->id) }}" 
+                           class="p-2.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer flex items-center gap-1 text-xs font-bold shadow-xs active:scale-95" 
+                           title="Unduh / Backup Blueprint Template ke File JSON">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            <span class="hidden sm:inline">Export (.json)</span>
+                        </a>
 
                         <!-- Rename / Edit Button -->
                         <button @click="editTemplate = {
@@ -528,6 +559,214 @@
                 <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
                     <button @click="modalNewDatastream = false" type="button" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
                     <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-[#8E1616] to-[#1D1616] text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Simpan Datastream</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL PRESET MODUL RELAY (1-CLICK QUICK BLUEPRINT) ================= -->
+    <div x-show="modalPresetTemplate" 
+         x-cloak 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        
+        <div @click.away="modalPresetTemplate = false" 
+             class="bg-white rounded-[36px] w-full max-w-2xl p-6 sm:p-7 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto border border-slate-100">
+            
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 font-black text-2xl flex items-center justify-center shadow-xs">
+                        ⚡
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-black text-[#1D1616]">Preset Cepat Modul Relay Hardware</h4>
+                        <p class="text-xs text-slate-500">Pilih tipe modul relay & template langsung terisi otomatis</p>
+                    </div>
+                </div>
+                <button @click="modalPresetTemplate = false" class="text-slate-400 hover:text-[#8E1616] text-2xl font-bold cursor-pointer">&times;</button>
+            </div>
+
+            <form action="{{ route('templates.preset') }}" method="POST" class="space-y-4">
+                @csrf
+                <input type="hidden" name="preset_type" :value="selectedPreset">
+
+                <div class="space-y-3">
+                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider">
+                        Pilih Modul Relay Industri Yang Digunakan:
+                    </label>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        
+                        <!-- 1-Channel -->
+                        <div @click="selectedPreset = 'relay_1ch'" 
+                             class="p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 flex flex-col justify-between space-y-2.5"
+                             :class="selectedPreset === 'relay_1ch' ? 'bg-amber-50/70 border-amber-500 shadow-md' : 'bg-slate-50 border-slate-200 hover:border-slate-300'">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xl">⚡</span>
+                                    <span class="font-black text-sm text-slate-900">Relay 1 Channel</span>
+                                </div>
+                                <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center text-[10px]"
+                                      :class="selectedPreset === 'relay_1ch' ? 'border-amber-600 bg-amber-600 text-white font-bold' : 'border-slate-300'">
+                                    <span x-show="selectedPreset === 'relay_1ch'">✓</span>
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-slate-600 leading-snug">
+                                Kontrol 1 unit AC / Beban Tunggal. Termasuk Pin Saklar V0 & Sensor Arus ACS712 V1.
+                            </p>
+                            <div class="flex items-center gap-1.5 text-[10px] font-mono text-slate-500">
+                                <span class="bg-white px-2 py-0.5 rounded border border-slate-200">V0: Relay</span>
+                                <span class="bg-white px-2 py-0.5 rounded border border-slate-200">V1: Arus (A)</span>
+                            </div>
+                        </div>
+
+                        <!-- 2-Channel (Standard PINDAD) -->
+                        <div @click="selectedPreset = 'relay_2ch'" 
+                             class="p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 flex flex-col justify-between space-y-2.5 relative overflow-hidden"
+                             :class="selectedPreset === 'relay_2ch' ? 'bg-amber-50/70 border-amber-500 shadow-md' : 'bg-slate-50 border-slate-200 hover:border-slate-300'">
+                            <span class="absolute top-0 right-0 bg-[#8E1616] text-white text-[8.5px] font-black uppercase px-2 py-0.5 rounded-bl-lg">STANDAR PINDAD</span>
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xl">❄️</span>
+                                    <span class="font-black text-sm text-slate-900">Relay 2 Channel</span>
+                                </div>
+                                <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center text-[10px] mt-3"
+                                      :class="selectedPreset === 'relay_2ch' ? 'border-amber-600 bg-amber-600 text-white font-bold' : 'border-slate-300'">
+                                    <span x-show="selectedPreset === 'relay_2ch'">✓</span>
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-slate-600 leading-snug">
+                                Standar Ruang Server 2 AC dengan rotasi shift RTC DS3231 & dual sensor ACS712.
+                            </p>
+                            <div class="flex flex-wrap gap-1 text-[10px] font-mono text-slate-500">
+                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V0, V1: Relay</span>
+                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V2, V3: Arus</span>
+                            </div>
+                        </div>
+
+                        <!-- 4-Channel -->
+                        <div @click="selectedPreset = 'relay_4ch'" 
+                             class="p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 flex flex-col justify-between space-y-2.5"
+                             :class="selectedPreset === 'relay_4ch' ? 'bg-amber-50/70 border-amber-500 shadow-md' : 'bg-slate-50 border-slate-200 hover:border-slate-300'">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xl">🏢</span>
+                                    <span class="font-black text-sm text-slate-900">Relay 4 Channel</span>
+                                </div>
+                                <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center text-[10px]"
+                                      :class="selectedPreset === 'relay_4ch' ? 'border-amber-600 bg-amber-600 text-white font-bold' : 'border-slate-300'">
+                                    <span x-show="selectedPreset === 'relay_4ch'">✓</span>
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-slate-600 leading-snug">
+                                Kapasitas 4 unit AC / Ruang Data Center dengan monitoring 4 saklar & 4 sensor arus.
+                            </p>
+                            <div class="flex flex-wrap gap-1 text-[10px] font-mono text-slate-500">
+                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V0-V3: Relay</span>
+                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V4-V7: Arus</span>
+                            </div>
+                        </div>
+
+                        <!-- 8-Channel -->
+                        <div @click="selectedPreset = 'relay_8ch'" 
+                             class="p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 flex flex-col justify-between space-y-2.5"
+                             :class="selectedPreset === 'relay_8ch' ? 'bg-amber-50/70 border-amber-500 shadow-md' : 'bg-slate-50 border-slate-200 hover:border-slate-300'">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xl">🏭</span>
+                                    <span class="font-black text-sm text-slate-900">Relay 8 Channel</span>
+                                </div>
+                                <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center text-[10px]"
+                                      :class="selectedPreset === 'relay_8ch' ? 'border-amber-600 bg-amber-600 text-white font-bold' : 'border-slate-300'">
+                                    <span x-show="selectedPreset === 'relay_8ch'">✓</span>
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-slate-600 leading-snug">
+                                Kapasitas penuh 8 unit pendingin pabrik / chiller dengan total 16 Virtual Pins.
+                            </p>
+                            <div class="flex flex-wrap gap-1 text-[10px] font-mono text-slate-500">
+                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V0-V7: Relay</span>
+                                <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200">V8-V15: Arus</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                    <button @click="modalPresetTemplate = false" type="button" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-xs uppercase shadow-md hover:opacity-95 cursor-pointer active:scale-95 flex items-center gap-2">
+                        <span>🚀 Pasang Preset Ini (1-Klik)</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL IMPORT TEMPLATE (.JSON) ================= -->
+    <div x-show="modalImportTemplate" 
+         x-cloak 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        
+        <div @click.away="modalImportTemplate = false" 
+             class="bg-white rounded-[36px] w-full max-w-lg p-6 sm:p-7 shadow-2xl space-y-6 border border-slate-100">
+            
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-2xl bg-slate-900 text-white font-black text-2xl flex items-center justify-center shadow-xs">
+                        📤
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-black text-[#1D1616]">Import Blueprint Template</h4>
+                        <p class="text-xs text-slate-500">Pulihkan template dari file JSON hasil unduhan</p>
+                    </div>
+                </div>
+                <button @click="modalImportTemplate = false" class="text-slate-400 hover:text-[#8E1616] text-2xl font-bold cursor-pointer">&times;</button>
+            </div>
+
+            <form action="{{ route('templates.import') }}" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs">
+                @csrf
+                
+                <div>
+                    <label class="block font-black uppercase text-slate-700 tracking-wider mb-2">
+                        Pilih File Blueprint JSON (.json) *
+                    </label>
+                    
+                    <div class="border-2 border-dashed border-slate-300 hover:border-slate-400 rounded-3xl p-6 text-center cursor-pointer bg-slate-50 transition relative">
+                        <input type="file" 
+                               name="template_file" 
+                               accept=".json,application/json" 
+                               @change="importFileName = $event.target.files[0] ? $event.target.files[0].name : ''" 
+                               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        <div class="space-y-2 pointer-events-none">
+                            <span class="text-3xl block">📄</span>
+                            <div class="text-xs font-bold text-slate-700" x-text="importFileName ? importFileName : 'Klik atau seret file JSON template ke sini'"></div>
+                            <p class="text-[10.5px] text-slate-400">File format .json standar PINDAD IoT</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-sky-50 rounded-2xl border border-sky-200 text-sky-800 text-[11px] leading-relaxed flex items-start gap-2">
+                    <span class="text-base">💡</span>
+                    <span>Seluruh saluran <b>Virtual Pin</b>, tipe data, nilai batas, dan nama komponen akan otomatis dipulihkan ke sistem secara instan.</span>
+                </div>
+
+                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+                    <button @click="modalImportTemplate = false" type="button" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-2xl bg-[#1D1616] hover:bg-slate-900 text-white font-black text-xs uppercase shadow-md transition cursor-pointer active:scale-95 flex items-center gap-1.5">
+                        <span>📥 Import & Pasang Template</span>
+                    </button>
                 </div>
             </form>
         </div>

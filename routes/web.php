@@ -40,6 +40,9 @@ Route::middleware('auth.session')->group(function () {
     Route::delete('/templates/{id}', [DashboardController::class, 'deleteTemplate'])->name('templates.destroy');
     Route::post('/templates/{id}/datastreams', [DashboardController::class, 'addDatastream'])->name('templates.addDatastream');
     Route::delete('/templates/{id}/datastreams/{pin}', [DashboardController::class, 'deleteDatastream'])->name('templates.deleteDatastream');
+    Route::get('/templates/{id}/export', [DashboardController::class, 'exportTemplate'])->name('templates.export');
+    Route::post('/templates/import', [DashboardController::class, 'importTemplate'])->name('templates.import');
+    Route::post('/templates/preset', [DashboardController::class, 'createPresetTemplate'])->name('templates.preset');
 
     // Pengelolaan Akun & Profil Operator
     Route::post('/profile/update', [DashboardController::class, 'updateProfile'])->name('profile.update');
