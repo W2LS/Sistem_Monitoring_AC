@@ -666,6 +666,17 @@ class DashboardController extends Controller
         $cleanId = strtoupper(preg_replace('/[^A-Z0-9_]/', '_', $rawId));
         $cleanId = trim(preg_replace('/_+/', '_', $cleanId), '_');
 
+        // Check if IP address is already registered to prevent network collision
+        $ip = trim($request->input('ip_address', ''));
+        if (!empty($ip) && $ip !== '192.168.196.x') {
+            $conflictDev = Device::where('ip_address', $ip)->first();
+            if ($conflictDev) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', "Gagal menambahkan node! Alamat IP {$ip} sudah digunakan oleh perangkat '{$conflictDev->name}' ({$conflictDev->device_id}). Silakan gunakan alamat IP yang berbeda!");
+            }
+        }
+
         $template = Template::find($request->input('template_id'));
 
         $initialValues = [];

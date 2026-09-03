@@ -606,8 +606,19 @@ function homeFleetComponent() {
                   x-data="{ 
                       devName: '', 
                       devId: '', 
+                      devIp: '',
                       selectedTmpl: '{{ $templates->first()->id ?? '' }}',
                       devNumAc: 2,
+                      existingIps: {
+                          @foreach($devices as $d)
+                          '{{ trim($d->ip_address) }}': '{{ addslashes($d->name) }} ({{ $d->device_id }})',
+                          @endforeach
+                      },
+                      get ipConflict() {
+                          let ip = (this.devIp || '').trim();
+                          if (!ip || ip === '192.168.196.x') return null;
+                          return this.existingIps[ip] || null;
+                      },
                       templatesMap: {
                           @foreach($templates as $t)
                           '{{ $t->id }}': {
@@ -664,8 +675,25 @@ function homeFleetComponent() {
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">IP Address Perangkat</label>
-                        <input type="text" name="ip_address" value="192.168.196.50" placeholder="192.168.196.x" class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-[#D84040] outline-none">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-black uppercase text-slate-700 tracking-wider">IP Address Perangkat</label>
+                            <span x-show="ipConflict" class="text-[9.5px] font-black uppercase text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md flex items-center gap-1 animate-pulse">
+                                <span>⚠️</span>
+                                <span>IP Sudah Terpakai</span>
+                            </span>
+                        </div>
+                        <input type="text" 
+                               name="ip_address" 
+                               x-model="devIp"
+                               placeholder="Contoh: 192.168.196.51" 
+                               required
+                               class="w-full px-4 py-2.5 rounded-2xl border text-xs sm:text-sm font-mono transition outline-none"
+                               :class="ipConflict ? 'border-rose-500 bg-rose-50/50 text-rose-900 focus:ring-2 focus:ring-rose-400' : 'border-slate-200 focus:ring-2 focus:ring-[#D84040]'">
+                        
+                        <div x-show="ipConflict" class="mt-1.5 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-[11px] font-semibold flex items-start gap-1.5">
+                            <span class="text-xs shrink-0 mt-0.5">⚠️</span>
+                            <span>Alamat IP ini sudah digunakan oleh: <b class="font-black text-rose-900" x-text="ipConflict"></b>. Gunakan IP lain untuk mencegah bentrok/konflik jaringan!</span>
+                        </div>
                     </div>
 
                     <div>
@@ -676,7 +704,12 @@ function homeFleetComponent() {
 
                 <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
                     <button @click="modalNewDevice = false" type="button" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-[#D84040] to-[#8E1616] text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Daftarkan Node</button>
+                    <button type="submit" 
+                            :disabled="Boolean(ipConflict)" 
+                            :class="ipConflict ? 'opacity-40 cursor-not-allowed bg-slate-400' : 'bg-gradient-to-r from-[#D84040] to-[#8E1616] hover:opacity-95 cursor-pointer shadow-md active:scale-95'"
+                            class="px-6 py-2.5 rounded-2xl text-white font-bold text-xs uppercase transition">
+                        Daftarkan Node
+                    </button>
                 </div>
             </form>
         </div>
