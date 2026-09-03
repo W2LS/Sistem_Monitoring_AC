@@ -285,38 +285,38 @@
     <!-- ================= MODAL 1: TAMBAH TEMPLATE BARU ================= -->
     <div x-show="modalNewTemplate" 
          x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+         class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 pb-28 sm:pb-6 bg-black/60 backdrop-blur-xs"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100">
         
         <div @click.away="modalNewTemplate = false" 
-             class="bg-white rounded-[40px] p-7 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 space-y-5 relative max-h-[90vh] overflow-y-auto">
+             class="bg-white rounded-[28px] sm:rounded-[36px] p-5 sm:p-7 max-w-lg w-full shadow-2xl border border-slate-200 space-y-3.5 sm:space-y-4 relative max-h-[82vh] sm:max-h-[88vh] overflow-y-auto">
             
-            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-[20px] bg-[#D84040]/10 text-[#D84040] flex items-center justify-center font-black text-xl">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 sm:pb-3.5">
+                <div class="flex items-center gap-2.5 sm:gap-3">
+                    <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-[20px] bg-[#D84040]/10 text-[#D84040] flex items-center justify-center font-black text-lg sm:text-xl shrink-0">
                         🛠️
                     </div>
                     <div>
-                        <h4 class="text-lg font-black text-[#1D1616]">Buat Device Template Baru</h4>
-                        <p class="text-xs text-slate-500">Rancang blueprint IoT baru PT PINDAD</p>
+                        <h4 class="text-base sm:text-lg font-black text-[#1D1616]">Buat Device Template Baru</h4>
+                        <p class="text-[11px] sm:text-xs text-slate-500">Rancang blueprint IoT baru PT PINDAD</p>
                     </div>
                 </div>
                 <button @click="modalNewTemplate = false" class="text-slate-400 hover:text-[#D84040] text-2xl font-bold cursor-pointer">&times;</button>
             </div>
 
-            <form action="{{ route('templates.store') }}" method="POST" class="space-y-4">
+            <form action="{{ route('templates.store') }}" method="POST" class="space-y-3 sm:space-y-3.5">
                 @csrf
                 <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Nama Template *</label>
-                    <input type="text" name="name" required placeholder="Contoh: Smart Sensor Suhu Server Rack" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                    <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Nama Template *</label>
+                    <input type="text" name="name" required placeholder="Contoh: Smart Sensor Suhu Server Rack" class="w-full px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5">
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Tipe Hardware *</label>
-                        <select name="hardware_type" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#D84040] outline-none">
+                        <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Tipe Hardware *</label>
+                        <select name="hardware_type" class="w-full px-3.5 py-2.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-[#D84040] outline-none">
                             <option value="Raspberry Pi 3B+">Raspberry Pi 3B+</option>
                             <option value="Raspberry Pi 4 Model B">Raspberry Pi 4 Model B</option>
                             <option value="ESP32 Dual-Core IoT">ESP32 Dual-Core IoT</option>
@@ -325,8 +325,8 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Tipe Koneksi *</label>
-                        <select name="connection_type" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#D84040] outline-none">
+                        <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Tipe Koneksi *</label>
+                        <select name="connection_type" class="w-full px-3.5 py-2.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-[#D84040] outline-none">
                             <option value="MQTT Broker (TCP 1883)">MQTT Broker (TCP 1883)</option>
                             <option value="WiFi (IEEE 802.11 b/g/n)">WiFi (IEEE 802.11 b/g/n)</option>
                             <option value="Ethernet LAN">Ethernet LAN</option>
@@ -336,18 +336,18 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Ikon Representasi</label>
-                    <input type="text" name="icon" value="⚡" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                    <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Ikon Representasi</label>
+                    <input type="text" name="icon" value="⚡" class="w-full px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Deskripsi Template</label>
-                    <textarea name="description" rows="2" placeholder="Tuliskan spesifikasi umum blueprint..." class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#D84040] outline-none"></textarea>
+                    <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Deskripsi Template</label>
+                    <textarea name="description" rows="2" placeholder="Tuliskan spesifikasi umum blueprint..." class="w-full px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#D84040] outline-none"></textarea>
                 </div>
 
-                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
-                    <button @click="modalNewTemplate = false" type="button" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-[#D84040] to-[#8E1616] text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Buat Template</button>
+                <div class="pt-2.5 sm:pt-3 flex items-center justify-end gap-2.5 sm:gap-3 border-t border-slate-100">
+                    <button @click="modalNewTemplate = false" type="button" class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
+                    <button type="submit" class="px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#D84040] to-[#8E1616] text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Buat Template</button>
                 </div>
             </form>
         </div>
@@ -357,39 +357,39 @@
     <!-- ================= MODAL 2: EDIT / RENAME TEMPLATE ================= -->
     <div x-show="modalEditTemplate" 
          x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+         class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 pb-28 sm:pb-6 bg-black/60 backdrop-blur-xs"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100">
         
         <div @click.away="modalEditTemplate = false" 
-             class="bg-white rounded-[40px] p-7 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 space-y-5 relative max-h-[90vh] overflow-y-auto">
+             class="bg-white rounded-[28px] sm:rounded-[36px] p-5 sm:p-7 max-w-lg w-full shadow-2xl border border-slate-200 space-y-3.5 sm:space-y-4 relative max-h-[82vh] sm:max-h-[88vh] overflow-y-auto">
             
-            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-[20px] bg-[#8E1616]/10 text-[#8E1616] flex items-center justify-center font-black text-xl">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 sm:pb-3.5">
+                <div class="flex items-center gap-2.5 sm:gap-3">
+                    <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-[20px] bg-[#8E1616]/10 text-[#8E1616] flex items-center justify-center font-black text-lg sm:text-xl shrink-0">
                         ✏️
                     </div>
                     <div>
-                        <h4 class="text-lg font-black text-[#1D1616]">Rename & Edit Template</h4>
-                        <p class="text-xs text-slate-500">Perbarui nama dan konfigurasi blueprint</p>
+                        <h4 class="text-base sm:text-lg font-black text-[#1D1616]">Rename & Edit Template</h4>
+                        <p class="text-[11px] sm:text-xs text-slate-500">Perbarui nama dan konfigurasi blueprint</p>
                     </div>
                 </div>
                 <button @click="modalEditTemplate = false" class="text-slate-400 hover:text-[#8E1616] text-2xl font-bold cursor-pointer">&times;</button>
             </div>
 
-            <form :action="'/templates/' + editTemplate.id" method="POST" class="space-y-4">
+            <form :action="'/templates/' + editTemplate.id" method="POST" class="space-y-3 sm:space-y-3.5">
                 @csrf
                 @method('PUT')
                 <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Nama Template *</label>
-                    <input type="text" name="name" x-model="editTemplate.name" required class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
+                    <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Nama Template *</label>
+                    <input type="text" name="name" x-model="editTemplate.name" required class="w-full px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5">
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Tipe Hardware *</label>
-                        <select name="hardware_type" x-model="editTemplate.hardware_type" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#8E1616] outline-none">
+                        <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Tipe Hardware *</label>
+                        <select name="hardware_type" x-model="editTemplate.hardware_type" class="w-full px-3.5 py-2.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-[#8E1616] outline-none">
                             <option value="Raspberry Pi 3B+">Raspberry Pi 3B+</option>
                             <option value="Raspberry Pi 4 Model B">Raspberry Pi 4 Model B</option>
                             <option value="ESP32 Dual-Core IoT">ESP32 Dual-Core IoT</option>
@@ -398,8 +398,8 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Tipe Koneksi *</label>
-                        <select name="connection_type" x-model="editTemplate.connection_type" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#8E1616] outline-none">
+                        <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Tipe Koneksi *</label>
+                        <select name="connection_type" x-model="editTemplate.connection_type" class="w-full px-3.5 py-2.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-[#8E1616] outline-none">
                             <option value="MQTT Broker (TCP 1883)">MQTT Broker (TCP 1883)</option>
                             <option value="WiFi (IEEE 802.11 b/g/n)">WiFi (IEEE 802.11 b/g/n)</option>
                             <option value="Ethernet LAN">Ethernet LAN</option>
@@ -409,18 +409,18 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Ikon</label>
-                    <input type="text" name="icon" x-model="editTemplate.icon" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
+                    <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Ikon</label>
+                    <input type="text" name="icon" x-model="editTemplate.icon" class="w-full px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Deskripsi Template</label>
-                    <textarea name="description" x-model="editTemplate.description" rows="2" class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none"></textarea>
+                    <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Deskripsi Template</label>
+                    <textarea name="description" x-model="editTemplate.description" rows="2" class="w-full px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#8E1616] outline-none"></textarea>
                 </div>
 
-                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
-                    <button @click="modalEditTemplate = false" type="button" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-[#8E1616] to-[#1D1616] text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Perbarui Template</button>
+                <div class="pt-2.5 sm:pt-3 flex items-center justify-end gap-2.5 sm:gap-3 border-t border-slate-100">
+                    <button @click="modalEditTemplate = false" type="button" class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
+                    <button type="submit" class="px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#8E1616] to-[#1D1616] text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Perbarui Template</button>
                 </div>
             </form>
         </div>
@@ -430,30 +430,30 @@
     <!-- ================= MODAL 3: TAMBAH DATASTREAM (VIRTUAL PIN) ================= -->
     <div x-show="modalNewDatastream" 
          x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+         class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 pb-28 sm:pb-6 bg-black/60 backdrop-blur-xs"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100">
         
         <div @click.away="modalNewDatastream = false" 
-             class="bg-white rounded-[40px] p-7 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 space-y-5 relative max-h-[90vh] overflow-y-auto">
+             class="bg-white rounded-[28px] sm:rounded-[36px] p-5 sm:p-7 max-w-lg w-full shadow-2xl border border-slate-200 space-y-3.5 sm:space-y-4 relative max-h-[82vh] sm:max-h-[88vh] overflow-y-auto">
             
-            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-[20px] bg-[#8E1616]/10 text-[#8E1616] flex items-center justify-center font-black text-xl">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 sm:pb-3.5">
+                <div class="flex items-center gap-2.5 sm:gap-3">
+                    <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-[20px] bg-[#8E1616]/10 text-[#8E1616] flex items-center justify-center font-black text-lg sm:text-xl shrink-0">
                         📍
                     </div>
                     <div>
-                        <h4 class="text-lg font-black text-[#1D1616]">Tambah Datastream Virtual Pin</h4>
-                        <p class="text-xs text-slate-500">Kaitkan parameter telemetri / saklar kontrol</p>
+                        <h4 class="text-base sm:text-lg font-black text-[#1D1616]">Tambah Datastream Pin</h4>
+                        <p class="text-[11px] sm:text-xs text-slate-500">Kaitkan parameter telemetri / kontrol</p>
                     </div>
                 </div>
                 <button @click="modalNewDatastream = false" class="text-slate-400 hover:text-[#8E1616] text-2xl font-bold cursor-pointer">&times;</button>
             </div>
 
-            <form :action="'/templates/' + selectedTemplateId + '/datastreams'" method="POST" class="space-y-4">
+            <form :action="'/templates/' + selectedTemplateId + '/datastreams'" method="POST" class="space-y-3 sm:space-y-3.5">
                 @csrf
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5">
                     <div x-data="{ 
                         openPinDropdown: false, 
                         selectedPin: '', 
@@ -464,7 +464,7 @@
                             return this.pins.filter(p => p.toLowerCase().includes(this.searchPin.toLowerCase()));
                         }
                     }" class="relative">
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Virtual Pin *</label>
+                        <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Virtual Pin *</label>
                         
                         <!-- Hidden input for form submit -->
                         <input type="hidden" name="pin" :value="selectedPin" required>
@@ -472,14 +472,14 @@
                         <!-- Trigger Button -->
                         <div @click="openPinDropdown = !openPinDropdown" 
                              @click.away="openPinDropdown = false"
-                             class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono font-bold text-[#1D1616] bg-white focus-within:ring-2 focus-within:ring-[#8E1616] flex items-center justify-between cursor-pointer shadow-2xs hover:border-slate-300 transition">
+                             class="w-full px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono font-bold text-[#1D1616] bg-white focus-within:ring-2 focus-within:ring-[#8E1616] flex items-center justify-between cursor-pointer shadow-2xs hover:border-slate-300 transition">
                             <span :class="selectedPin ? 'text-[#1D1616] font-black' : 'text-slate-400 font-sans font-normal'" x-text="selectedPin ? selectedPin : '-- Pilih Virtual Pin --'"></span>
                             <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="openPinDropdown ? 'rotate-180 text-[#8E1616]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </div>
 
-                        <!-- Dropdown Panel (Compact Max Height 48 with Custom Scrollbar) -->
+                        <!-- Dropdown Panel -->
                         <div x-show="openPinDropdown" 
                              x-cloak
                              x-transition:enter="transition ease-out duration-150 transform opacity-0 scale-95"
@@ -487,7 +487,6 @@
                              x-transition:enter-end="opacity-100 scale-100"
                              class="absolute left-0 right-0 z-50 mt-1.5 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 space-y-1.5 max-h-52 overflow-y-auto">
                             
-                            <!-- Search input inside dropdown -->
                             <div class="px-1 pt-1 pb-1">
                                 <input type="text" 
                                        x-model="searchPin" 
@@ -496,7 +495,6 @@
                                        class="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
                             </div>
 
-                            <!-- List of Virtual Pins -->
                             <div class="divide-y divide-slate-50">
                                 <template x-for="p in filteredPins" :key="p">
                                     <div @click="selectedPin = p; openPinDropdown = false" 
@@ -516,9 +514,9 @@
                         openTypeDropdown: false, 
                         selectedType: 'Integer',
                         types: [
-                            { value: 'Integer', label: 'Integer (0, 1, Bilangan Bulat)', badge: 'INT', color: 'bg-blue-50 text-blue-700' },
-                            { value: 'Double', label: 'Double (Desimal / Float)', badge: 'DBL', color: 'bg-emerald-50 text-emerald-700' },
-                            { value: 'String', label: 'String (Teks / JSON)', badge: 'STR', color: 'bg-amber-50 text-amber-700' },
+                            { value: 'Integer', label: 'Integer (0, 1, Bulat)', badge: 'INT', color: 'bg-blue-50 text-blue-700' },
+                            { value: 'Double', label: 'Double (Float/Desimal)', badge: 'DBL', color: 'bg-emerald-50 text-emerald-700' },
+                            { value: 'String', label: 'String (Teks/JSON)', badge: 'STR', color: 'bg-amber-50 text-amber-700' },
                             { value: 'Enum', label: 'Enum (Status Pilihan)', badge: 'ENUM', color: 'bg-purple-50 text-purple-700' }
                         ],
                         get currentLabel() {
@@ -526,7 +524,7 @@
                             return found ? found.label : this.selectedType;
                         }
                     }" class="relative">
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Tipe Data *</label>
+                        <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Tipe Data *</label>
                         
                         <!-- Hidden input for form submit -->
                         <input type="hidden" name="type" :value="selectedType" required>
@@ -534,7 +532,7 @@
                         <!-- Trigger Button -->
                         <div @click="openTypeDropdown = !openTypeDropdown" 
                              @click.away="openTypeDropdown = false"
-                             class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-xs sm:text-sm font-bold text-[#1D1616] bg-white focus-within:ring-2 focus-within:ring-[#8E1616] flex items-center justify-between cursor-pointer shadow-2xs hover:border-slate-300 transition truncate">
+                             class="w-full px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm font-bold text-[#1D1616] bg-white focus-within:ring-2 focus-within:ring-[#8E1616] flex items-center justify-between cursor-pointer shadow-2xs hover:border-slate-300 transition truncate">
                             <span class="truncate pr-2" x-text="currentLabel"></span>
                             <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0" :class="openTypeDropdown ? 'rotate-180 text-[#8E1616]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -551,7 +549,7 @@
                             <template x-for="t in types" :key="t.value">
                                 <div @click="selectedType = t.value; openTypeDropdown = false" 
                                      :class="selectedType === t.value ? 'bg-[#8E1616] text-white font-black' : 'text-slate-700 hover:bg-slate-100 font-bold'"
-                                     class="px-3 py-2.5 rounded-xl text-xs cursor-pointer flex items-center justify-between transition">
+                                     class="px-3 py-2 rounded-xl text-xs cursor-pointer flex items-center justify-between transition">
                                     <span x-text="t.label" class="truncate pr-2"></span>
                                     <span x-show="selectedType === t.value" class="text-[10px] shrink-0 font-black">✓</span>
                                     <span x-show="selectedType !== t.value" :class="t.color" class="text-[9px] font-black px-1.5 py-0.5 rounded shrink-0 uppercase" x-text="t.badge"></span>
@@ -562,37 +560,37 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Nama Datastream *</label>
-                    <input type="text" name="name" required placeholder="Contoh: Sensor Arus ACS712" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
+                    <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Nama Datastream *</label>
+                    <input type="text" name="name" required placeholder="Contoh: Sensor Arus ACS712" class="w-full px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 items-end">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 items-end">
                     <div class="flex flex-col justify-end">
-                        <label class="block text-[10.5px] sm:text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1.5 whitespace-nowrap truncate" title="Batas Nilai Minimum">Min Value</label>
-                        <input type="number" step="any" name="min" value="0" class="w-full h-11 px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
+                        <label class="block text-[10px] sm:text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1 whitespace-nowrap truncate" title="Batas Nilai Minimum">Min Value</label>
+                        <input type="number" step="any" name="min" value="0" class="w-full h-9 sm:h-10 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg sm:rounded-xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
                     </div>
                     <div class="flex flex-col justify-end">
-                        <label class="block text-[10.5px] sm:text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1.5 whitespace-nowrap truncate" title="Batas Nilai Maksimum">Max Value</label>
-                        <input type="number" step="any" name="max" value="100" class="w-full h-11 px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
+                        <label class="block text-[10px] sm:text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1 whitespace-nowrap truncate" title="Batas Nilai Maksimum">Max Value</label>
+                        <input type="number" step="any" name="max" value="100" class="w-full h-9 sm:h-10 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg sm:rounded-xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
                     </div>
                     <div class="flex flex-col justify-end">
-                        <label class="block text-[10.5px] sm:text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1.5 whitespace-nowrap truncate" title="Nilai Awal / Default">Default Value</label>
-                        <input type="number" step="any" name="default_value" value="0" class="w-full h-11 px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
+                        <label class="block text-[10px] sm:text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1 whitespace-nowrap truncate" title="Nilai Awal / Default">Default Value</label>
+                        <input type="number" step="any" name="default_value" value="0" class="w-full h-9 sm:h-10 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg sm:rounded-xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
                     </div>
                     <div class="flex flex-col justify-end">
-                        <label class="block text-[10.5px] sm:text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1.5 whitespace-nowrap truncate" title="Satuan Pengukuran">Satuan Unit</label>
-                        <input type="text" name="unit" placeholder="A, W, °C, %" class="w-full h-11 px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
+                        <label class="block text-[10px] sm:text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1 whitespace-nowrap truncate" title="Satuan Unit">Satuan (Unit)</label>
+                        <input type="text" name="unit" placeholder="cth: A, W, V, °C" class="w-full h-9 sm:h-10 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg sm:rounded-xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Deskripsi Fungsi</label>
-                    <input type="text" name="desc" placeholder="Penjelasan fungsi pin ini..." class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
+                    <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Keterangan / Fungsi Pin (Opsional)</label>
+                    <textarea name="description" rows="2" placeholder="Tuliskan deskripsi pemakaian pin ini..." class="w-full px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#8E1616] outline-none"></textarea>
                 </div>
 
-                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
-                    <button @click="modalNewDatastream = false" type="button" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-[#8E1616] to-[#1D1616] text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Simpan Datastream</button>
+                <div class="pt-2.5 sm:pt-3 flex items-center justify-end gap-2.5 sm:gap-3 border-t border-slate-100">
+                    <button @click="modalNewDatastream = false" type="button" class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
+                    <button type="submit" class="px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#8E1616] to-[#1D1616] text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Simpan Datastream</button>
                 </div>
             </form>
         </div>
@@ -601,7 +599,7 @@
     <!-- ================= MODAL PRESET MODUL RELAY (1-CLICK QUICK BLUEPRINT) ================= -->
     <div x-show="modalPresetTemplate" 
          x-cloak 
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+         class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 pb-28 sm:pb-6 bg-black/60 backdrop-blur-sm"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"

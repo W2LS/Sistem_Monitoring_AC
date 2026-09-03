@@ -581,28 +581,28 @@ function homeFleetComponent() {
     <!-- ========================================================================= -->
     <div x-show="modalNewDevice" 
          x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+         class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 pb-28 sm:pb-6 bg-black/60 backdrop-blur-xs"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100">
         
         <div @click.away="modalNewDevice = false" 
-             class="bg-white rounded-[40px] p-6 sm:p-8 max-w-xl w-full shadow-2xl border border-slate-200 space-y-5 relative max-h-[90vh] overflow-y-auto">
+             class="bg-white rounded-[28px] sm:rounded-[36px] p-5 sm:p-7 max-w-lg w-full shadow-2xl border border-slate-200 space-y-3.5 sm:space-y-4 relative max-h-[82vh] sm:max-h-[88vh] overflow-y-auto">
             
-            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-[20px] bg-[#D84040]/10 text-[#D84040] flex items-center justify-center font-black text-xl">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 sm:pb-3.5">
+                <div class="flex items-center gap-2.5 sm:gap-3">
+                    <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-[20px] bg-[#D84040]/10 text-[#D84040] flex items-center justify-center font-black text-lg sm:text-xl shrink-0">
                         +
                     </div>
                     <div>
-                        <h4 class="text-lg font-black text-[#1D1616]">Daftarkan Perangkat IoT Baru</h4>
-                        <p class="text-xs text-slate-500">Pilih blueprint template & hubungkan kontroler</p>
+                        <h4 class="text-base sm:text-lg font-black text-[#1D1616]">Daftarkan Perangkat Baru</h4>
+                        <p class="text-[11px] sm:text-xs text-slate-500">Pilih template blueprint & hubungkan kontroler</p>
                     </div>
                 </div>
                 <button @click="modalNewDevice = false" class="text-slate-400 hover:text-[#D84040] text-2xl font-bold cursor-pointer">&times;</button>
             </div>
 
-            <form action="{{ route('devices.store') }}" method="POST" class="space-y-4" 
+            <form action="{{ route('devices.store') }}" method="POST" class="space-y-3 sm:space-y-3.5" 
                   x-data="{ 
                       devName: '', 
                       devId: '', 
@@ -638,48 +638,48 @@ function homeFleetComponent() {
                 @csrf
                 
                 <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Blueprint Template Perangkat *</label>
+                    <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Blueprint Template Perangkat *</label>
                     <select name="template_id" 
                             x-model="selectedTmpl"
                             required
-                            class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#D84040] outline-none cursor-pointer">
+                            class="w-full px-3.5 py-2.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-[#D84040] outline-none cursor-pointer">
                         @foreach($templates as $t)
                         <option value="{{ $t->id }}">{{ $t->icon ?? '⚡' }} {{ $t->name }} ({{ $t->hardware_type }})</option>
                         @endforeach
                     </select>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5">
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Nama Perangkat / Ruangan *</label>
-                        <input type="text" name="name" x-model="devName" @input="updateSlug()" required placeholder="Contoh: Ruang Server 2" class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                        <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Nama Perangkat / Ruangan *</label>
+                        <input type="text" name="name" x-model="devName" @input="updateSlug()" required placeholder="Contoh: Ruang Server 2" class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Lokasi Gedung / Ruangan *</label>
-                        <input type="text" name="location" required placeholder="Contoh: Gedung TIK" class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                        <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Lokasi Gedung / Ruangan *</label>
+                        <input type="text" name="location" required placeholder="Contoh: Gedung TIK" class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
                     </div>
                 </div>
 
                 <div>
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider">ID Perangkat (Device ID MQTT) *</label>
-                        <span class="text-[10px] font-bold text-slate-400 flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-md">
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider">ID Perangkat (MQTT) *</label>
+                        <span class="text-[9px] font-bold text-slate-400 flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-md">
                             <span>🔒</span>
-                            <span>Auto-Generated (Read-Only)</span>
+                            <span>Auto-Generated</span>
                         </span>
                     </div>
-                    <input type="text" name="device_id" x-model="devId" readonly required placeholder="RPI3B_..." class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono font-bold uppercase bg-slate-100 text-slate-600 cursor-not-allowed outline-none select-none shadow-2xs">
-                    <p class="text-[11px] text-slate-400 mt-1">ID MQTT digenerate otomatis dari nama perangkat untuk meminimalisir kesalahan penulisan topic broker.</p>
+                    <input type="text" name="device_id" x-model="devId" readonly required placeholder="RPI3B_..." class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono font-bold uppercase bg-slate-100 text-slate-600 cursor-not-allowed outline-none select-none shadow-2xs">
+                    <p class="text-[10px] text-slate-400 mt-1">ID MQTT digenerate otomatis dari nama perangkat.</p>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5">
                     <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-xs font-black uppercase text-slate-700 tracking-wider">IP Address Perangkat</label>
-                            <span x-show="ipConflict" class="text-[9.5px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md flex items-center gap-1">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider">IP Address</label>
+                            <span x-show="ipConflict" class="text-[9px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-md flex items-center gap-1">
                                 <span>⚠️</span>
-                                <span>Sudah Terpakai</span>
+                                <span>Terpakai</span>
                             </span>
                         </div>
                         <input type="text" 
@@ -687,27 +687,27 @@ function homeFleetComponent() {
                                x-model="devIp"
                                placeholder="Contoh: 192.168.196.51" 
                                required
-                               class="w-full px-4 py-2.5 rounded-2xl border text-xs sm:text-sm font-mono transition outline-none"
+                               class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border text-xs sm:text-sm font-mono transition outline-none"
                                :class="ipConflict ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:ring-2 focus:ring-rose-400' : 'border-slate-200 focus:ring-2 focus:ring-[#D84040]'">
                         
-                        <p x-show="ipConflict" class="text-[10.5px] font-semibold text-rose-600 mt-1 flex items-center gap-1 truncate">
+                        <p x-show="ipConflict" class="text-[10px] font-semibold text-rose-600 mt-1 flex items-center gap-1 truncate">
                             <span>⚠️</span>
-                            <span>Sudah digunakan oleh: <b class="font-bold underline" x-text="ipConflict"></b></span>
+                            <span>Dipakai oleh: <b class="font-bold underline" x-text="ipConflict"></b></span>
                         </p>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Jumlah Unit AC (Kapasitas Relai)</label>
-                        <input type="number" name="num_ac" x-model="devNumAc" min="1" max="8" class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-[#D84040] outline-none">
+                        <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1">Kapasitas AC (Unit)</label>
+                        <input type="number" name="num_ac" x-model="devNumAc" min="1" max="8" class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-[#D84040] outline-none">
                     </div>
                 </div>
 
-                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
-                    <button @click="modalNewDevice = false" type="button" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
+                <div class="pt-2.5 sm:pt-3 flex items-center justify-end gap-2.5 sm:gap-3 border-t border-slate-100">
+                    <button @click="modalNewDevice = false" type="button" class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
                     <button type="submit" 
                             :disabled="Boolean(ipConflict)" 
                             :class="ipConflict ? 'opacity-40 cursor-not-allowed bg-slate-400' : 'bg-gradient-to-r from-[#D84040] to-[#8E1616] hover:opacity-95 cursor-pointer shadow-md active:scale-95'"
-                            class="px-6 py-2.5 rounded-2xl text-white font-bold text-xs uppercase transition">
+                            class="px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-white font-bold text-xs uppercase transition">
                         Daftarkan Node
                     </button>
                 </div>
@@ -721,39 +721,39 @@ function homeFleetComponent() {
     <!-- ========================================================================= -->
     <div x-show="modalSchedule" 
          x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+         class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 pb-28 sm:pb-6 bg-black/60 backdrop-blur-xs"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100">
         
         <div @click.away="modalSchedule = false" 
-             class="bg-white rounded-[40px] p-7 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 space-y-5 relative max-h-[90vh] overflow-y-auto">
+             class="bg-white rounded-[28px] sm:rounded-[36px] p-5 sm:p-7 max-w-lg w-full shadow-2xl border border-slate-200 space-y-3.5 sm:space-y-4 relative max-h-[82vh] sm:max-h-[88vh] overflow-y-auto">
             
-            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-[20px] bg-[#8E1616]/10 text-[#8E1616] flex items-center justify-center font-black text-xl">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 sm:pb-3.5">
+                <div class="flex items-center gap-2.5 sm:gap-3">
+                    <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-[20px] bg-[#8E1616]/10 text-[#8E1616] flex items-center justify-center font-black text-lg sm:text-xl shrink-0">
                         ⏰
                     </div>
                     <div>
-                        <h4 class="text-lg font-black text-[#1D1616]">Tambah Jadwal Shift AC</h4>
-                        <p class="text-xs text-slate-500">Konfigurasi waktu rotasi hardware RTC DS3231</p>
+                        <h4 class="text-base sm:text-lg font-black text-[#1D1616]">Tambah Jadwal Shift AC</h4>
+                        <p class="text-[11px] sm:text-xs text-slate-500">Konfigurasi waktu rotasi hardware RTC DS3231</p>
                     </div>
                 </div>
                 <button @click="modalSchedule = false" class="text-slate-400 hover:text-[#8E1616] text-2xl font-bold cursor-pointer">&times;</button>
             </div>
 
-            <form action="{{ route('schedules.store') }}" method="POST" class="space-y-4">
+            <form action="{{ route('schedules.store') }}" method="POST" class="space-y-3 sm:space-y-3.5">
                 @csrf
                 <input type="hidden" name="device_id" value="{{ $selectedDeviceId }}">
 
                 <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Label / Nama Shift *</label>
-                    <input type="text" name="label" required placeholder="Contoh: Shift Siang (AC 1)" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
+                    <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Label / Nama Shift *</label>
+                    <input type="text" name="label" required placeholder="Contoh: Shift Siang (AC 1)" class="w-full px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Target Unit AC *</label>
-                    <select name="target_ac" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#8E1616] outline-none cursor-pointer">
+                    <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Target Unit AC *</label>
+                    <select name="target_ac" class="w-full px-3.5 py-2.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-[#8E1616] outline-none cursor-pointer">
                         @foreach($unitData ?? [] as $acNum => $unit)
                             <option value="{{ $acNum }}">{{ $unit['name'] }} (Pin GPIO {{ $unit['gpio'] }})</option>
                         @endforeach
@@ -761,20 +761,20 @@ function homeFleetComponent() {
                     </select>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-2.5 sm:gap-3.5">
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Jam Mulai (WIB) *</label>
-                        <input type="time" name="start_time" required value="06:00" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
+                        <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Jam Mulai (WIB) *</label>
+                        <input type="time" name="start_time" required value="06:00" class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Jam Berakhir (WIB) *</label>
-                        <input type="time" name="end_time" required value="18:00" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
+                        <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Jam Berakhir (WIB) *</label>
+                        <input type="time" name="end_time" required value="18:00" class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
                     </div>
                 </div>
 
-                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
-                    <button @click="modalSchedule = false" type="button" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-[#8E1616] to-[#1D1616] text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Simpan Jadwal</button>
+                <div class="pt-2.5 sm:pt-3 flex items-center justify-end gap-2.5 sm:gap-3 border-t border-slate-100">
+                    <button @click="modalSchedule = false" type="button" class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
+                    <button type="submit" class="px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#8E1616] to-[#1D1616] text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Simpan Jadwal</button>
                 </div>
             </form>
         </div>
@@ -786,46 +786,46 @@ function homeFleetComponent() {
     <!-- ========================================================================= -->
     <div x-show="modalEditSchedule" 
          x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+         class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 pb-28 sm:pb-6 bg-black/60 backdrop-blur-xs"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100">
         
         <div @click.away="modalEditSchedule = false" 
-             class="bg-white rounded-[40px] p-7 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 space-y-5 relative max-h-[90vh] overflow-y-auto">
+             class="bg-white rounded-[28px] sm:rounded-[36px] p-5 sm:p-7 max-w-lg w-full shadow-2xl border border-slate-200 space-y-3.5 sm:space-y-4 relative max-h-[82vh] sm:max-h-[88vh] overflow-y-auto">
             
-            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-[20px] bg-amber-100 text-amber-800 flex items-center justify-center font-black text-xl">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 sm:pb-3.5">
+                <div class="flex items-center gap-2.5 sm:gap-3">
+                    <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-[20px] bg-amber-100 text-amber-800 flex items-center justify-center font-black text-lg sm:text-xl shrink-0">
                         ✏️
                     </div>
                     <div>
-                        <h4 class="text-lg font-black text-[#1D1616]">Edit Jadwal Shift AC</h4>
-                        <p class="text-xs text-slate-500">Ubah jam mulai, jam berakhir, atau unit target</p>
+                        <h4 class="text-base sm:text-lg font-black text-[#1D1616]">Edit Jadwal Shift AC</h4>
+                        <p class="text-[11px] sm:text-xs text-slate-500">Ubah jam mulai, jam berakhir, atau unit target</p>
                     </div>
                 </div>
                 <button @click="modalEditSchedule = false" class="text-slate-400 hover:text-amber-800 text-2xl font-bold cursor-pointer">&times;</button>
             </div>
 
-            <form :action="'/schedules/' + editScheduleData.id" method="POST" class="space-y-4">
+            <form :action="'/schedules/' + editScheduleData.id" method="POST" class="space-y-3 sm:space-y-3.5">
                 @csrf
                 @method('PUT')
 
                 <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Label / Nama Shift *</label>
+                    <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Label / Nama Shift *</label>
                     <input type="text" 
                            name="label" 
                            x-model="editScheduleData.label"
                            required 
                            placeholder="Contoh: Shift Siang (AC 1)" 
-                           class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
+                           class="w-full px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Target Unit AC *</label>
+                    <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Target Unit AC *</label>
                     <select name="target_ac" 
                             x-model="editScheduleData.target_ac"
-                            class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#8E1616] outline-none cursor-pointer">
+                            class="w-full px-3.5 py-2.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-[#8E1616] outline-none cursor-pointer">
                         @foreach($unitData ?? [] as $acNum => $unit)
                             <option value="{{ $acNum }}">{{ $unit['name'] }} (Pin GPIO {{ $unit['gpio'] }})</option>
                         @endforeach
@@ -833,39 +833,39 @@ function homeFleetComponent() {
                     </select>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-2.5 sm:gap-3.5">
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Jam Mulai (WIB) *</label>
+                        <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Jam Mulai (WIB) *</label>
                         <input type="time" 
                                name="start_time" 
                                x-model="editScheduleData.start_time"
                                required 
-                               class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
+                               class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Jam Berakhir (WIB) *</label>
+                        <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Jam Berakhir (WIB) *</label>
                         <input type="time" 
                                name="end_time" 
                                x-model="editScheduleData.end_time"
                                required 
-                               class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
+                               class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
                     </div>
                 </div>
 
-                <div class="pt-1">
-                    <label class="flex items-center gap-3 cursor-pointer p-3.5 rounded-2xl border transition"
+                <div class="pt-0.5">
+                    <label class="flex items-center gap-2.5 sm:gap-3 cursor-pointer p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition"
                            :class="editScheduleData.is_active ? 'bg-emerald-50/70 border-emerald-300' : 'bg-slate-50 border-slate-200'">
-                        <input type="checkbox" name="is_active" value="1" x-model="editScheduleData.is_active" class="w-5 h-5 accent-emerald-600 rounded-lg cursor-pointer">
+                        <input type="checkbox" name="is_active" value="1" x-model="editScheduleData.is_active" class="w-4 h-4 sm:w-5 sm:h-5 accent-emerald-600 rounded cursor-pointer">
                         <div>
-                            <span class="text-xs font-black text-[#1D1616] block">Status Aturan Jadwal</span>
-                            <span class="text-[10.5px] font-medium" :class="editScheduleData.is_active ? 'text-emerald-700 font-bold' : 'text-slate-500'" x-text="editScheduleData.is_active ? '🟢 Jadwal AKTIF dan dieksekusi otomatis oleh sistem' : '⚪ Jadwal NON-AKTIF (Dijeda / Tidak dieksekusi)'"></span>
+                            <span class="text-[11px] sm:text-xs font-black text-[#1D1616] block">Status Aturan Jadwal</span>
+                            <span class="text-[10px] font-medium" :class="editScheduleData.is_active ? 'text-emerald-700 font-bold' : 'text-slate-500'" x-text="editScheduleData.is_active ? '🟢 Jadwal AKTIF otomatis' : '⚪ Jadwal NON-AKTIF (Dijeda)'"></span>
                         </div>
                     </label>
                 </div>
 
-                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
-                    <button @click="modalEditSchedule = false" type="button" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Perbarui Jadwal</button>
+                <div class="pt-2.5 sm:pt-3 flex items-center justify-end gap-2.5 sm:gap-3 border-t border-slate-100">
+                    <button @click="modalEditSchedule = false" type="button" class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
+                    <button type="submit" class="px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Perbarui Jadwal</button>
                 </div>
             </form>
         </div>
@@ -876,28 +876,28 @@ function homeFleetComponent() {
     <!-- ========================================================================= -->
     <div x-show="modalEditDevice" 
          x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+         class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 pb-28 sm:pb-6 bg-black/60 backdrop-blur-xs"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100">
         
         <div @click.away="modalEditDevice = false" 
-             class="bg-white rounded-[40px] p-6 sm:p-8 max-w-xl w-full shadow-2xl border border-slate-200 space-y-5 relative max-h-[90vh] overflow-y-auto">
+             class="bg-white rounded-[28px] sm:rounded-[36px] p-5 sm:p-7 max-w-lg w-full shadow-2xl border border-slate-200 space-y-3.5 sm:space-y-4 relative max-h-[82vh] sm:max-h-[88vh] overflow-y-auto">
             
-            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-[20px] bg-amber-100 text-amber-800 flex items-center justify-center font-black text-xl">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 sm:pb-3.5">
+                <div class="flex items-center gap-2.5 sm:gap-3">
+                    <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-[20px] bg-amber-100 text-amber-800 flex items-center justify-center font-black text-lg sm:text-xl shrink-0">
                         ✏️
                     </div>
                     <div>
-                        <h4 class="text-lg font-black text-[#1D1616]">Edit Informasi Perangkat IoT</h4>
-                        <p class="text-xs text-slate-500">Perbarui konfigurasi ruangan & blueprint template</p>
+                        <h4 class="text-base sm:text-lg font-black text-[#1D1616]">Edit Perangkat IoT</h4>
+                        <p class="text-[11px] sm:text-xs text-slate-500">Perbarui konfigurasi ruangan & template</p>
                     </div>
                 </div>
                 <button @click="modalEditDevice = false" class="text-slate-400 hover:text-amber-800 text-2xl font-bold cursor-pointer">&times;</button>
             </div>
 
-            <form :action="'/devices/' + editDeviceData.id" method="POST" class="space-y-4"
+            <form :action="'/devices/' + editDeviceData.id" method="POST" class="space-y-3 sm:space-y-3.5"
                   x-data="{
                       templatesMap: {
                           @foreach($templates as $t)
@@ -912,8 +912,8 @@ function homeFleetComponent() {
                 @method('PUT')
                 
                 <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Pilih Template Blueprint *</label>
-                    <select name="template_id" x-model="editDeviceData.template_id" required class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#D84040] outline-none cursor-pointer">
+                    <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Pilih Template Blueprint *</label>
+                    <select name="template_id" x-model="editDeviceData.template_id" required class="w-full px-3.5 py-2.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-[#D84040] outline-none cursor-pointer">
                         @foreach($templates as $tmpl)
                         <option value="{{ $tmpl->id }}">{{ $tmpl->icon }} {{ $tmpl->name }} ({{ $tmpl->hardware_type }})</option>
                         @endforeach
@@ -921,29 +921,29 @@ function homeFleetComponent() {
                 </div>
 
                 <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Nama Perangkat / Ruangan *</label>
+                    <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Nama Perangkat / Ruangan *</label>
                     <input type="text" 
                            name="name" 
                            x-model="editDeviceData.name" 
                            required 
                            placeholder="Contoh: Ruang Server 2" 
-                           class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                           class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5">
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Lokasi / Gedung *</label>
+                        <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Lokasi / Gedung *</label>
                         <input type="text" 
                                name="location" 
                                x-model="editDeviceData.location" 
                                required 
                                placeholder="Contoh: Gedung TIK" 
-                               class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                               class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
                     </div>
                     <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-xs font-black uppercase text-slate-700 tracking-wider">ID Perangkat (MQTT)</label>
-                            <span class="text-[9px] font-bold text-slate-600 bg-slate-100 border border-slate-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider">ID Perangkat</label>
+                            <span class="text-[9px] font-bold text-slate-600 bg-slate-100 border border-slate-300 px-1.5 py-0.5 rounded-full flex items-center gap-1">
                                 <span>Terkunci</span>
                             </span>
                         </div>
@@ -951,16 +951,16 @@ function homeFleetComponent() {
                                name="device_id" 
                                x-model="editDeviceData.device_id" 
                                readonly
-                               class="w-full px-4 py-2.5 rounded-2xl border-2 border-dashed border-slate-300 text-xs sm:text-sm font-mono uppercase bg-slate-100/90 text-slate-700 font-bold cursor-not-allowed select-all outline-none">
-                        <p class="text-[10px] text-slate-400 mt-1">ID MQTT bersifat permanen untuk menjaga rute sensor.</p>
+                               class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border-2 border-dashed border-slate-300 text-xs sm:text-sm font-mono uppercase bg-slate-100/90 text-slate-700 font-bold cursor-not-allowed select-all outline-none">
+                        <p class="text-[10px] text-slate-400 mt-1">ID MQTT permanen.</p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5">
                     <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-xs font-black uppercase text-slate-700 tracking-wider">Alamat IP Perangkat</label>
-                            <span class="text-[9px] font-bold text-slate-600 bg-slate-100 border border-slate-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider">Alamat IP</label>
+                            <span class="text-[9px] font-bold text-slate-600 bg-slate-100 border border-slate-300 px-1.5 py-0.5 rounded-full flex items-center gap-1">
                                 <span>Terkunci</span>
                             </span>
                         </div>
@@ -968,23 +968,22 @@ function homeFleetComponent() {
                                name="ip_address" 
                                x-model="editDeviceData.ip_address" 
                                readonly
-                               class="w-full px-4 py-2.5 rounded-2xl border-2 border-dashed border-slate-300 text-xs sm:text-sm font-mono uppercase bg-slate-100/90 text-slate-700 font-bold cursor-not-allowed select-all outline-none">
-                        <p class="text-[10px] text-slate-400 mt-1">Alamat IP ditetapkan saat pembuatan node.</p>
+                               class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border-2 border-dashed border-slate-300 text-xs sm:text-sm font-mono uppercase bg-slate-100/90 text-slate-700 font-bold cursor-not-allowed select-all outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Kapasitas AC (Unit)</label>
+                        <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1">Kapasitas AC (Unit)</label>
                         <input type="number" 
                                name="num_ac" 
                                x-model="editDeviceData.num_ac" 
                                min="0" 
                                max="8" 
-                               class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
+                               class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#D84040] outline-none">
                     </div>
                 </div>
 
-                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
-                    <button @click="modalEditDevice = false" type="button" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Perbarui Perangkat</button>
+                <div class="pt-2.5 sm:pt-3 flex items-center justify-end gap-2.5 sm:gap-3 border-t border-slate-100">
+                    <button @click="modalEditDevice = false" type="button" class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
+                    <button type="submit" class="px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Perbarui Perangkat</button>
                 </div>
             </form>
         </div>
