@@ -21,7 +21,7 @@
     <!-- 2. ACCORDIONS SECTION -->
     <div class="space-y-4">
 
-        <!-- ITEM 0: TUTORIAL & PANDUAN CEPAT SETUP NODE IOT (SUPER SIMPLE 3-STEPS) -->
+        <!-- ITEM 0: TUTORIAL & PANDUAN CEPAT SETUP NODE IOT (IDENTIK DENGAN MODAL HOME) -->
         <div class="bg-white rounded-[32px] border-2 border-[#D84040]/40 shadow-md overflow-hidden transition-all duration-300">
             <button @click="openItem = openItem === 'tutorial' ? null : 'tutorial'" 
                     type="button" 
@@ -33,9 +33,9 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <h3 class="text-base font-black text-[#1D1616]">Panduan Praktis Setup Perangkat IoT</h3>
-                            <span class="bg-emerald-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full">3 LANGKAH MUDAH</span>
+                            <span class="bg-emerald-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full">SOP 3 LANGKAH</span>
                         </div>
-                        <p class="text-xs font-semibold text-slate-500">Panduan praktis mendaftarkan dan menghubungkan Raspberry Pi ke sistem SIKOMAT</p>
+                        <p class="text-xs font-semibold text-slate-500">Panduan standar mengunduh skrip, mengaktifkan auto-start on boot, dan memantau log</p>
                     </div>
                 </div>
                 <div class="w-8 h-8 rounded-full bg-[#EEEEEE] flex items-center justify-center text-slate-600 font-bold text-sm transition-transform duration-300 shrink-0 ml-2"
@@ -44,98 +44,83 @@
                 </div>
             </button>
 
-            <!-- ACCORDION CONTENT: 3 SIMPLE STEPS -->
-            <div x-show="openItem === 'tutorial'" x-cloak x-transition class="px-5 sm:px-6 pb-6 pt-4 border-t border-[#8E1616]/10 space-y-4 bg-slate-50/70">
+            <!-- ACCORDION CONTENT: 3 STEP SETUP GUIDE IDENTIK DENGAN HOME -->
+            <div x-show="openItem === 'tutorial'" x-cloak x-transition class="px-5 sm:px-6 pb-6 pt-4 border-t border-[#8E1616]/10 space-y-4 bg-slate-50/70"
+                 x-data="{
+                     copyAccSuccess: false,
+                     sampleCommand: `(crontab -l 2>/dev/null | grep -v 'pindad_node'; echo &quot;@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/pindad_node_xxxx.py > /home/alex/node.log 2>&1 &&quot;) | crontab - && nohup python3 -u /home/alex/pindad_node_xxxx.py > /home/alex/node.log 2>&1 &`,
+                     copyAccCmd() {
+                         navigator.clipboard.writeText(this.sampleCommand);
+                         this.copyAccSuccess = true;
+                         setTimeout(() => { this.copyAccSuccess = false; }, 3000);
+                     }
+                 }">
                 
-                <!-- 3 Steps Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 text-xs">
-                    
-                    <!-- Langkah 1 -->
-                    <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2.5 flex flex-col justify-between">
-                        <div class="space-y-2">
-                            <div class="flex items-center gap-2.5">
-                                <span class="w-7 h-7 rounded-xl bg-[#8E1616] text-white flex items-center justify-center font-black text-xs shrink-0">1</span>
-                                <h4 class="font-black text-sm text-[#1D1616]">Daftarkan di Web</h4>
-                            </div>
-                            <p class="text-slate-600 leading-relaxed text-[11.5px]">
-                                Buka menu <b>Home</b> &rarr; klik <b>`+ Tambah Perangkat Baru`</b>. Masukkan Nama Ruangan, IP Raspberry Pi, dan pilih template Modul Relay.
-                            </p>
-                        </div>
-                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-500 font-medium">
-                            💡 Contoh: <i>Server Telepon (192.168.196.18)</i>
-                        </div>
+                <!-- STEP 1: UNDUH FILE SKRIP -->
+                <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-[#1D1616] text-white flex items-center justify-center text-[10px] font-black">1</span>
+                            <span>UNDUH FILE SKRIP PYTHON (.PY)</span>
+                        </span>
+                        <span class="text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-sans">Tombol di Home</span>
                     </div>
-
-                    <!-- Langkah 2 -->
-                    <div class="bg-white p-4 sm:p-5 rounded-2xl border-2 border-emerald-400/80 shadow-xs space-y-2.5 flex flex-col justify-between bg-emerald-50/20">
-                        <div class="space-y-2">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2.5">
-                                    <span class="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-xs shrink-0">2</span>
-                                    <h4 class="font-black text-sm text-[#1D1616]">Unduh Skrip (.py)</h4>
-                                </div>
-                                <span class="text-[8.5px] font-black uppercase bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">Auto-Config</span>
-                            </div>
-                            <p class="text-slate-600 leading-relaxed text-[11.5px]">
-                                Pada kartu perangkat di Home, klik tombol <b>`📥 Unduh Skrip (.py)`</b>. Web otomatis membuat file Python mandiri yang sudah lengkap terkonfigurasi.
-                            </p>
-                        </div>
-                        <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] font-mono text-emerald-900 font-bold truncate">
-                            📄 pindad_node_rpi3b_....py
-                        </div>
-                    </div>
-
-                    <!-- Langkah 3 -->
-                    <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2.5 flex flex-col justify-between">
-                        <div class="space-y-2">
-                            <div class="flex items-center gap-2.5">
-                                <span class="w-7 h-7 rounded-xl bg-[#8E1616] text-white flex items-center justify-center font-black text-xs shrink-0">3</span>
-                                <h4 class="font-black text-sm text-[#1D1616]">Jalankan di Raspberry Pi</h4>
-                            </div>
-                            <p class="text-slate-600 leading-relaxed text-[11.5px]">
-                                Salin file <code class="bg-slate-100 px-1 py-0.5 rounded font-mono text-slate-800">.py</code> ke Raspberry Pi (SSH / WinSCP), lalu jalankan perintah:
-                            </p>
-                        </div>
-                        <code class="block font-mono text-[11px] bg-slate-900 text-emerald-400 p-2.5 rounded-xl select-all">
-                            python3 nama_skrip_anda.py
-                        </code>
-                    </div>
-
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Buka detail perangkat di halaman <b>Home</b>, lalu klik tombol <b>`📥 Unduh Skrip (.py)`</b>. Simpan file skrip (contoh: <code class="font-bold text-[#1D1616] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 font-mono text-[11px]">pindad_node_ruang_server.py</code>) ke folder <code class="font-mono text-slate-800 font-bold bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">/home/alex/</code> (atau <code class="font-mono text-slate-800 font-bold bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">/home/pi/</code>) di Raspberry Pi.
+                    </p>
                 </div>
 
-                <!-- 2 Compact Helper Cards: Library & Auto-Start -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1 text-xs">
+                <!-- STEP 2: PERINTAH 1-KLIK AUTO-START ON BOOT -->
+                <div class="bg-slate-900 rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-800 space-y-3 text-white shadow-lg">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-400 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center text-[10px] font-black">2</span>
+                            <span>PERINTAH 1-KLIK AUTO-START ON BOOT</span>
+                        </span>
+                        <button @click="copyAccCmd()" 
+                                type="button" 
+                                class="px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0 shadow-xs"
+                                :class="copyAccSuccess ? 'bg-emerald-500 text-white' : 'bg-white/15 hover:bg-white/25 text-amber-300 border border-amber-400/30'">
+                            <span x-text="copyAccSuccess ? '✓' : '📋'"></span>
+                            <span x-text="copyAccSuccess ? 'Tersalin!' : 'Salin Perintah'"></span>
+                        </button>
+                    </div>
                     
-                    <!-- Helper 1: Library Dependency -->
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <span class="text-base">📦</span>
-                                <h4 class="font-black text-xs uppercase tracking-wider text-[#1D1616]">Install Library (Khusus RPi Baru / 1x Setup)</h4>
-                            </div>
-                            <span class="text-[9px] font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-500 font-bold">Python Pip</span>
-                        </div>
-                        <p class="text-[11px] text-slate-500">Jalankan sekali saja jika Raspberry Pi baru belum memiliki library pendukung:</p>
-                        <code class="block font-mono text-[10.5px] bg-slate-900 text-slate-100 p-2.5 rounded-xl select-all overflow-x-auto leading-relaxed">
-                            pip3 install paho-mqtt adafruit-circuitpython-ads1x15 adafruit-circuitpython-ds3231 RPi.GPIO
-                        </code>
-                    </div>
+                    <div class="bg-black/60 rounded-xl p-3 sm:p-3.5 border border-white/10 font-mono text-xs text-emerald-400 break-all select-all leading-relaxed" x-text="sampleCommand"></div>
 
-                    <!-- Helper 2: Auto-Start On Boot -->
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <span class="text-base">⚡</span>
-                                <h4 class="font-black text-xs uppercase tracking-wider text-[#1D1616]">Auto-Start Saat Listrik Menyala (Opsional)</h4>
-                            </div>
-                            <span class="text-[9px] font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-500 font-bold">Crontab / Service</span>
-                        </div>
-                        <p class="text-[11px] text-slate-500">Agar skrip otomatis aktif saat listrik menyala, tambahkan di <code class="bg-slate-100 px-1 py-0.5 rounded font-mono text-slate-700">crontab -e</code>:</p>
-                        <code class="block font-mono text-[10.5px] bg-slate-900 text-amber-300 p-2.5 rounded-xl select-all overflow-x-auto leading-relaxed">
-                            @reboot sleep 10 && python3 /home/pi/pindad_node_xxxx.py &
-                        </code>
-                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        💡 <strong>Cara Pakai:</strong> Buka SSH terminal Raspberry Pi, <em>paste</em> perintah di atas lalu tekan <strong>Enter</strong>. Skrip akan langsung aktif seketika di background & otomatis berjalan setiap kali listrik menyala (*auto-start saat boot*).
+                    </p>
+                </div>
 
+                <!-- STEP 3: CEK LOG BERJALAN -->
+                <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-2">
+                    <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-slate-500 text-white flex items-center justify-center text-[10px] font-black">3</span>
+                        <span>PERIKSA LOG BERJALAN (OPSIONAL)</span>
+                    </span>
+                    <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <code class="text-xs sm:text-sm font-mono font-bold text-slate-800">tail -f /home/alex/node.log</code>
+                        <span class="text-[11px] font-semibold text-slate-400">Tekan Ctrl+C keluar</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500">
+                        Gunakan perintah di atas di terminal untuk memantau pengiriman data telemetri suhu, arus ampere, dan status relay secara live.
+                    </p>
+                </div>
+
+                <!-- HELPER: INSTALL DEPENDENCY (1X SETUP RPI BARU) -->
+                <div class="bg-white p-4 sm:p-4.5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="text-base">📦</span>
+                            <h4 class="font-black text-xs uppercase tracking-wider text-[#1D1616]">Install Library Python (Khusus Raspberry Pi Baru / 1x Setup)</h4>
+                        </div>
+                        <span class="text-[9px] font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-500 font-bold">Python Pip</span>
+                    </div>
+                    <p class="text-[11.5px] text-slate-500">Jalankan sekali saja jika Raspberry Pi baru belum terinstall library MQTT & sensor:</p>
+                    <code class="block font-mono text-[11px] bg-slate-900 text-slate-100 p-2.5 rounded-xl select-all overflow-x-auto leading-relaxed">
+                        pip3 install paho-mqtt adafruit-circuitpython-ads1x15 adafruit-circuitpython-ds3231 RPi.GPIO
+                    </code>
                 </div>
 
             </div>
