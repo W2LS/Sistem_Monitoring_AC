@@ -680,7 +680,7 @@ class DashboardController extends Controller
         $device = Device::findOrFail($id);
         $template = Template::find($request->input('template_id'));
 
-        $updateData = $request->only('name', 'location', 'template_id', 'ip_address', 'hardware_type', 'num_ac', 'description');
+        $updateData = $request->only('name', 'location', 'template_id', 'hardware_type', 'num_ac', 'description');
         if ($template) {
             $updateData['icon'] = $template->icon ?? $device->icon;
             $updateData['hardware_type'] = $template->hardware_type ?? $device->hardware_type;

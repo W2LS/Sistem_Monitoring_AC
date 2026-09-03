@@ -890,12 +890,18 @@ function homeFleetComponent() {
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Alamat IP Perangkat</label>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-black uppercase text-slate-700 tracking-wider">Alamat IP Perangkat</label>
+                            <span class="text-[9px] font-bold text-slate-600 bg-slate-100 border border-slate-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <span>Terkunci</span>
+                            </span>
+                        </div>
                         <input type="text" 
                                name="ip_address" 
                                x-model="editDeviceData.ip_address" 
-                               placeholder="192.168.196.45" 
-                               class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-[#D84040] outline-none">
+                               readonly
+                               class="w-full px-4 py-2.5 rounded-2xl border-2 border-dashed border-slate-300 text-xs sm:text-sm font-mono uppercase bg-slate-100/90 text-slate-700 font-bold cursor-not-allowed select-all outline-none">
+                        <p class="text-[10px] text-slate-400 mt-1">Alamat IP ditetapkan saat pembuatan node.</p>
                     </div>
                     <div>
                         <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Kapasitas AC (Unit)</label>
