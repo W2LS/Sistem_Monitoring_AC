@@ -55,26 +55,19 @@
         
         <!-- ================= TOP HEADER ================= -->
         <header class="flex items-center justify-between pt-2">
-            <div>
-                <span class="text-xs font-extrabold uppercase tracking-widest text-[#8E1616] flex items-center space-x-1.5">
-                    <span>☀️</span>
-                    <span>SISTEM KONTROL & MONITORING AC IOT</span>
-                </span>
-                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-[#1D1616] tracking-tight mt-0.5">
-                    PT PINDAD
-                </h1>
-                <p class="text-xs sm:text-sm font-semibold text-slate-500 mt-1">
-                    Divisi Sistem Informasi & Fasilitas Gedung
-                </p>
+            <div class="flex items-center">
+                <img src="{{ asset('SIKOMAT.png') }}" 
+                     alt="SIKOMAT - Sistem Kontrol & Monitoring AC IoT PT PINDAD" 
+                     class="h-10 sm:h-12 md:h-14 w-auto object-contain select-none">
             </div>
 
             <!-- Right Profile Avatar with Red Notification Badge -->
             <div @click="activeTab = 'akun'" class="relative cursor-pointer group shrink-0" title="Buka Informasi Sistem & Akun">
-                <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-[#1D1616] via-[#8E1616] to-[#D84040] text-white flex items-center justify-center font-black text-xl border-2 border-white shadow-md transition-transform group-hover:scale-105">
+                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-tr from-[#1D1616] via-[#8E1616] to-[#D84040] text-white flex items-center justify-center font-black text-lg sm:text-xl border-2 border-white shadow-md transition-transform group-hover:scale-105">
                     ⚙️
                 </div>
-                <span class="absolute -bottom-0.5 -right-0.5 w-4.5 h-4.5 bg-[#D84040] border-2 border-[#EEEEEE] rounded-full flex items-center justify-center">
-                    <span class="w-2 h-2 bg-white rounded-full animate-ping"></span>
+                <span class="absolute -bottom-0.5 -right-0.5 w-4 h-4 sm:w-4.5 sm:h-4.5 bg-[#D84040] border-2 border-[#EEEEEE] rounded-full flex items-center justify-center">
+                    <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full animate-ping"></span>
                 </span>
             </div>
         </header>
