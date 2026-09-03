@@ -74,6 +74,30 @@ class DashboardController extends Controller
     }
 
     /**
+     * Helper to calculate actual AC/Relay control channels from template datastreams or fallback to num_ac
+     */
+    protected function getDeviceRelayCapacity(?Device $dev, ?Template $tmpl = null): int
+    {
+        $template = $tmpl ?? ($dev?->template ?? ($dev?->template_id ? Template::find($dev->template_id) : null));
+        
+        if ($template && !empty($template->datastreams)) {
+            $relayCount = 0;
+            foreach ($template->datastreams as $ds) {
+                $pinName = strtolower($ds['name'] ?? '');
+                $isTurboOrTotal = str_contains($pinName, 'total') || str_contains($pinName, 'turbo') || str_contains($pinName, 'priority') || str_contains($pinName, 'arus') || str_contains($pinName, 'ampere');
+                if (($ds['type'] ?? '') === 'Integer' && ($ds['max'] ?? 1) == 1 && !$isTurboOrTotal) {
+                    $relayCount++;
+                }
+            }
+            if ($relayCount > 0) {
+                return $relayCount;
+            }
+        }
+
+        return max(1, (int)($dev?->num_ac ?? 2));
+    }
+
+    /**
      * Display the dashboard page with Multi-Device Fleet & Blynk Developer Zone support.
      */
     public function index(Request $request)
@@ -88,8 +112,8 @@ class DashboardController extends Controller
         $currentDevice = $devices->firstWhere('device_id', $selectedDeviceId) ?? $devices->first();
 
         // 2. Build Dynamic Unit Data for the selected device (1, 2, 4, or N AC units)
-        $numAc = max(1, (int)($currentDevice?->num_ac ?? 2));
         $tmpl = $currentDevice?->template ?? ($currentDevice?->template_id ? Template::find($currentDevice->template_id) : null);
+        $numAc = $this->getDeviceRelayCapacity($currentDevice, $tmpl);
         $tmplStreams = $tmpl->datastreams ?? [];
         $unitData = [];
 
@@ -192,8 +216,8 @@ class DashboardController extends Controller
         // Calculate dynamic AC unit capacity and unit log queries for Module 3
         if ($filterDevice && $filterDevice !== 'all') {
             $logDev = $devices->firstWhere('device_id', $filterDevice) ?? $currentDevice;
-            $logNumAc = max(1, (int)($logDev?->num_ac ?? 2));
             $logTmpl = $logDev?->template ?? ($logDev?->template_id ? Template::find($logDev->template_id) : null);
+            $logNumAc = $this->getDeviceRelayCapacity($logDev, $logTmpl);
             $logStreams = $logTmpl->datastreams ?? [];
         } else {
             $logNumAc = max(2, (int)($devices->max('num_ac') ?? 2));
@@ -251,7 +275,8 @@ class DashboardController extends Controller
                 $onlineCount++;
             }
 
-            $devNumAc = max(1, (int)($dev->num_ac ?? 2));
+            $devTmpl = $dev->template ?? ($dev->template_id ? Template::find($dev->template_id) : null);
+            $devNumAc = $this->getDeviceRelayCapacity($dev, $devTmpl);
             $devCur = 0;
             for ($k = 1; $k <= $devNumAc; $k++) {
                 $devRelayOn = ($dev->current_values['V' . ($k - 1)] ?? 0) == 1;
@@ -655,6 +680,8 @@ class DashboardController extends Controller
             $initialValues = ['V0' => 0, 'V1' => 0, 'V2' => 0, 'V3' => 0, 'V4' => 0];
         }
 
+        $numAc = $template ? $this->getDeviceRelayCapacity(null, $template) : max(1, (int)$request->input('num_ac', 2));
+
         Device::create([
             'device_id' => $cleanId,
             'template_id' => $request->input('template_id'),
@@ -666,7 +693,7 @@ class DashboardController extends Controller
             'hardware_type' => $template->hardware_type ?? $request->input('hardware_type', 'Raspberry Pi 3B+'),
             'status' => 'standby',
             'auth_token' => Str::random(32),
-            'num_ac' => $request->input('num_ac', 2),
+            'num_ac' => $numAc,
             'description' => $request->input('description', ''),
             'current_values' => $initialValues,
         ]);
@@ -692,10 +719,13 @@ class DashboardController extends Controller
         $device = Device::findOrFail($id);
         $template = Template::find($request->input('template_id'));
 
-        $updateData = $request->only('name', 'location', 'template_id', 'hardware_type', 'num_ac', 'description');
+        $updateData = $request->only('name', 'location', 'template_id', 'hardware_type', 'description');
         if ($template) {
             $updateData['icon'] = $template->icon ?? $device->icon;
             $updateData['hardware_type'] = $template->hardware_type ?? $device->hardware_type;
+            $updateData['num_ac'] = $this->getDeviceRelayCapacity(null, $template);
+        } elseif ($request->has('num_ac')) {
+            $updateData['num_ac'] = max(1, (int)$request->input('num_ac'));
         }
 
         $device->update($updateData);

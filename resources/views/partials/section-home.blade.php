@@ -607,6 +607,7 @@ function homeFleetComponent() {
                       devName: '', 
                       devId: '', 
                       selectedTmpl: '{{ $templates->first()->id ?? '' }}',
+                      devNumAc: 2,
                       templatesMap: {
                           @foreach($templates as $t)
                           '{{ $t->id }}': {
@@ -614,14 +615,15 @@ function homeFleetComponent() {
                               hardware: '{{ addslashes($t->hardware_type) }}',
                               conn: '{{ addslashes($t->connection_type) }}',
                               icon: '{{ addslashes($t->icon ?? '⚡') }}',
-                              numAc: {{ count(collect($t->datastreams ?? [])->filter(fn($ds) => str_starts_with($ds['pin'], 'V') && (int)substr($ds['pin'], 1) < 8)) ?: 2 }}
+                              numAc: {{ count(collect($t->datastreams ?? [])->filter(fn($ds) => str_starts_with($ds['pin'], 'V') && ($ds['type'] ?? '') === 'Integer' && ($ds['max'] ?? 1) == 1 && !str_contains(strtolower($ds['name'] ?? ''), 'total') && !str_contains(strtolower($ds['name'] ?? ''), 'turbo') && !str_contains(strtolower($ds['name'] ?? ''), 'priority') && !str_contains(strtolower($ds['name'] ?? ''), 'arus') && !str_contains(strtolower($ds['name'] ?? ''), 'ampere'))) ?: 1 }}
                           },
                           @endforeach
                       },
                       updateSlug() {
                           this.devId = 'RPI3B_' + this.devName.toUpperCase().replace(/[^A-Z0-9]/g, '_').replace(/_+/g, '_');
                       }
-                  }">
+                  }"
+                  x-init="$watch('selectedTmpl', val => { if(templatesMap[val]) { devNumAc = templatesMap[val].numAc; } }); if(templatesMap[selectedTmpl]) { devNumAc = templatesMap[selectedTmpl].numAc; }">
                 @csrf
                 
                 <div>
@@ -668,7 +670,7 @@ function homeFleetComponent() {
 
                     <div>
                         <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Jumlah Unit AC (Kapasitas Relai)</label>
-                        <input type="number" name="num_ac" min="1" max="8" value="2" class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-[#D84040] outline-none">
+                        <input type="number" name="num_ac" x-model="devNumAc" min="1" max="8" class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-[#D84040] outline-none">
                     </div>
                 </div>
 
@@ -862,13 +864,23 @@ function homeFleetComponent() {
                 <button @click="modalEditDevice = false" class="text-slate-400 hover:text-amber-800 text-2xl font-bold cursor-pointer">&times;</button>
             </div>
 
-            <form :action="'/devices/' + editDeviceData.id" method="POST" class="space-y-4">
+            <form :action="'/devices/' + editDeviceData.id" method="POST" class="space-y-4"
+                  x-data="{
+                      templatesMap: {
+                          @foreach($templates as $t)
+                          '{{ $t->id }}': {
+                              numAc: {{ count(collect($t->datastreams ?? [])->filter(fn($ds) => str_starts_with($ds['pin'], 'V') && ($ds['type'] ?? '') === 'Integer' && ($ds['max'] ?? 1) == 1 && !str_contains(strtolower($ds['name'] ?? ''), 'total') && !str_contains(strtolower($ds['name'] ?? ''), 'turbo') && !str_contains(strtolower($ds['name'] ?? ''), 'priority') && !str_contains(strtolower($ds['name'] ?? ''), 'arus') && !str_contains(strtolower($ds['name'] ?? ''), 'ampere'))) ?: 1 }}
+                          },
+                          @endforeach
+                      }
+                  }"
+                  x-init="$watch('editDeviceData.template_id', val => { if(templatesMap[val]) { editDeviceData.num_ac = templatesMap[val].numAc; } })">
                 @csrf
                 @method('PUT')
                 
                 <div>
                     <label class="block text-xs font-black uppercase text-slate-700 tracking-wider mb-1.5">Pilih Template Blueprint *</label>
-                    <select name="template_id" x-model="editDeviceData.template_id" required class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#D84040] outline-none">
+                    <select name="template_id" x-model="editDeviceData.template_id" required class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#D84040] outline-none cursor-pointer">
                         @foreach($templates as $tmpl)
                         <option value="{{ $tmpl->id }}">{{ $tmpl->icon }} {{ $tmpl->name }} ({{ $tmpl->hardware_type }})</option>
                         @endforeach
