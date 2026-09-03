@@ -143,15 +143,15 @@ class DashboardController extends Controller
                 default => 17 + $i,
             };
             
-            $unitName = "Unit AC {$i}";
+            $unitName = "AC {$i}";
             if ($selectedDeviceId === 'RPI3B_PINDAD_ROOM_1') {
                 $unitName = ($i === 1 ? 'Panasonic 1 (Lampu Bawah)' : ($i === 2 ? 'Panasonic 2 (Lampu Atas)' : "Panasonic {$i}"));
             } else {
                 $streamName = collect($tmplStreams)->firstWhere('pin', $pinKey)['name'] ?? null;
                 if ($streamName) {
-                    $unitName = "{$streamName} (AC {$i})";
+                    $unitName = $streamName;
                 } else {
-                    $unitName = "AC {$i} (Unit {$i})";
+                    $unitName = "AC {$i}";
                 }
             }
 
