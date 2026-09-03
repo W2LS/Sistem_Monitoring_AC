@@ -123,35 +123,35 @@
         <!-- ========================================================================= -->
         <!-- DAFTAR ISI RINGKAS -->
         <!-- ========================================================================= -->
-        <div class="bg-rose-50/50 p-5 sm:p-6 rounded-2xl border border-rose-100 space-y-3 avoid-break">
+        <div class="bg-rose-50/50 p-5 sm:p-6 rounded-2xl border border-rose-100 space-y-3.5 avoid-break">
             <h2 class="text-xs font-black uppercase tracking-widest text-[#8E1616] flex items-center gap-2">
                 <span>📑</span>
                 <span>DAFTAR ISI PANDUAN LENGKAP</span>
             </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs font-medium text-slate-700">
-                <a href="#bab1" class="hover:text-[#8E1616] transition flex items-center gap-2">
-                    <span class="font-mono font-bold text-[#8E1616]">BAB 1.</span>
-                    <span>Pendahuluan & Arsitektur IoT SIKOMAT</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-xs font-medium text-slate-700">
+                <a href="#bab1" class="hover:text-[#8E1616] transition flex items-start gap-2 group p-1 rounded-lg hover:bg-white/60">
+                    <span class="font-mono font-black text-[#8E1616] whitespace-nowrap shrink-0">BAB 1.</span>
+                    <span class="group-hover:underline leading-snug">Pendahuluan & Arsitektur IoT SIKOMAT</span>
                 </a>
-                <a href="#bab2" class="hover:text-[#8E1616] transition flex items-center gap-2">
-                    <span class="font-mono font-bold text-[#8E1616]">BAB 2.</span>
-                    <span>Panduan Penggunaan Web Dashboard (4 Modul)</span>
+                <a href="#bab2" class="hover:text-[#8E1616] transition flex items-start gap-2 group p-1 rounded-lg hover:bg-white/60">
+                    <span class="font-mono font-black text-[#8E1616] whitespace-nowrap shrink-0">BAB 2.</span>
+                    <span class="group-hover:underline leading-snug">Panduan Penggunaan Web Dashboard</span>
                 </a>
-                <a href="#bab3" class="hover:text-[#8E1616] transition flex items-center gap-2">
-                    <span class="font-mono font-bold text-[#8E1616]">BAB 3.</span>
-                    <span>Perakitan Hardware & Pilihan Pinout Relay (1 s/d 8 Channel)</span>
+                <a href="#bab3" class="hover:text-[#8E1616] transition flex items-start gap-2 group p-1 rounded-lg hover:bg-white/60">
+                    <span class="font-mono font-black text-[#8E1616] whitespace-nowrap shrink-0">BAB 3.</span>
+                    <span class="group-hover:underline leading-snug">Perakitan Hardware & Pinout Relay (1-8 Ch)</span>
                 </a>
-                <a href="#bab4" class="hover:text-[#8E1616] transition flex items-center gap-2">
-                    <span class="font-mono font-bold text-[#8E1616]">BAB 4.</span>
-                    <span>Instalasi OS, Dependensi & Auto-Start Skrip</span>
+                <a href="#bab4" class="hover:text-[#8E1616] transition flex items-start gap-2 group p-1 rounded-lg hover:bg-white/60">
+                    <span class="font-mono font-black text-[#8E1616] whitespace-nowrap shrink-0">BAB 4.</span>
+                    <span class="group-hover:underline leading-snug">Instalasi OS, Dependensi & Auto-Start Skrip</span>
                 </a>
-                <a href="#bab5" class="hover:text-[#8E1616] transition flex items-center gap-2">
-                    <span class="font-mono font-bold text-[#8E1616]">BAB 5.</span>
-                    <span>Setup Bot Telegram Alarm Darurat Anomali</span>
+                <a href="#bab5" class="hover:text-[#8E1616] transition flex items-start gap-2 group p-1 rounded-lg hover:bg-white/60">
+                    <span class="font-mono font-black text-[#8E1616] whitespace-nowrap shrink-0">BAB 5.</span>
+                    <span class="group-hover:underline leading-snug">Setup Bot Telegram Alarm Darurat Anomali</span>
                 </a>
-                <a href="#bab6" class="hover:text-[#8E1616] transition flex items-center gap-2">
-                    <span class="font-mono font-bold text-[#8E1616]">BAB 6.</span>
-                    <span>Pengujian, Kalibrasi & Troubleshooting Masalah</span>
+                <a href="#bab6" class="hover:text-[#8E1616] transition flex items-start gap-2 group p-1 rounded-lg hover:bg-white/60">
+                    <span class="font-mono font-black text-[#8E1616] whitespace-nowrap shrink-0">BAB 6.</span>
+                    <span class="group-hover:underline leading-snug">Pengujian, Kalibrasi & Troubleshooting</span>
                 </a>
             </div>
         </div>
