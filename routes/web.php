@@ -52,4 +52,8 @@ Route::middleware('auth.session')->group(function () {
     // Download Skrip & Konfigurasi IoT Raspberry Pi
     Route::get('/scripts/download/{type}', [DashboardController::class, 'downloadScript'])->name('scripts.download');
 
+    // Pengaturan Notifikasi Bot Telegram Darurat
+    Route::post('/settings/telegram', [DashboardController::class, 'saveTelegramSettings'])->name('settings.telegram');
+    Route::post('/settings/telegram/test', [DashboardController::class, 'testTelegramNotification'])->name('settings.telegram.test');
+
 });

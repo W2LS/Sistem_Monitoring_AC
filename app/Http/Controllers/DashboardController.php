@@ -8,7 +8,10 @@ use App\Models\Schedule;
 use App\Models\Device;
 use App\Models\Template;
 use App\Models\User;
+use App\Models\SystemSetting;
 use App\Services\MqttService;
+use App\Services\TelegramService;
+use App\Services\AnomalyDetectorService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
@@ -281,13 +284,22 @@ class DashboardController extends Controller
         // 6. User Profile
         $user = auth()->user() ?? User::first();
 
+        // 7. Telegram Alert Settings & Active Anomaly Monitor
+        $telegramSettings = [
+            'bot_token' => SystemSetting::get('telegram_bot_token', env('TELEGRAM_BOT_TOKEN', '')),
+            'chat_id' => SystemSetting::get('telegram_chat_id', env('TELEGRAM_CHAT_ID', '')),
+            'is_enabled' => (bool)SystemSetting::get('telegram_alert_enabled', true),
+            'cooldown_minutes' => (int)SystemSetting::get('telegram_cooldown_minutes', 15),
+        ];
+        $activeAnomalies = app(AnomalyDetectorService::class)->getActiveAnomalies();
+
         return view('dashboard', compact(
             'unitData', 'numAc',
             'latestAc1', 'latestAc2', 'recentLogsAll', 'recentLogsAc1', 'recentLogsAc2', 
             'recentLogsByUnit', 'unitLogNames', 'logNumAc',
             'schedules', 'shiftAc1', 'shiftAc2', 'devices', 'templates', 'selectedDeviceId', 
             'currentDevice', 'fleetStats', 'totalFleetWatt', 'totalFleetCurrent', 'onlineCount', 
-            'filterDevice', 'user'
+            'filterDevice', 'user', 'telegramSettings', 'activeAnomalies'
         ));
     }
 
@@ -1123,5 +1135,45 @@ class DashboardController extends Controller
         }
 
         abort(404, 'File skrip tidak ditemukan.');
+    }
+
+    /**
+     * Save Telegram Alert Settings.
+     */
+    public function saveTelegramSettings(Request $request)
+    {
+        $request->validate([
+            'telegram_bot_token' => 'nullable|string|max:200',
+            'telegram_chat_id' => 'nullable|string|max:100',
+            'telegram_cooldown_minutes' => 'nullable|integer|min:1|max:120',
+        ]);
+
+        SystemSetting::set('telegram_bot_token', $request->input('telegram_bot_token', ''));
+        SystemSetting::set('telegram_chat_id', $request->input('telegram_chat_id', ''));
+        SystemSetting::set('telegram_alert_enabled', $request->has('telegram_alert_enabled') ? true : false);
+        SystemSetting::set('telegram_cooldown_minutes', (int)$request->input('telegram_cooldown_minutes', 15));
+
+        return redirect()->back()->with('success', 'Konfigurasi Notifikasi Bot Telegram berhasil disimpan!');
+    }
+
+    /**
+     * Send instant test message to Telegram.
+     */
+    public function testTelegramNotification(Request $request, TelegramService $telegramService)
+    {
+        $botToken = $request->input('telegram_bot_token');
+        $chatId = $request->input('telegram_chat_id');
+
+        $res = $telegramService->sendTestMessage($botToken, $chatId);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json($res);
+        }
+
+        if ($res['success']) {
+            return redirect()->back()->with('success', $res['message']);
+        }
+
+        return redirect()->back()->with('error', $res['message']);
     }
 }

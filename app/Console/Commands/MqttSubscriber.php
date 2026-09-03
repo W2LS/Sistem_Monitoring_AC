@@ -111,6 +111,19 @@ class MqttSubscriber extends Command
                             $dev->save();
                         }
 
+                        // Real-time Anomaly Detection & Emergency Telegram Alert
+                        try {
+                            app(\App\Services\AnomalyDetectorService::class)->evaluateTelemetry(
+                                $deviceId,
+                                $uNum,
+                                $uState,
+                                (float) ($data['current_ampere'] ?? 0.0),
+                                $recordedAt
+                            );
+                        } catch (\Exception $ex) {
+                            $this->error("Anomaly detector error: " . $ex->getMessage());
+                        }
+
                         $this->info("Saved log ID {$log->id} to database (Device: {$log->device_id}, Unit: AC {$uNum} {$uState}, Current: {$log->current_ampere} A)");
 
                     } catch (\Exception $e) {

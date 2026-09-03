@@ -445,6 +445,217 @@ WantedBy=multi-user.target</pre>
             </div>
         </div>
         
+        <!-- ITEM: NOTIFIKASI BOT TELEGRAM (PERINGATAN ANOMALI KEGAGALAN AC) -->
+        <div class="bg-white rounded-[32px] border-2 border-sky-400/50 shadow-md overflow-hidden transition-all duration-300">
+            <button @click="openItem = openItem === 'telegram' ? null : 'telegram'" 
+                    type="button" 
+                    class="w-full p-5 sm:p-6 text-left flex items-center justify-between hover:bg-slate-50 transition cursor-pointer bg-gradient-to-r from-sky-50/50 to-white">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-sky-500 text-white flex items-center justify-center font-black text-2xl shrink-0 shadow-md shadow-sky-500/30">
+                        🤖
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-base font-black text-[#1D1616]">Notifikasi Bot Telegram (Pengingat & Alarm Darurat)</h3>
+                            <span class="bg-sky-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full">REAL-TIME</span>
+                        </div>
+                        <p class="text-xs font-semibold text-slate-500">Kirim pesan darurat otomatis ke teknisi saat AC gagal hidup, kompresor mati, atau anomali arus</p>
+                    </div>
+                </div>
+                <div class="w-8 h-8 rounded-full bg-[#EEEEEE] flex items-center justify-center text-slate-600 font-bold text-sm transition-transform duration-300 shrink-0 ml-2"
+                     :class="openItem === 'telegram' ? 'rotate-90 bg-sky-600 text-white' : ''">
+                    ➔
+                </div>
+            </button>
+
+            <!-- ACCORDION CONTENT: TELEGRAM CONFIGURATION & TESTING -->
+            <div x-show="openItem === 'telegram'" x-cloak x-transition class="px-5 sm:px-6 pb-6 pt-4 border-t border-sky-100 space-y-6 bg-slate-50/70"
+                 x-data="{
+                     testToken: '{{ $telegramSettings['bot_token'] ?? '' }}',
+                     testChatId: '{{ $telegramSettings['chat_id'] ?? '' }}',
+                     isTesting: false,
+                     testMessage: '',
+                     testSuccess: null,
+                     async runTest() {
+                         if (!this.testToken || !this.testChatId) {
+                             this.testMessage = 'Harap isi Bot Token dan Chat ID terlebih dahulu!';
+                             this.testSuccess = false;
+                             return;
+                         }
+                         this.isTesting = true;
+                         this.testMessage = '';
+                         this.testSuccess = null;
+                         try {
+                             const res = await fetch('{{ route('settings.telegram.test') }}', {
+                                 method: 'POST',
+                                 headers: {
+                                     'Content-Type': 'application/json',
+                                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                 },
+                                 body: JSON.stringify({
+                                     telegram_bot_token: this.testToken,
+                                     telegram_chat_id: this.testChatId
+                                 })
+                             });
+                             const data = await res.json();
+                             this.testSuccess = data.success;
+                             this.testMessage = data.message;
+                         } catch (e) {
+                             this.testSuccess = false;
+                             this.testMessage = 'Koneksi gagal: ' + e.message;
+                         } finally {
+                             this.isTesting = false;
+                         }
+                     }
+                 }">
+                
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    
+                    <!-- FORM CONFIGURATION -->
+                    <div class="lg:col-span-7 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <h4 class="text-sm font-black text-[#1D1616] uppercase tracking-wider flex items-center gap-2">
+                                <span>⚙️</span>
+                                <span>Konfigurasi Akun Bot Telegram</span>
+                            </h4>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" :class="'{{ ($telegramSettings['is_enabled'] ?? true) ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600' }}'">
+                                {{ ($telegramSettings['is_enabled'] ?? true) ? '🟢 Aktif' : '⚪ Nonaktif' }}
+                            </span>
+                        </div>
+
+                        <form action="{{ route('settings.telegram') }}" method="POST" class="space-y-4 text-xs">
+                            @csrf
+                            
+                            <div>
+                                <label class="block font-black uppercase text-slate-700 tracking-wider mb-1.5">
+                                    Telegram Bot Token (dari @BotFather) *
+                                </label>
+                                <input type="text" 
+                                       name="telegram_bot_token" 
+                                       x-model="testToken" 
+                                       required 
+                                       placeholder="Contoh: 7891234567:AAHdef123456xyz..." 
+                                       class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 font-mono text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 outline-none">
+                                <p class="text-[10.5px] text-slate-400 mt-1">Dibuat melalui bot resmi <b>@BotFather</b> di aplikasi Telegram.</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                <div>
+                                    <label class="block font-black uppercase text-slate-700 tracking-wider mb-1.5">
+                                        Chat ID / ID Grup Teknisi *
+                                    </label>
+                                    <input type="text" 
+                                           name="telegram_chat_id" 
+                                           x-model="testChatId" 
+                                           required 
+                                           placeholder="Contoh: 123456789 atau -100..." 
+                                           class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 font-mono text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 outline-none">
+                                    <p class="text-[10.5px] text-slate-400 mt-1">Gunakan <b>@userinfobot</b> atau <b>@getidsbot</b> untuk mengetahui ID.</p>
+                                </div>
+
+                                <div>
+                                    <label class="block font-black uppercase text-slate-700 tracking-wider mb-1.5">
+                                        Jeda Waktu Cooldown (Menit)
+                                    </label>
+                                    <input type="number" 
+                                           name="telegram_cooldown_minutes" 
+                                           value="{{ $telegramSettings['cooldown_minutes'] ?? 15 }}" 
+                                           min="1" 
+                                           max="120" 
+                                           class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 font-mono text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 outline-none">
+                                    <p class="text-[10.5px] text-slate-400 mt-1">Mencegah spam notifikasi berulang untuk anomali yang sama.</p>
+                                </div>
+                            </div>
+
+                            <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+                                <div>
+                                    <span class="font-black text-slate-800 block text-xs">Aktifkan Notifikasi Darurat Otomatis</span>
+                                    <span class="text-[10.5px] text-slate-500">Kirim pesan seketika saat AC gagal hidup / terdeteksi 0 Ampere</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="telegram_alert_enabled" value="1" {{ ($telegramSettings['is_enabled'] ?? true) ? 'checked' : '' }} class="sr-only peer">
+                                    <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-500"></div>
+                                </label>
+                            </div>
+
+                            <!-- ACTION BUTTONS -->
+                            <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100">
+                                <button @click="runTest()" 
+                                        type="button" 
+                                        :disabled="isTesting"
+                                        class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 disabled:opacity-50">
+                                    <span x-show="!isTesting">🧪 Uji Coba Kirim Pesan</span>
+                                    <span x-show="isTesting" class="animate-spin">⏳</span>
+                                    <span x-show="isTesting">Mengirim...</span>
+                                </button>
+
+                                <button type="submit" 
+                                        class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#1D1616] hover:bg-slate-900 text-white font-black text-xs uppercase tracking-wider shadow-md transition cursor-pointer active:scale-95">
+                                    💾 Simpan Pengaturan
+                                </button>
+                            </div>
+
+                            <!-- LIVE TEST FEEDBACK ALERT -->
+                            <div x-show="testMessage" x-cloak class="p-3.5 rounded-2xl text-xs font-bold transition flex items-center gap-2"
+                                 :class="testSuccess ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'">
+                                <span x-text="testSuccess ? '✅' : '❌'"></span>
+                                <span x-text="testMessage"></span>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- STEP BY STEP SETUP GUIDE & MESSAGE PREVIEW -->
+                    <div class="lg:col-span-5 space-y-4">
+                        
+                        <!-- 3 Step Tutorial -->
+                        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-3">
+                            <h4 class="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                                <span>📋</span>
+                                <span>Panduan 3 Langkah Buat Bot Telegram</span>
+                            </h4>
+
+                            <div class="space-y-2.5 text-[11px] text-slate-600">
+                                <div class="flex items-start gap-2">
+                                    <span class="w-4 h-4 rounded-full bg-sky-500 text-white flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5">1</span>
+                                    <p>Buka Telegram, cari <b>@BotFather</b> lalu ketik <code>/newbot</code>. Beri nama bot dan salin <b>HTTP API Token</b> yang diberikan.</p>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="w-4 h-4 rounded-full bg-sky-500 text-white flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5">2</span>
+                                    <p>Buka bot baru Anda lalu tekan <b>Start</b>. Untuk grup, masukkan bot ke grup teknisi lalu cari Chat ID via <b>@userinfobot</b> / <b>@getidsbot</b>.</p>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="w-4 h-4 rounded-full bg-sky-500 text-white flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5">3</span>
+                                    <p>Paste Token & Chat ID ke form di samping, lalu klik tombol <b>🧪 Uji Coba Kirim Pesan</b>.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preview Message Box -->
+                        <div class="bg-slate-900 text-slate-200 p-4 rounded-3xl border border-slate-800 space-y-2 shadow-md">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-sky-400 flex items-center gap-1.5">
+                                    <span>📱</span>
+                                    <span>Contoh Pesan Darurat di Telegram:</span>
+                                </span>
+                                <span class="text-[9px] font-mono bg-white/10 px-2 py-0.5 rounded text-amber-300">Live Preview</span>
+                            </div>
+                            <div class="bg-black/50 p-3 rounded-2xl border border-white/10 font-mono text-[10.5px] leading-relaxed text-slate-200 space-y-1">
+                                <p class="text-rose-400 font-bold">🚨 [PERINGATAN KRITIS • PT PINDAD]</p>
+                                <p class="text-amber-300 font-bold">⚠️ GANGGUAN: AC GAGAL MENYALA / MATI!</p>
+                                <p class="pt-1 text-slate-300">📍 <b>Ruangan:</b> Server Telepon (Gedung Koperasi)</p>
+                                <p class="text-slate-300">❄️ <b>Unit AC:</b> Unit 1 (Panasonic 1)</p>
+                                <p class="text-rose-400">⚡ <b>Arus:</b> 0.0000 A (Kompresor Mati / 0 W)</p>
+                                <p class="text-slate-400">⚙️ <b>Status:</b> DIPERINTAHKAN ON (WAKTU NYALA)</p>
+                                <p class="text-sky-300 pt-1">👨‍🔧 <b>Tindakan:</b> Mohon teknisi segera cek MCB & unit AC di Server Telepon!</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
         <!-- ITEM 1: INFORMASI AKUN & PROFIL OPERATOR -->
         <div class="bg-white rounded-[32px] border border-[#8E1616]/20 shadow-xs overflow-hidden transition-all duration-300">
             <button @click="openItem = openItem === 'akun' ? null : 'akun'" 

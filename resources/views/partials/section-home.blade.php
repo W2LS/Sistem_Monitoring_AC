@@ -103,6 +103,29 @@ function homeFleetComponent() {
             </div>
         </div>
 
+        @if(!empty($activeAnomalies))
+        <!-- BANNER PERINGATAN ANOMALI KEGAGALAN AC (TELEGRAM ALERT ACTIVE) -->
+        <div class="bg-gradient-to-r from-rose-600 via-rose-700 to-red-800 text-white p-4 sm:p-5 rounded-[28px] shadow-xl border border-rose-400/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-pulse">
+            <div class="flex items-center gap-3.5">
+                <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center font-black text-xl shrink-0">
+                    🚨
+                </div>
+                <div>
+                    <h4 class="font-black text-sm text-white uppercase tracking-wider">Peringatan Kritis: Terdeteksi AC Gagal Menyala / Mati!</h4>
+                    <div class="text-xs text-rose-100 font-semibold space-y-0.5 mt-0.5">
+                        @foreach($activeAnomalies as $anom)
+                        <p>• <b>{{ $anom['room_name'] ?? $anom['device_id'] }}</b> (Unit {{ $anom['ac_number'] }} - {{ $anom['unit_name'] ?? 'AC' }}): Status ON tapi Arus Terbaca <code>{{ $anom['current_ampere'] ?? 0 }} A</code>.</p>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            <span class="text-[10.5px] font-black bg-white text-rose-800 px-3.5 py-1.5 rounded-full uppercase tracking-wider shrink-0 shadow-xs self-start sm:self-center flex items-center gap-1.5">
+                <span>🤖</span>
+                <span>Notifikasi Dikirim ke Telegram</span>
+            </span>
+        </div>
+        @endif
+
         <!-- 2. CENTRAL KPI HERO: TOTAL BEBAN SELURUH ALAT IOT -->
         <div class="bg-[#1D1616] rounded-[40px] p-6 sm:p-8 text-white shadow-[0_25px_60px_-15px_rgba(29,22,22,0.35)] border border-[#8E1616]/30 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
             <div class="absolute -right-20 -top-20 w-80 h-80 bg-[#8E1616]/25 rounded-full blur-3xl pointer-events-none"></div>
