@@ -927,85 +927,85 @@ function homeFleetComponent() {
     <!-- ========================================================================= -->
     <div x-show="modalRpiSetup" 
          x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+         class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 pb-20 sm:pb-6 bg-black/70 backdrop-blur-xs"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100">
         
         <div @click.away="modalRpiSetup = false" 
-             class="bg-white rounded-[40px] p-7 sm:p-8 max-w-xl w-full shadow-2xl border border-slate-200 space-y-6 relative max-h-[90vh] overflow-y-auto">
+             class="bg-white rounded-[28px] sm:rounded-[36px] p-5 sm:p-7 max-w-lg w-full shadow-2xl border border-slate-200 space-y-4 relative max-h-[85vh] sm:max-h-[90vh] overflow-y-auto">
             
-            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-[22px] bg-slate-900 text-amber-400 flex items-center justify-center font-black text-2xl shadow-md">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-slate-900 text-amber-400 flex items-center justify-center font-black text-lg sm:text-xl shadow-xs">
                         ⚡
                     </div>
                     <div>
-                        <h4 class="text-lg font-black text-[#1D1616]" x-text="'Setup Node: ' + rpiSetupData.name"></h4>
-                        <p class="text-xs text-slate-500 font-semibold flex items-center gap-1.5">
-                            <span>ID MQTT:</span>
-                            <code class="text-[#D84040] font-mono font-bold bg-rose-50 px-1.5 py-0.5 rounded" x-text="rpiSetupData.device_id"></code>
+                        <h4 class="text-sm sm:text-base font-black text-[#1D1616]" x-text="'Setup Node: ' + rpiSetupData.name"></h4>
+                        <p class="text-[10px] sm:text-xs text-slate-500 font-semibold flex items-center gap-1">
+                            <span>ID:</span>
+                            <code class="text-[#D84040] font-mono font-bold bg-rose-50 px-1.5 py-0.5 rounded text-[10px]" x-text="rpiSetupData.device_id"></code>
                         </p>
                     </div>
                 </div>
-                <button @click="modalRpiSetup = false" class="text-slate-400 hover:text-[#D84040] text-2xl font-bold cursor-pointer">&times;</button>
+                <button @click="modalRpiSetup = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-[#D84040] flex items-center justify-center text-xl font-bold cursor-pointer transition">&times;</button>
             </div>
 
             <!-- STEP 1: UNDUH FILE SKRIP -->
-            <div class="bg-slate-50 rounded-2xl p-4 sm:p-5 border border-slate-200 space-y-3">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-full bg-[#1D1616] text-white flex items-center justify-center text-[10px]">1</span>
+            <div class="bg-slate-50 rounded-2xl p-3.5 sm:p-4 border border-slate-200 space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="text-[11px] sm:text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                        <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#1D1616] text-white flex items-center justify-center text-[9px] sm:text-[10px]">1</span>
                         <span>Unduh File Skrip Python (.py)</span>
                     </span>
                     <a :href="rpiSetupData.download_url" 
-                       class="px-4 py-2 rounded-xl bg-[#D84040] hover:bg-[#8E1616] text-white text-xs font-black uppercase tracking-wider shadow-md hover:shadow-lg transition flex items-center gap-1.5 cursor-pointer active:scale-95">
+                       class="px-3 py-1.5 rounded-xl bg-[#D84040] hover:bg-[#8E1616] text-white text-[11px] font-bold uppercase tracking-wider shadow-xs hover:shadow-md transition flex items-center gap-1 cursor-pointer active:scale-95 shrink-0">
                         <span>📥</span>
                         <span>Unduh Skrip</span>
                     </a>
                 </div>
-                <p class="text-[11px] text-slate-500">
-                    Unduh skrip <code class="font-bold text-[#1D1616] bg-white px-1.5 py-0.5 rounded border border-slate-200" x-text="rpiSetupData.script_name"></code> lalu letakkan pada folder <code class="font-mono text-slate-700 font-bold">/home/alex/</code> di Raspberry Pi.
+                <p class="text-[10.5px] sm:text-[11px] text-slate-500 leading-normal">
+                    Unduh skrip <code class="font-bold text-[#1D1616] bg-white px-1 py-0.5 rounded border border-slate-200 text-[10px]" x-text="rpiSetupData.script_name"></code> lalu simpan ke folder <code class="font-mono text-slate-700 font-bold text-[10px]">/home/alex/</code> di Raspberry Pi.
                 </p>
             </div>
 
             <!-- STEP 2: SALIN PERINTAH 1-BARIS AUTO-START & JALANKAN -->
-            <div class="bg-slate-900 rounded-3xl p-5 border border-slate-800 space-y-3 text-white shadow-xl">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center text-[10px] font-black">2</span>
+            <div class="bg-slate-900 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4.5 border border-slate-800 space-y-2.5 text-white shadow-lg">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="text-[11px] sm:text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                        <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center text-[9px] sm:text-[10px] font-black">2</span>
                         <span>Perintah 1-Klik Auto-Start on Boot</span>
                     </span>
                     <button @click="copyCommand()" 
                             type="button" 
-                            class="px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+                            class="px-2.5 py-1 rounded-lg text-[10.5px] font-bold uppercase tracking-wider transition flex items-center gap-1 cursor-pointer active:scale-95 shrink-0 shadow-xs"
                             :class="copySuccess ? 'bg-emerald-500 text-white' : 'bg-white/15 hover:bg-white/25 text-amber-300 border border-amber-400/30'">
                         <span x-text="copySuccess ? '✓' : '📋'"></span>
                         <span x-text="copySuccess ? 'Tersalin!' : 'Salin Perintah'"></span>
                     </button>
                 </div>
                 
-                <div class="bg-black/60 rounded-2xl p-3.5 border border-white/10 font-mono text-[11px] text-emerald-400 break-all select-all leading-relaxed" x-text="rpiSetupData.command"></div>
+                <div class="bg-black/60 rounded-xl p-2.5 sm:p-3 border border-white/10 font-mono text-[10px] sm:text-[11px] text-emerald-400 break-all select-all leading-relaxed max-h-28 overflow-y-auto" x-text="rpiSetupData.command"></div>
 
-                <p class="text-[11px] text-slate-400 leading-relaxed">
-                    💡 <strong>Cara Pakai:</strong> Buka SSH terminal Raspberry Pi, <em>paste</em> perintah di atas lalu tekan <strong>Enter</strong>. Script akan langsung hidup di background dan otomatis menyala setiap kali Raspberry Pi dicolok listrik. Terminal SSH bisa langsung ditutup.
+                <p class="text-[10px] sm:text-[10.5px] text-slate-400 leading-relaxed">
+                    💡 <strong>Cara Pakai:</strong> Buka SSH terminal Raspberry Pi, <em>paste</em> perintah di atas lalu tekan <strong>Enter</strong>. Skrip akan langsung aktif di background & auto-start saat boot.
                 </p>
             </div>
 
             <!-- STEP 3: CEK LOG REAL-TIME -->
-            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-2">
-                <span class="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                    <span class="w-5 h-5 rounded-full bg-slate-400 text-white flex items-center justify-center text-[10px]">3</span>
+            <div class="bg-slate-50 rounded-2xl p-3 sm:p-3.5 border border-slate-200 space-y-1.5">
+                <span class="text-[11px] sm:text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                    <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-slate-400 text-white flex items-center justify-center text-[9px] sm:text-[10px]">3</span>
                     <span>Periksa Log Berjalan (Opsional)</span>
                 </span>
-                <div class="flex items-center justify-between bg-white p-2.5 rounded-xl border border-slate-200">
-                    <code class="text-xs font-mono font-bold text-slate-700">tail -f /home/alex/node.log</code>
-                    <span class="text-[10px] font-semibold text-slate-400">Tekan Ctrl+C untuk keluar</span>
+                <div class="flex items-center justify-between bg-white p-2 rounded-xl border border-slate-200">
+                    <code class="text-[10.5px] sm:text-xs font-mono font-bold text-slate-700">tail -f /home/alex/node.log</code>
+                    <span class="text-[9.5px] font-semibold text-slate-400">Tekan Ctrl+C keluar</span>
                 </div>
             </div>
 
             <div class="pt-2 flex items-center justify-end">
-                <button @click="modalRpiSetup = false" type="button" class="px-6 py-3 rounded-2xl bg-[#1D1616] hover:bg-[#8E1616] text-white font-black text-xs uppercase tracking-wider shadow-md transition cursor-pointer active:scale-95">
+                <button @click="modalRpiSetup = false" type="button" class="w-full sm:w-auto px-5 py-2.5 rounded-xl sm:rounded-2xl bg-[#1D1616] hover:bg-[#8E1616] text-white font-bold text-xs uppercase tracking-wider shadow-md transition cursor-pointer active:scale-95 text-center">
                     Tutup Panduan
                 </button>
             </div>
