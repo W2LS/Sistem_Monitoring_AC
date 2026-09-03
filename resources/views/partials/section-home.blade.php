@@ -677,9 +677,9 @@ function homeFleetComponent() {
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
                             <label class="block text-xs font-black uppercase text-slate-700 tracking-wider">IP Address Perangkat</label>
-                            <span x-show="ipConflict" class="text-[9.5px] font-black uppercase text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md flex items-center gap-1 animate-pulse">
+                            <span x-show="ipConflict" class="text-[9.5px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md flex items-center gap-1">
                                 <span>⚠️</span>
-                                <span>IP Sudah Terpakai</span>
+                                <span>Sudah Terpakai</span>
                             </span>
                         </div>
                         <input type="text" 
@@ -688,12 +688,12 @@ function homeFleetComponent() {
                                placeholder="Contoh: 192.168.196.51" 
                                required
                                class="w-full px-4 py-2.5 rounded-2xl border text-xs sm:text-sm font-mono transition outline-none"
-                               :class="ipConflict ? 'border-rose-500 bg-rose-50/50 text-rose-900 focus:ring-2 focus:ring-rose-400' : 'border-slate-200 focus:ring-2 focus:ring-[#D84040]'">
+                               :class="ipConflict ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:ring-2 focus:ring-rose-400' : 'border-slate-200 focus:ring-2 focus:ring-[#D84040]'">
                         
-                        <div x-show="ipConflict" class="mt-1.5 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-[11px] font-semibold flex items-start gap-1.5">
-                            <span class="text-xs shrink-0 mt-0.5">⚠️</span>
-                            <span>Alamat IP ini sudah digunakan oleh: <b class="font-black text-rose-900" x-text="ipConflict"></b>. Gunakan IP lain untuk mencegah bentrok/konflik jaringan!</span>
-                        </div>
+                        <p x-show="ipConflict" class="text-[10.5px] font-semibold text-rose-600 mt-1 flex items-center gap-1 truncate">
+                            <span>⚠️</span>
+                            <span>Sudah digunakan oleh: <b class="font-bold underline" x-text="ipConflict"></b></span>
+                        </p>
                     </div>
 
                     <div>
