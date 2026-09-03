@@ -914,19 +914,6 @@ function homeFleetComponent() {
                     </div>
                 </div>
 
-                <!-- Direct Standalone Script Download -->
-                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-3">
-                    <div class="space-y-0.5">
-                        <span class="text-xs font-black text-[#1D1616] block">Skrip Standalone Raspberry Pi</span>
-                        <span class="text-[10px] text-slate-500">Unduh 1 file Python siap pakai tanpa perlu file node_config.json</span>
-                    </div>
-                    <a :href="'/scripts/download/device?device_id=' + editDeviceData.device_id" 
-                       class="px-3.5 py-2 rounded-xl bg-[#1D1616] hover:bg-[#8E1616] text-white font-bold text-[11px] uppercase tracking-wide transition flex items-center gap-1.5 shrink-0 shadow-xs cursor-pointer">
-                        <span>📥</span>
-                        <span>Unduh .py</span>
-                    </a>
-                </div>
-
                 <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
                     <button @click="modalEditDevice = false" type="button" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
                     <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer">Perbarui Perangkat</button>
