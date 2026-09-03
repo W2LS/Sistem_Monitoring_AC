@@ -25,17 +25,17 @@
         <div class="bg-white rounded-[32px] border-2 border-[#D84040]/40 shadow-md overflow-hidden transition-all duration-300">
             <button @click="openItem = openItem === 'tutorial' ? null : 'tutorial'" 
                     type="button" 
-                    class="w-full p-5 sm:p-6 text-left flex items-center justify-between hover:bg-slate-50 transition cursor-pointer bg-gradient-to-r from-rose-50/50 to-white">
-                <div class="flex items-center space-x-4">
-                    <div class="w-12 h-12 rounded-2xl bg-[#D84040] text-white flex items-center justify-center font-black text-xl shrink-0 shadow-md shadow-[#D84040]/30">
+                    class="w-full p-4 sm:p-6 text-left flex items-center justify-between hover:bg-slate-50 transition cursor-pointer bg-gradient-to-r from-rose-50/50 to-white">
+                <div class="flex items-center space-x-3 sm:space-x-4 min-w-0">
+                    <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#D84040] text-white flex items-center justify-center font-black text-lg sm:text-xl shrink-0 shadow-md shadow-[#D84040]/30">
                         📖
                     </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h3 class="text-base font-black text-[#1D1616]">Panduan Praktis Setup Perangkat IoT</h3>
-                            <span class="bg-emerald-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full">SOP LENGKAP</span>
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                            <h3 class="text-sm sm:text-base font-black text-[#1D1616] leading-snug">Panduan Praktis Setup Perangkat IoT</h3>
+                            <span class="bg-emerald-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 tracking-wider">SOP LENGKAP</span>
                         </div>
-                        <p class="text-xs font-semibold text-slate-500">Panduan standar dari memilih template, mendaftarkan node, hingga menjalankan skrip di Raspberry Pi</p>
+                        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5 truncate sm:whitespace-normal">Panduan standar dari memilih template, mendaftarkan node, hingga menjalankan skrip di Raspberry Pi</p>
                     </div>
                 </div>
                 <div class="w-8 h-8 rounded-full bg-[#EEEEEE] flex items-center justify-center text-slate-600 font-bold text-sm transition-transform duration-300 shrink-0 ml-2"
@@ -45,7 +45,7 @@
             </button>
 
             <!-- ACCORDION CONTENT: COMPLETE STEP-BY-STEP SOP -->
-            <div x-show="openItem === 'tutorial'" x-cloak x-transition class="px-5 sm:px-6 pb-6 pt-4 border-t border-[#8E1616]/10 space-y-4 bg-slate-50/70"
+            <div x-show="openItem === 'tutorial'" x-cloak x-transition class="px-4 sm:px-6 pb-6 pt-4 border-t border-[#8E1616]/10 space-y-4 bg-slate-50/70"
                  x-data="{
                      copyAccSuccess: false,
                      sampleCommand: `(crontab -l 2>/dev/null | grep -v 'pindad_node'; echo &quot;@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/pindad_node_xxxx.py > /home/alex/node.log 2>&1 &&quot;) | crontab - && nohup python3 -u /home/alex/pindad_node_xxxx.py > /home/alex/node.log 2>&1 &`,
@@ -60,10 +60,10 @@
                 <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-2">
                     <div class="flex items-center justify-between gap-2">
                         <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                            <span class="w-5 h-5 rounded-full bg-[#1D1616] text-white flex items-center justify-center text-[10px] font-black">1</span>
+                            <span class="w-5 h-5 rounded-full bg-[#1D1616] text-white flex items-center justify-center text-[10px] font-black shrink-0">1</span>
                             <span>PILIH / BUAT TEMPLATE HARDWARE (MODUL DEVZONE)</span>
                         </span>
-                        <span class="text-[9px] font-black uppercase bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-sans">Modul 2</span>
+                        <span class="text-[9px] font-black uppercase bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-sans shrink-0 whitespace-nowrap">Modul 2</span>
                     </div>
                     <p class="text-xs text-slate-600 leading-relaxed">
                         Buka menu <b>DevZone</b> untuk memilih blueprint template yang sesuai (misal: <i>Module Relay 1, 2, 4, atau 8 Channel</i>) atau buat template kustom baru dengan susunan <b>Virtual Pin</b> relay dan sensor yang diinginkan.
@@ -74,10 +74,10 @@
                 <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-2">
                     <div class="flex items-center justify-between gap-2">
                         <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                            <span class="w-5 h-5 rounded-full bg-[#1D1616] text-white flex items-center justify-center text-[10px] font-black">2</span>
+                            <span class="w-5 h-5 rounded-full bg-[#1D1616] text-white flex items-center justify-center text-[10px] font-black shrink-0">2</span>
                             <span>DAFTARKAN RUANGAN / PERANGKAT (MODUL HOME)</span>
                         </span>
-                        <span class="text-[9px] font-black uppercase bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-sans">Modul 1</span>
+                        <span class="text-[9px] font-black uppercase bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-sans shrink-0 whitespace-nowrap">Modul 1</span>
                     </div>
                     <p class="text-xs text-slate-600 leading-relaxed">
                         Buka menu <b>Home</b> &rarr; klik <b>`+ Tambah Perangkat Baru`</b>. Masukkan Nama Ruangan (misal: <i>Server Telepon</i>), IP Address Raspberry Pi, dan pilih template yang telah ditentukan di langkah 1.
@@ -88,10 +88,10 @@
                 <div class="bg-white rounded-2xl p-4 sm:p-5 border-2 border-emerald-400/80 shadow-xs space-y-2 bg-emerald-50/20">
                     <div class="flex items-center justify-between gap-2">
                         <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                            <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black">3</span>
+                            <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black shrink-0">3</span>
                             <span>UNDUH FILE SKRIP PYTHON (.PY)</span>
                         </span>
-                        <span class="text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-sans">Auto-Config</span>
+                        <span class="text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-sans shrink-0 whitespace-nowrap">Auto-Config</span>
                     </div>
                     <p class="text-xs text-slate-600 leading-relaxed">
                         Buka detail kartu perangkat di halaman <b>Home</b>, lalu klik tombol <b>`📥 Unduh Skrip (.py)`</b>. Simpan file skrip (contoh: <code class="font-bold text-[#1D1616] bg-white px-1.5 py-0.5 rounded border border-slate-200 font-mono text-[11px]">pindad_node_ruang_server.py</code>) ke folder <code class="font-mono text-slate-800 font-bold bg-white px-1.5 py-0.5 rounded text-[11px]">/home/alex/</code> (atau <code class="font-mono text-slate-800 font-bold bg-white px-1.5 py-0.5 rounded text-[11px]">/home/pi/</code>) di Raspberry Pi.
@@ -102,12 +102,12 @@
                 <div class="bg-slate-900 rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-800 space-y-3 text-white shadow-lg">
                     <div class="flex items-center justify-between gap-2">
                         <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-400 flex items-center gap-2">
-                            <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center text-[10px] font-black">4</span>
+                            <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center text-[10px] font-black shrink-0">4</span>
                             <span>PERINTAH 1-KLIK AUTO-START ON BOOT & JALANKAN</span>
                         </span>
                         <button @click="copyAccCmd()" 
                                 type="button" 
-                                class="px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0 shadow-xs"
+                                class="px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0 shadow-xs whitespace-nowrap"
                                 :class="copyAccSuccess ? 'bg-emerald-500 text-white' : 'bg-white/15 hover:bg-white/25 text-amber-300 border border-amber-400/30'">
                             <span x-text="copyAccSuccess ? '✓' : '📋'"></span>
                             <span x-text="copyAccSuccess ? 'Tersalin!' : 'Salin Perintah'"></span>
@@ -124,12 +124,12 @@
                 <!-- STEP 5: CEK LOG BERJALAN -->
                 <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-2">
                     <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-full bg-slate-500 text-white flex items-center justify-center text-[10px] font-black">5</span>
+                        <span class="w-5 h-5 rounded-full bg-slate-500 text-white flex items-center justify-center text-[10px] font-black shrink-0">5</span>
                         <span>PERIKSA LOG BERJALAN (OPSIONAL)</span>
                     </span>
                     <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200">
                         <code class="text-xs sm:text-sm font-mono font-bold text-slate-800">tail -f /home/alex/node.log</code>
-                        <span class="text-[11px] font-semibold text-slate-400">Tekan Ctrl+C keluar</span>
+                        <span class="text-[11px] font-semibold text-slate-400 shrink-0 whitespace-nowrap">Tekan Ctrl+C keluar</span>
                     </div>
                     <p class="text-[11px] text-slate-500">
                         Gunakan perintah di atas di terminal untuk memantau pengiriman data telemetri suhu, arus ampere, dan status relay secara live.
@@ -138,12 +138,12 @@
 
                 <!-- HELPER: INSTALL DEPENDENCY (1X SETUP RPI BARU) -->
                 <div class="bg-white p-4 sm:p-4.5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span class="text-base">📦</span>
-                            <h4 class="font-black text-xs uppercase tracking-wider text-[#1D1616]">Install Library Python (Khusus Raspberry Pi Baru / 1x Setup)</h4>
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="text-base shrink-0">📦</span>
+                            <h4 class="font-black text-xs uppercase tracking-wider text-[#1D1616] truncate">Install Library Python (Khusus Raspberry Pi Baru / 1x Setup)</h4>
                         </div>
-                        <span class="text-[9px] font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-500 font-bold">Python Pip</span>
+                        <span class="text-[9px] font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-500 font-bold shrink-0 whitespace-nowrap">Python Pip</span>
                     </div>
                     <p class="text-[11.5px] text-slate-500">Jalankan sekali saja jika Raspberry Pi baru belum terinstall library MQTT & sensor:</p>
                     <code class="block font-mono text-[11px] bg-slate-900 text-slate-100 p-2.5 rounded-xl select-all overflow-x-auto leading-relaxed">
@@ -158,17 +158,17 @@
         <div class="bg-white rounded-[32px] border-2 border-sky-400/50 shadow-md overflow-hidden transition-all duration-300">
             <button @click="openItem = openItem === 'telegram' ? null : 'telegram'" 
                     type="button" 
-                    class="w-full p-5 sm:p-6 text-left flex items-center justify-between hover:bg-slate-50 transition cursor-pointer bg-gradient-to-r from-sky-50/50 to-white">
-                <div class="flex items-center space-x-4">
-                    <div class="w-12 h-12 rounded-2xl bg-sky-500 text-white flex items-center justify-center font-black text-2xl shrink-0 shadow-md shadow-sky-500/30">
+                    class="w-full p-4 sm:p-6 text-left flex items-center justify-between hover:bg-slate-50 transition cursor-pointer bg-gradient-to-r from-sky-50/50 to-white">
+                <div class="flex items-center space-x-3 sm:space-x-4 min-w-0">
+                    <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-sky-500 text-white flex items-center justify-center font-black text-xl sm:text-2xl shrink-0 shadow-md shadow-sky-500/30">
                         🤖
                     </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h3 class="text-base font-black text-[#1D1616]">Notifikasi Bot Telegram (Pengingat & Alarm Darurat)</h3>
-                            <span class="bg-sky-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full">REAL-TIME</span>
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                            <h3 class="text-sm sm:text-base font-black text-[#1D1616] leading-snug">Notifikasi Bot Telegram</h3>
+                            <span class="bg-sky-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 tracking-wider">REAL-TIME</span>
                         </div>
-                        <p class="text-xs font-semibold text-slate-500">Kirim pesan darurat otomatis ke teknisi saat AC gagal hidup, kompresor mati, atau anomali arus</p>
+                        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5 truncate sm:whitespace-normal">Kirim pesan darurat otomatis ke teknisi saat AC gagal hidup, kompresor mati, atau anomali arus</p>
                     </div>
                 </div>
                 <div class="w-8 h-8 rounded-full bg-[#EEEEEE] flex items-center justify-center text-slate-600 font-bold text-sm transition-transform duration-300 shrink-0 ml-2"
@@ -369,14 +369,14 @@
         <div class="bg-white rounded-[32px] border border-[#8E1616]/20 shadow-xs overflow-hidden transition-all duration-300">
             <button @click="openItem = openItem === 'akun' ? null : 'akun'" 
                     type="button" 
-                    class="w-full p-5 sm:p-6 text-left flex items-center justify-between hover:bg-slate-50 transition cursor-pointer">
-                <div class="flex items-center space-x-4">
-                    <div class="w-12 h-12 rounded-2xl bg-rose-100 text-[#8E1616] flex items-center justify-center font-black text-xl shrink-0">
+                    class="w-full p-4 sm:p-6 text-left flex items-center justify-between hover:bg-slate-50 transition cursor-pointer">
+                <div class="flex items-center space-x-3 sm:space-x-4 min-w-0">
+                    <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-rose-100 text-[#8E1616] flex items-center justify-center font-black text-lg sm:text-xl shrink-0">
                         👤
                     </div>
-                    <div>
-                        <h3 class="text-base font-black text-[#1D1616]">Profil & Akun Operator</h3>
-                        <p class="text-xs font-semibold text-slate-500">Informasi pengguna aktif dan hak akses kontrol dashboard</p>
+                    <div class="min-w-0">
+                        <h3 class="text-sm sm:text-base font-black text-[#1D1616] leading-snug">Profil & Akun Operator</h3>
+                        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5 truncate sm:whitespace-normal">Informasi pengguna aktif dan hak akses kontrol dashboard</p>
                     </div>
                 </div>
                 <div class="w-8 h-8 rounded-full bg-[#EEEEEE] flex items-center justify-center text-slate-600 font-bold text-sm transition-transform duration-300 shrink-0 ml-2"
@@ -386,7 +386,7 @@
             </button>
 
             <!-- ACCORDION CONTENT -->
-            <div x-show="openItem === 'akun'" x-cloak x-transition class="px-5 sm:px-6 pb-6 pt-2 border-t border-[#8E1616]/10 space-y-4 bg-slate-50/60">
+            <div x-show="openItem === 'akun'" x-cloak x-transition class="px-4 sm:px-6 pb-6 pt-2 border-t border-[#8E1616]/10 space-y-4 bg-slate-50/60">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs pt-2">
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Nama Lengkap</span>
@@ -432,14 +432,14 @@
         <div class="bg-white rounded-[32px] border border-[#8E1616]/20 shadow-xs overflow-hidden transition-all duration-300">
             <button @click="openItem = openItem === 'sistem' ? null : 'sistem'" 
                     type="button" 
-                    class="w-full p-5 sm:p-6 text-left flex items-center justify-between hover:bg-slate-50 transition cursor-pointer">
-                <div class="flex items-center space-x-4">
-                    <div class="w-12 h-12 rounded-2xl bg-rose-100 text-[#8E1616] flex items-center justify-center font-black text-xl shrink-0">
+                    class="w-full p-4 sm:p-6 text-left flex items-center justify-between hover:bg-slate-50 transition cursor-pointer">
+                <div class="flex items-center space-x-3 sm:space-x-4 min-w-0">
+                    <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-rose-100 text-[#8E1616] flex items-center justify-center font-black text-lg sm:text-xl shrink-0">
                         🖥️
                     </div>
-                    <div>
-                        <h3 class="text-base font-black text-[#1D1616]">Informasi Web & Server Platform</h3>
-                        <p class="text-xs font-semibold text-slate-500">Spesifikasi software engine, database MongoDB, dan broker MQTT</p>
+                    <div class="min-w-0">
+                        <h3 class="text-sm sm:text-base font-black text-[#1D1616] leading-snug">Informasi Web & Server Platform</h3>
+                        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5 truncate sm:whitespace-normal">Spesifikasi software engine, database MongoDB, dan broker MQTT</p>
                     </div>
                 </div>
                 <div class="w-8 h-8 rounded-full bg-[#EEEEEE] flex items-center justify-center text-slate-600 font-bold text-sm transition-transform duration-300 shrink-0 ml-2"
@@ -449,7 +449,7 @@
             </button>
 
             <!-- ACCORDION CONTENT -->
-            <div x-show="openItem === 'sistem'" x-cloak x-transition class="px-5 sm:px-6 pb-6 pt-2 border-t border-[#8E1616]/10 space-y-4 bg-slate-50/60">
+            <div x-show="openItem === 'sistem'" x-cloak x-transition class="px-4 sm:px-6 pb-6 pt-2 border-t border-[#8E1616]/10 space-y-4 bg-slate-50/60">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs pt-2">
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Versi Dashboard</span>
@@ -483,14 +483,14 @@
         <div class="bg-white rounded-[32px] border border-[#8E1616]/20 shadow-xs overflow-hidden transition-all duration-300">
             <button @click="openItem = openItem === 'hardware' ? null : 'hardware'" 
                     type="button" 
-                    class="w-full p-5 sm:p-6 text-left flex items-center justify-between hover:bg-slate-50 transition cursor-pointer">
-                <div class="flex items-center space-x-4">
-                    <div class="w-12 h-12 rounded-2xl bg-rose-100 text-[#8E1616] flex items-center justify-center font-black text-xl shrink-0">
+                    class="w-full p-4 sm:p-6 text-left flex items-center justify-between hover:bg-slate-50 transition cursor-pointer">
+                <div class="flex items-center space-x-3 sm:space-x-4 min-w-0">
+                    <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-rose-100 text-[#8E1616] flex items-center justify-center font-black text-lg sm:text-xl shrink-0">
                         📟
                     </div>
-                    <div>
-                        <h3 class="text-base font-black text-[#1D1616]">Spesifikasi Hardware & Pinout</h3>
-                        <p class="text-xs font-semibold text-slate-500">Daftar komponen sensor arus ACS712, RTC DS3231, dan modul relay</p>
+                    <div class="min-w-0">
+                        <h3 class="text-sm sm:text-base font-black text-[#1D1616] leading-snug">Spesifikasi Hardware & Pinout</h3>
+                        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5 truncate sm:whitespace-normal">Daftar komponen sensor arus ACS712, RTC DS3231, dan modul relay</p>
                     </div>
                 </div>
                 <div class="w-8 h-8 rounded-full bg-[#EEEEEE] flex items-center justify-center text-slate-600 font-bold text-sm transition-transform duration-300 shrink-0 ml-2"
