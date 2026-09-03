@@ -1419,4 +1419,19 @@ class DashboardController extends Controller
 
         return redirect()->back()->with('error', $res['message']);
     }
+
+    /**
+     * Tampilkan Halaman Buku Panduan & SOP Teknis SIKOMAT (Print / Unduh PDF)
+     */
+    public function manualPdf()
+    {
+        $user = auth()->user() ?? (object)[
+            'name' => 'Dicky Akbar Syahputra',
+            'email' => 'dicky.akbar@pindad.com'
+        ];
+        $devices = Device::all();
+        $templates = Template::all();
+        
+        return view('panduan-pdf', compact('user', 'devices', 'templates'));
+    }
 }

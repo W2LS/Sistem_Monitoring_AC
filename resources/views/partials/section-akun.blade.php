@@ -56,6 +56,30 @@
                      }
                  }">
                 
+                <!-- PROMINENT DOWNLOAD PDF BANNER -->
+                <div class="bg-gradient-to-r from-[#1D1616] via-[#8E1616] to-[#D84040] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-md flex flex-col sm:flex-row items-center justify-between gap-3 border border-white/10">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-white/15 flex items-center justify-center text-xl sm:text-2xl shrink-0 shadow-inner">
+                            📑
+                        </div>
+                        <div class="min-w-0">
+                            <h4 class="font-black text-xs sm:text-sm text-white tracking-tight flex items-center gap-2">
+                                <span>Buku Panduan & SOP Teknis Lengkap</span>
+                                <span class="bg-amber-400 text-slate-950 text-[9px] font-black uppercase px-2 py-0.5 rounded-full whitespace-nowrap">PDF A4</span>
+                            </h4>
+                            <p class="text-[10.5px] sm:text-[11.5px] text-rose-100 leading-snug mt-0.5">
+                                Panduan detail penggunaan web, skema wiring pinout, instalasi OS, kalibrasi sensor & troubleshooting.
+                            </p>
+                        </div>
+                    </div>
+                    <a href="{{ route('panduan.pdf') }}" 
+                       target="_blank" 
+                       class="w-full sm:w-auto px-5 py-2.5 rounded-xl sm:rounded-2xl bg-white hover:bg-rose-50 text-[#8E1616] font-black text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap">
+                        <span>📥</span>
+                        <span>Unduh PDF Manual</span>
+                    </a>
+                </div>
+
                 <!-- STEP 1: PILIH / BUAT TEMPLATE DEVZONE -->
                 <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-2">
                     <div class="flex items-center justify-between gap-2">

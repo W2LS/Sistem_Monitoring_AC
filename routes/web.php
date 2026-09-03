@@ -59,4 +59,7 @@ Route::middleware('auth.session')->group(function () {
     Route::post('/settings/telegram', [DashboardController::class, 'saveTelegramSettings'])->name('settings.telegram');
     Route::post('/settings/telegram/test', [DashboardController::class, 'testTelegramNotification'])->name('settings.telegram.test');
 
+    // Download / Cetak Buku Panduan & SOP Teknis PDF Lengkap
+    Route::get('/panduan/pdf', [DashboardController::class, 'manualPdf'])->name('panduan.pdf');
+
 });

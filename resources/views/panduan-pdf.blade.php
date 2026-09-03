@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buku Panduan & SOP Teknis SIKOMAT - PT PINDAD</title>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #1D1616;
+            background-color: #F8FAFC;
+        }
+        code, pre {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        @media print {
+            body {
+                background-color: #FFFFFF !important;
+                color: #000000 !important;
+                font-size: 11pt;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .page-break {
+                page-break-before: always;
+            }
+            .avoid-break {
+                page-break-inside: avoid;
+            }
+            .doc-container {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+            @page {
+                size: A4 portrait;
+                margin: 15mm 15mm 15mm 15mm;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen py-6 sm:py-10">
+
+    <!-- FLOATING TOP ACTION BAR (NON-PRINTABLE) -->
+    <div class="no-print fixed top-0 left-0 right-0 z-50 bg-[#1D1616]/95 backdrop-blur-md text-white border-b border-white/10 px-4 py-3 shadow-lg">
+        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <img src="/SIKOMAT.png" alt="SIKOMAT Logo" class="h-8 object-contain brightness-0 invert" onerror="this.src='/logo-pindad.png';">
+                <div>
+                    <h1 class="text-xs sm:text-sm font-black tracking-tight text-white">BUKU PANDUAN & SOP TEKNIS SIKOMAT</h1>
+                    <p class="text-[10px] text-slate-300">Dokumen Standar Operasional Prosedur Sistem IoT PT PINDAD</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                <a href="{{ route('dashboard') }}" 
+                   class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider transition text-center cursor-pointer">
+                    ← Kembali
+                </a>
+                <button onclick="window.print()" 
+                        class="flex-1 sm:flex-none px-5 py-2 rounded-xl bg-[#D84040] hover:bg-[#8E1616] text-white font-black text-xs uppercase tracking-wider shadow-md transition flex items-center justify-center gap-2 cursor-pointer active:scale-95">
+                    <span>📥</span>
+                    <span>Cetak / Simpan PDF (A4)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN A4 DOCUMENT CONTAINER -->
+    <div class="doc-container max-w-4xl mx-auto bg-white rounded-3xl sm:rounded-[36px] shadow-2xl border border-slate-200/80 p-6 sm:p-12 mt-12 sm:mt-10 space-y-10">
+
+        <!-- ========================================================================= -->
+        <!-- COVER / HEADER RESMI PT PINDAD -->
+        <!-- ========================================================================= -->
+        <div class="border-b-4 border-[#8E1616] pb-8 space-y-6">
+            <div class="flex items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <span class="text-[11px] font-black uppercase tracking-widest text-[#8E1616] block">
+                        PT PINDAD (PERSERO) • DIVISI MUTU & TEKNOLOGI INFORMASI
+                    </span>
+                    <h1 class="text-2xl sm:text-3xl font-black text-[#1D1616] tracking-tight">
+                        BUKU PANDUAN PENGOPERASIAN & MANUAL HARDWARE IOT
+                    </h1>
+                    <p class="text-sm font-semibold text-slate-600">
+                        Sistem Kontrol & Monitoring Otomatis AC Gedung (SIKOMAT) Berbasis Raspberry Pi & Laravel
+                    </p>
+                </div>
+                <div class="hidden sm:block text-right shrink-0">
+                    <div class="w-16 h-16 rounded-2xl bg-[#8E1616]/10 border border-[#8E1616]/20 flex items-center justify-center text-3xl">
+                        ❄️
+                    </div>
+                </div>
+            </div>
+
+            <!-- DOCUMENT METADATA GRID -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
+                <div>
+                    <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block">No. Dokumen</span>
+                    <span class="font-mono font-bold text-slate-800 text-[11px] block mt-0.5">SOP/TI-PINDAD/AC/2026/V2.5</span>
+                </div>
+                <div>
+                    <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Klasifikasi</span>
+                    <span class="font-bold text-emerald-700 text-[11px] block mt-0.5">Dokumen Teknis Internal</span>
+                </div>
+                <div>
+                    <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Versi Engine</span>
+                    <span class="font-bold text-[#8E1616] text-[11px] block mt-0.5">v2.5.0 (Blynk Architecture)</span>
+                </div>
+                <div>
+                    <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Penyusun / Operator</span>
+                    <span class="font-bold text-slate-800 text-[11px] block mt-0.5">{{ $user->name ?? 'Dicky Akbar Syahputra' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- DAFTAR ISI RINGKAS -->
+        <!-- ========================================================================= -->
+        <div class="bg-rose-50/50 p-5 sm:p-6 rounded-2xl border border-rose-100 space-y-3 avoid-break">
+            <h2 class="text-xs font-black uppercase tracking-widest text-[#8E1616] flex items-center gap-2">
+                <span>📑</span>
+                <span>DAFTAR ISI PANDUAN LENGKAP</span>
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs font-medium text-slate-700">
+                <a href="#bab1" class="hover:text-[#8E1616] transition flex items-center gap-2">
+                    <span class="font-mono font-bold text-[#8E1616]">BAB 1.</span>
+                    <span>Pendahuluan & Arsitektur IoT SIKOMAT</span>
+                </a>
+                <a href="#bab2" class="hover:text-[#8E1616] transition flex items-center gap-2">
+                    <span class="font-mono font-bold text-[#8E1616]">BAB 2.</span>
+                    <span>Panduan Penggunaan Web Dashboard (4 Modul)</span>
+                </a>
+                <a href="#bab3" class="hover:text-[#8E1616] transition flex items-center gap-2">
+                    <span class="font-mono font-bold text-[#8E1616]">BAB 3.</span>
+                    <span>Perakitan Hardware Node RPi & Skema Pinout</span>
+                </a>
+                <a href="#bab4" class="hover:text-[#8E1616] transition flex items-center gap-2">
+                    <span class="font-mono font-bold text-[#8E1616]">BAB 4.</span>
+                    <span>Instalasi OS, Dependensi & Auto-Start Skrip</span>
+                </a>
+                <a href="#bab5" class="hover:text-[#8E1616] transition flex items-center gap-2">
+                    <span class="font-mono font-bold text-[#8E1616]">BAB 5.</span>
+                    <span>Setup Bot Telegram Alarm Darurat Anomali</span>
+                </a>
+                <a href="#bab6" class="hover:text-[#8E1616] transition flex items-center gap-2">
+                    <span class="font-mono font-bold text-[#8E1616]">BAB 6.</span>
+                    <span>Pengujian, Kalibrasi & Troubleshooting Masalah</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- BAB 1: PENDAHULUAN & ARSITEKTUR SISTEM -->
+        <!-- ========================================================================= -->
+        <div id="bab1" class="space-y-4 pt-2">
+            <div class="flex items-center gap-3 border-b border-slate-200 pb-3">
+                <span class="w-8 h-8 rounded-xl bg-[#8E1616] text-white flex items-center justify-center font-black text-sm">1</span>
+                <h2 class="text-lg sm:text-xl font-black text-[#1D1616] tracking-tight">
+                    BAB I: PENDAHULUAN & ARSITEKTUR IOT
+                </h2>
+            </div>
+            
+            <p class="text-xs sm:text-sm text-slate-700 leading-relaxed text-justify">
+                <strong>SIKOMAT (Sistem Kontrol & Monitoring Otomatis AC)</strong> adalah platform Industrial IoT yang dirancang khusus untuk memonitor suhu ruangan, arus listrik (Ampere), dan mengatur pergantian (shifting) operasional unit AC secara otomatis pada ruangan-ruangan vital PT PINDAD (seperti Ruang Server Telepon, Data Center, dan Ruang Kontrol) guna mencegah <em>overheating</em> serta menjaga efisiensi energi.
+            </p>
+
+            <div class="bg-slate-900 text-white p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-3 avoid-break">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black uppercase tracking-wider text-amber-400">Diagram Alur Arsitektur Komunikasi IoT</span>
+                    <span class="text-[10px] font-mono bg-white/10 px-2 py-0.5 rounded text-slate-300">Data Flow</span>
+                </div>
+                <div class="p-3 bg-black/60 rounded-xl font-mono text-[11px] sm:text-xs text-emerald-400 leading-relaxed overflow-x-auto whitespace-pre">
+[Sensors: ACS712 + RTC DS3231] ──> [Raspberry Pi Node (Python Script)]
+                                            │ (MQTT TCP 1883)
+                                            ▼
+[Mosquitto MQTT Broker] ──> [Laravel Dashboard Backend & MongoDB]
+                                            │
+               ┌────────────────────────────┴────────────────────────────┐
+               ▼                                                         ▼
+[Web Dashboard Real-Time GUI]                                [Telegram Alert Bot]
+(Status, Live Chart, Kontrol Relay)                          (Peringatan Darurat AC Gagal)</div>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- BAB 2: PANDUAN LENGKAP PENGOPERASIAN WEB DASHBOARD -->
+        <!-- ========================================================================= -->
+        <div id="bab2" class="space-y-6 pt-6 page-break">
+            <div class="flex items-center gap-3 border-b border-slate-200 pb-3">
+                <span class="w-8 h-8 rounded-xl bg-[#8E1616] text-white flex items-center justify-center font-black text-sm">2</span>
+                <h2 class="text-lg sm:text-xl font-black text-[#1D1616] tracking-tight">
+                    BAB II: PANDUAN PENGGUNAAN WEB DASHBOARD
+                </h2>
+            </div>
+
+            <!-- MODUL 1: HOME -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3 avoid-break">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-black text-[#8E1616] uppercase tracking-wider flex items-center gap-2">
+                        <span>🏠</span>
+                        <span>2.1 Modul 1: Home (Universal IoT Fleet Overview)</span>
+                    </h3>
+                    <span class="bg-rose-100 text-[#8E1616] text-[9px] font-black uppercase px-2 py-0.5 rounded">Fleet Mode</span>
+                </div>
+                <ul class="text-xs text-slate-700 space-y-2 list-disc pl-5 leading-relaxed">
+                    <li><strong>Monitoring Status Node:</strong> Melihat status seluruh ruangan secara serentak. Indikator 🟢 <em>Online</em> menandakan Raspberry Pi aktif mengirimkan telemetri, sedangkan 🔴 <em>Offline</em> menandakan perangkat kehilangan koneksi.</li>
+                    <li><strong>Drilldown Detail Ruangan:</strong> Klik salah satu kartu ruangan untuk membuka tampilan drilldown terperinci: grafik suhu & arus ampere live, saklar relay manual per-unit AC, dan pengaturan jadwal shift.</li>
+                    <li><strong>Pendaftaran Perangkat Baru:</strong> Klik tombol <b>`+ Tambah Perangkat Baru`</b> di halaman Home. Masukkan Nama Ruangan (misal: <i>Server Telepon</i>), IP Raspberry Pi, kapasitas AC, dan pilih Template Modul Relay.</li>
+                    <li><strong>Unduh Skrip (.py) Mandiri:</strong> Setelah perangkat didaftarkan, klik tombol <b>`📥 Unduh Skrip (.py)`</b> pada kartu perangkat. Web akan otomatis men-generate file Python lengkap yang sudah berisi konfigurasi Device ID, IP, dan topic MQTT yang sesuai.</li>
+                </ul>
+            </div>
+
+            <!-- MODUL 2: DEVZONE -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3 avoid-break">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-black text-[#8E1616] uppercase tracking-wider flex items-center gap-2">
+                        <span>🛠️</span>
+                        <span>2.2 Modul 2: Developer Zone (Template & Virtual Pin)</span>
+                    </h3>
+                    <span class="bg-slate-100 text-slate-700 text-[9px] font-black uppercase px-2 py-0.5 rounded">Blueprint Engine</span>
+                </div>
+                <ul class="text-xs text-slate-700 space-y-2 list-disc pl-5 leading-relaxed">
+                    <li><strong>Konsep Template Hardware:</strong> Template berfungsi sebagai blueprint modul relay (1 Channel, 2 Channel, 4 Channel, atau 8 Channel) yang memetakan pin virtual IoT ke saklar fisik.</li>
+                    <li><strong>Alokasi Virtual Pin:</strong>
+                        <ul class="list-circle pl-5 mt-1 space-y-1 text-slate-600">
+                            <li><code class="font-bold text-slate-800">V0, V1, V2, V3</code> : Saklar Relay Kontrol Unit AC 1 s/d AC 4</li>
+                            <li><code class="font-bold text-slate-800">V10</code> : Telemetri Suhu Udara Ruangan (°C)</li>
+                            <li><code class="font-bold text-slate-800">V20, V21, V22</code> : Telemetri Arus Listrik AC 1 s/d AC 4 (Ampere)</li>
+                            <li><code class="font-bold text-slate-800">V30</code> : Mode Turbo Cooling Priority (Emergency Dual-Cooling)</li>
+                        </ul>
+                    </li>
+                    <li><strong>Ekspor & Impor Template:</strong> Operator dapat mengunduh file blueprint JSON template untuk dicadangkan atau dibagikan ke server SIKOMAT lainnya.</li>
+                </ul>
+            </div>
+
+            <!-- MODUL 3: LOG AC -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3 avoid-break">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-black text-[#8E1616] uppercase tracking-wider flex items-center gap-2">
+                        <span>📊</span>
+                        <span>2.3 Modul 3: Log AC & Histori Audit Trail</span>
+                    </h3>
+                    <span class="bg-slate-100 text-slate-700 text-[9px] font-black uppercase px-2 py-0.5 rounded">Audit & CSV</span>
+                </div>
+                <p class="text-xs text-slate-700 leading-relaxed">
+                    Menyimpan rekaman riwayat arus ampere, status switching relay, suhu, dan event anomali. Operator dapat memfilter log berdasarkan perangkat dan rentang tanggal, serta mengunduh data dalam format file <strong>Excel / CSV</strong> untuk keperluan laporan audit fasilitas.
+                </p>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- BAB 3: PERAKITAN HARDWARE NODE RASPBERRY PI DARI NOL -->
+        <!-- ========================================================================= -->
+        <div id="bab3" class="space-y-6 pt-6 page-break">
+            <div class="flex items-center gap-3 border-b border-slate-200 pb-3">
+                <span class="w-8 h-8 rounded-xl bg-[#8E1616] text-white flex items-center justify-center font-black text-sm">3</span>
+                <h2 class="text-lg sm:text-xl font-black text-[#1D1616] tracking-tight">
+                    BAB III: PANDUAN PERAKITAN HARDWARE & WIRING PINOUT
+                </h2>
+            </div>
+
+            <!-- DAFTAR KOMPONEN -->
+            <div class="space-y-3 avoid-break">
+                <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">3.1 Daftar Komponen Perangkat Keras</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <span class="font-bold text-slate-900 block">1. Raspberry Pi 3 Model B+</span>
+                        <span class="text-slate-500 text-[11px]">Kontroler komputasi utama + MicroSD 16GB/32GB + PSU 5V 3A</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <span class="font-bold text-slate-900 block">2. Modul ADC ADS1115 (16-Bit I2C)</span>
+                        <span class="text-slate-500 text-[11px]">Mengubah sinyal analog sensor arus ACS712 menjadi data digital</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <span class="font-bold text-slate-900 block">3. Sensor Arus Listrik ACS712 (30A)</span>
+                        <span class="text-slate-500 text-[11px]">Sensor efek Hall pengukur arus beban kompresor AC (66mV/A)</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <span class="font-bold text-slate-900 block">4. Real-Time Clock Maxim DS3231 I2C</span>
+                        <span class="text-slate-500 text-[11px]">Penjaga akurasi jam operasional shifting saat offline / tanpa internet</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <span class="font-bold text-slate-900 block">5. Modul Relay Optocoupler 5V</span>
+                        <span class="text-slate-500 text-[11px]">Saklar pemutus/penghubung daya AC 220V (Active LOW)</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <span class="font-bold text-slate-900 block">6. Terminal Blok & Kabel Jumper</span>
+                        <span class="text-slate-500 text-[11px]">Kabel jumper Female-to-Female dan konektor listrik standar PLN</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABEL SKEMA WIRING / PINOUT -->
+            <div class="space-y-3 avoid-break">
+                <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">3.2 Skema Pengkabelan (Wiring Pinout Table)</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden">
+                        <thead class="bg-slate-900 text-white text-[11px] uppercase tracking-wider">
+                            <tr>
+                                <th class="p-3">Komponen Sensor / Modul</th>
+                                <th class="p-3">Pin Komponen</th>
+                                <th class="p-3">Pin Raspberry Pi 3B+</th>
+                                <th class="p-3">Keterangan / Fungsi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-slate-700 bg-white">
+                            <tr class="bg-slate-50/50">
+                                <td class="p-2.5 font-bold" rowspan="4">ADS1115 (ADC 16-Bit)</td>
+                                <td class="p-2.5 font-mono">VDD</td>
+                                <td class="p-2.5 font-mono font-bold text-rose-700">Pin 1 (3.3V DC)</td>
+                                <td class="p-2.5 text-slate-500">Daya positif modul ADC</td>
+                            </tr>
+                            <tr class="bg-slate-50/50">
+                                <td class="p-2.5 font-mono">GND</td>
+                                <td class="p-2.5 font-mono font-bold text-slate-800">Pin 6 (GND)</td>
+                                <td class="p-2.5 text-slate-500">Ground bersama (Common Ground)</td>
+                            </tr>
+                            <tr class="bg-slate-50/50">
+                                <td class="p-2.5 font-mono">SDA</td>
+                                <td class="p-2.5 font-mono font-bold text-amber-600">Pin 3 (GPIO 2 / SDA)</td>
+                                <td class="p-2.5 text-slate-500">Jalur data I2C Bus</td>
+                            </tr>
+                            <tr class="bg-slate-50/50">
+                                <td class="p-2.5 font-mono">SCL</td>
+                                <td class="p-2.5 font-mono font-bold text-amber-600">Pin 5 (GPIO 3 / SCL)</td>
+                                <td class="p-2.5 text-slate-500">Jalur clock I2C Bus</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2.5 font-bold" rowspan="4">DS3231 (RTC Clock)</td>
+                                <td class="p-2.5 font-mono">VCC</td>
+                                <td class="p-2.5 font-mono font-bold text-rose-700">Pin 17 (3.3V DC)</td>
+                                <td class="p-2.5 text-slate-500">Daya RTC</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2.5 font-mono">GND</td>
+                                <td class="p-2.5 font-mono font-bold text-slate-800">Pin 9 (GND)</td>
+                                <td class="p-2.5 text-slate-500">Ground</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2.5 font-mono">SDA</td>
+                                <td class="p-2.5 font-mono font-bold text-amber-600">Pin 3 (GPIO 2 / SDA)</td>
+                                <td class="p-2.5 text-slate-500">I2C SDA Paralel dengan ADS1115</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2.5 font-mono">SCL</td>
+                                <td class="p-2.5 font-mono font-bold text-amber-600">Pin 5 (GPIO 3 / SCL)</td>
+                                <td class="p-2.5 text-slate-500">I2C SCL Paralel dengan ADS1115</td>
+                            </tr>
+                            <tr class="bg-slate-50/50">
+                                <td class="p-2.5 font-bold" rowspan="3">Sensor ACS712 (30A)</td>
+                                <td class="p-2.5 font-mono">VCC / GND</td>
+                                <td class="p-2.5 font-mono font-bold text-rose-700">Pin 2 (5V) & Pin 14 (GND)</td>
+                                <td class="p-2.5 text-slate-500">Daya sensor efek Hall</td>
+                            </tr>
+                            <tr class="bg-slate-50/50">
+                                <td class="p-2.5 font-mono">OUT (AC 1)</td>
+                                <td class="p-2.5 font-mono font-bold text-emerald-700">ADS1115 Pin A0</td>
+                                <td class="p-2.5 text-slate-500">Output tegangan analog AC 1</td>
+                            </tr>
+                            <tr class="bg-slate-50/50">
+                                <td class="p-2.5 font-mono">OUT (AC 2)</td>
+                                <td class="p-2.5 font-mono font-bold text-emerald-700">ADS1115 Pin A1</td>
+                                <td class="p-2.5 text-slate-500">Output tegangan analog AC 2</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2.5 font-bold" rowspan="4">Modul Relay 5V</td>
+                                <td class="p-2.5 font-mono">VCC / GND</td>
+                                <td class="p-2.5 font-mono font-bold text-rose-700">Pin 4 (5V) & Pin 20 (GND)</td>
+                                <td class="p-2.5 text-slate-500">Daya koil optocoupler</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2.5 font-mono">IN1 (Relay 1)</td>
+                                <td class="p-2.5 font-mono font-bold text-indigo-700">Pin 11 (GPIO 17)</td>
+                                <td class="p-2.5 text-slate-500">Triger On/Off AC 1 (Active LOW)</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2.5 font-mono">IN2 (Relay 2)</td>
+                                <td class="p-2.5 font-mono font-bold text-indigo-700">Pin 13 (GPIO 27)</td>
+                                <td class="p-2.5 text-slate-500">Triger On/Off AC 2 (Active LOW)</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2.5 font-mono">COM & NO</td>
+                                <td class="p-2.5 font-mono text-slate-800">Seri Jalur Fasa AC 220V</td>
+                                <td class="p-2.5 text-slate-500">Saklar daya AC / Kontaktor Magnetik</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- K3 LISTRIK PERINGATAN -->
+            <div class="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-900 space-y-1 avoid-break">
+                <div class="flex items-center gap-2 font-black">
+                    <span>⚠️</span>
+                    <span>STANDAR KESELAMATAN K3 LISTRIK TEGANGAN TINGGI (220V AC):</span>
+                </div>
+                <p class="leading-relaxed text-[11px] text-amber-800">
+                    Pastikan MCB panel dalam kondisi <strong>OFF (Mati Total)</strong> sebelum menyambungkan kabel listrik AC ke terminal COM dan NO modul relay. Gunakan kabel berstandar SNI (minimal NYAF 1.5mm²) dan bungkus seluruh sambungan dengan isolator atau heatshrink tube.
+                </p>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- BAB 4: INSTALASI OS, DEPENDENSI & AUTO-START SKRIP -->
+        <!-- ========================================================================= -->
+        <div id="bab4" class="space-y-6 pt-6 page-break">
+            <div class="flex items-center gap-3 border-b border-slate-200 pb-3">
+                <span class="w-8 h-8 rounded-xl bg-[#8E1616] text-white flex items-center justify-center font-black text-sm">4</span>
+                <h2 class="text-lg sm:text-xl font-black text-[#1D1616] tracking-tight">
+                    BAB IV: INSTALASI OS, DEPENDENSI & AUTO-START SKRIP
+                </h2>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                
+                <!-- LANGKAH 1 -->
+                <div class="p-4 bg-white rounded-2xl border border-slate-200 space-y-2">
+                    <span class="font-black text-slate-900 text-xs uppercase tracking-wider block">
+                        Langkah 1: Pengaturan Awal Raspberry Pi OS & I2C Interface
+                    </span>
+                    <p class="text-slate-600 leading-relaxed">
+                        Nyalakan Raspberry Pi dan buka terminal SSH. Aktifkan interface I2C dengan menjalankan:
+                    </p>
+                    <code class="block font-mono bg-slate-900 text-slate-100 p-2.5 rounded-xl select-all">
+                        sudo raspi-config
+                    </code>
+                    <p class="text-slate-500 text-[11px]">
+                        Pilih <b>Interface Options &rarr; I2C &rarr; Enable &rarr; Finish &rarr; Reboot</b>.
+                    </p>
+                </div>
+
+                <!-- LANGKAH 2 -->
+                <div class="p-4 bg-white rounded-2xl border border-slate-200 space-y-2">
+                    <span class="font-black text-slate-900 text-xs uppercase tracking-wider block">
+                        Langkah 2: Instalasi Library Python (Khusus Raspberry Pi Baru / 1x Setup)
+                    </span>
+                    <p class="text-slate-600 leading-relaxed">
+                        Jalankan 1 baris perintah pip berikut untuk menginstall library MQTT, sensor ADC, dan RTC:
+                    </p>
+                    <code class="block font-mono bg-slate-900 text-slate-100 p-2.5 rounded-xl select-all overflow-x-auto leading-relaxed">
+                        pip3 install paho-mqtt adafruit-circuitpython-ads1x15 adafruit-circuitpython-ds3231 RPi.GPIO
+                    </code>
+                </div>
+
+                <!-- LANGKAH 3 -->
+                <div class="p-4 bg-slate-900 text-white rounded-2xl border border-slate-800 space-y-2.5 shadow-md">
+                    <div class="flex items-center justify-between">
+                        <span class="font-black text-amber-400 text-xs uppercase tracking-wider block">
+                            Langkah 3: Perintah 1-Baris Auto-Start on Boot & Jalankan Skrip
+                        </span>
+                        <span class="text-[9px] font-mono bg-amber-400/20 text-amber-300 px-2 py-0.5 rounded">Rekomendasi</span>
+                    </div>
+                    <p class="text-slate-300 leading-relaxed text-[11.5px]">
+                        Salin skrip <code class="font-bold text-white bg-white/10 px-1 py-0.5 rounded">pindad_node_xxxx.py</code> ke folder <code class="font-mono text-emerald-400">/home/alex/</code> (atau <code class="font-mono text-emerald-400">/home/pi/</code>). Buka terminal SSH lalu jalankan 1 perintah ini:
+                    </p>
+                    <code class="block font-mono text-[10.5px] bg-black/60 text-emerald-400 p-3 rounded-xl select-all break-all leading-relaxed">
+                        (crontab -l 2>/dev/null | grep -v 'pindad_node'; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/pindad_node_xxxx.py > /home/alex/node.log 2>&1 &") | crontab - && nohup python3 -u /home/alex/pindad_node_xxxx.py > /home/alex/node.log 2>&1 &
+                    </code>
+                    <p class="text-slate-400 text-[10.5px]">
+                        💡 Skrip langsung aktif seketika di background dan otomatis berjalan kembali setiap kali listrik menyala.
+                    </p>
+                </div>
+
+                <!-- LANGKAH 4 -->
+                <div class="p-4 bg-white rounded-2xl border border-slate-200 space-y-2">
+                    <span class="font-black text-slate-900 text-xs uppercase tracking-wider block">
+                        Langkah 4: Pemantauan Log Pengiriman Data Real-Time
+                    </span>
+                    <p class="text-slate-600 leading-relaxed">
+                        Untuk memastikan data telemetri suhu dan arus ampere terkirim normal ke web dashboard:
+                    </p>
+                    <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                        <code class="font-mono font-bold text-slate-800 text-xs">tail -f /home/alex/node.log</code>
+                        <span class="text-[10px] text-slate-400">Tekan Ctrl+C keluar</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- BAB 5: PANDUAN BOT TELEGRAM ALARM DARURAT -->
+        <!-- ========================================================================= -->
+        <div id="bab5" class="space-y-6 pt-6 page-break">
+            <div class="flex items-center gap-3 border-b border-slate-200 pb-3">
+                <span class="w-8 h-8 rounded-xl bg-[#8E1616] text-white flex items-center justify-center font-black text-sm">5</span>
+                <h2 class="text-lg sm:text-xl font-black text-[#1D1616] tracking-tight">
+                    BAB V: PANDUAN SETUP NOTIFIKASI BOT TELEGRAM
+                </h2>
+            </div>
+
+            <div class="space-y-3 text-xs leading-relaxed text-slate-700">
+                <p>
+                    Sistem SIKOMAT dilengkapi mesin pendeteksi anomali otomatis (*Anomaly Detector Service*). Ketika unit AC dijadwalkan ON namun arus listrik terdeteksi <strong>0.00 Ampere</strong> (kompresor macet, MCB trip, atau AC mati), sistem akan langsung mengirimkan pesan darurat ke grup Telegram teknisi.
+                </p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                    <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                        <span class="font-black text-[#8E1616] text-[11px] uppercase block">1. Buat Bot Telegram</span>
+                        <p class="text-slate-600 text-[11px]">Buka Telegram &rarr; cari <b>@BotFather</b> &rarr; kirim <code>/newbot</code> &rarr; salin <b>HTTP API Token</b>.</p>
+                    </div>
+                    <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                        <span class="font-black text-[#8E1616] text-[11px] uppercase block">2. Dapatkan Chat ID</span>
+                        <p class="text-slate-600 text-[11px]">Kirim pesan ke bot Anda atau masukkan bot ke grup teknisi &rarr; cari ID via <b>@userinfobot</b>.</p>
+                    </div>
+                    <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                        <span class="font-black text-[#8E1616] text-[11px] uppercase block">3. Simpan di Modul 4</span>
+                        <p class="text-slate-600 text-[11px]">Buka Modul 4 &rarr; paste Token & Chat ID &rarr; klik tombol <b>🧪 Uji Coba Kirim Pesan</b>.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- BAB 6: PENGUJIAN & TROUBLESHOOTING MASALAH -->
+        <!-- ========================================================================= -->
+        <div id="bab6" class="space-y-6 pt-6 page-break">
+            <div class="flex items-center gap-3 border-b border-slate-200 pb-3">
+                <span class="w-8 h-8 rounded-xl bg-[#8E1616] text-white flex items-center justify-center font-black text-sm">6</span>
+                <h2 class="text-lg sm:text-xl font-black text-[#1D1616] tracking-tight">
+                    BAB VI: PENGUJIAN, KALIBRASI & TROUBLESHOOTING
+                </h2>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div class="border border-slate-200 rounded-xl p-4 bg-white space-y-1.5">
+                    <span class="font-bold text-[#8E1616] block">Q1: Perangkat Node I2C Tidak Terdeteksi (ADS1115 / DS3231)?</span>
+                    <p class="text-slate-600 leading-relaxed text-[11.5px]">
+                        Jalankan perintah <code>i2cdetect -y 1</code> di terminal. Alamat <b>0x48</b> (ADS1115) dan <b>0x68</b> (DS3231) harus muncul. Jika kosong, periksa koneksi kabel SDA/SCL dan pin 3.3V power supply.
+                    </p>
+                </div>
+
+                <div class="border border-slate-200 rounded-xl p-4 bg-white space-y-1.5">
+                    <span class="font-bold text-[#8E1616] block">Q2: Status di Web Dashboard Tetap "🔴 Offline"?</span>
+                    <p class="text-slate-600 leading-relaxed text-[11.5px]">
+                        Pastikan Raspberry Pi dan server dashboard terhubung pada jaringan lokal yang sama (Wi-Fi/LAN). Pastikan broker Mosquitto aktif di port 1883 dan IP Address di skrip Python sesuai dengan IP server dashboard.
+                    </p>
+                </div>
+
+                <div class="border border-slate-200 rounded-xl p-4 bg-white space-y-1.5">
+                    <span class="font-bold text-[#8E1616] block">Q3: Nilai Pembacaan Arus (Ampere) Melompat atau Tidak Akurat?</span>
+                    <p class="text-slate-600 leading-relaxed text-[11.5px]">
+                        Sensor ACS712 mengukur arus AC dengan kalkulasi RMS. Pastikan common ground (GND) antara RPi, sensor ACS712, dan ADC ADS1115 terhubung kuat untuk menghindari fluktuasi noise tegangan referensi.
+                    </p>
+                </div>
+            </div>
+
+            <!-- TANDA TANGAN PENGESAHAN DOKUMEN -->
+            <div class="pt-8 border-t-2 border-slate-200 grid grid-cols-2 text-center text-xs avoid-break">
+                <div class="space-y-12">
+                    <span class="text-slate-500 font-bold block">Disiapkan Oleh (Teknisi IoT):</span>
+                    <div>
+                        <span class="font-black text-slate-900 block underline">{{ $user->name ?? 'Dicky Akbar Syahputra' }}</span>
+                        <span class="text-[10px] text-slate-500 block">Operator & Administrator Sistem SIKOMAT</span>
+                    </div>
+                </div>
+                <div class="space-y-12">
+                    <span class="text-slate-500 font-bold block">Disetujui Oleh (Kepala Divisi):</span>
+                    <div>
+                        <span class="font-black text-slate-900 block underline">PT PINDAD (Persero)</span>
+                        <span class="text-[10px] text-slate-500 block">Divisi Mutu & Teknologi Informasi</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FOOTER INFO -->
+    <div class="max-w-4xl mx-auto text-center text-slate-400 text-[11px] py-6 no-print">
+        &copy; {{ date('Y') }} PT PINDAD (Persero). Sistem Kontrol & Monitoring Otomatis AC (SIKOMAT). All rights reserved.
+    </div>
+
+</body>
+</html>
