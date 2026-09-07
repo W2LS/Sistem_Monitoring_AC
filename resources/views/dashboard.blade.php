@@ -115,7 +115,7 @@
                 </div>
             </button>
 
-            <!-- Category 2: Developer Zone (Templates & Datastreams ala Blynk IoT) -->
+            <!-- Category 2: Developer Zone (Templates & Datastreams Console) -->
             <button 
                 @click="activeTab = 'devzone'"
                 type="button"
@@ -183,7 +183,7 @@
                 @include('partials.section-home')
             </div>
 
-            <!-- TAB 2: DEVELOPER ZONE (TEMPLATES & DATASTREAMS ALA BLYNK IOT) -->
+            <!-- TAB 2: DEVELOPER ZONE (TEMPLATES & DATASTREAMS CONSOLE) -->
             <div x-show="activeTab === 'devzone'" x-cloak>
                 @include('partials.section-developer-zone')
             </div>
@@ -352,26 +352,47 @@
                 const data = await res.json();
 
                 if (data.status === 'success') {
-                    // Update AC 1
-                    const valAc1 = document.getElementById('val-current-ac1');
-                    if (valAc1) valAc1.innerText = `${data.ac1.current.toFixed(4)} A`;
-                    const wattAc1 = document.getElementById('val-watt-ac1');
-                    if (wattAc1) wattAc1.innerText = `≈ ${data.ac1.watt} Watt`;
-                    const badgeAc1 = document.getElementById('badge-status-ac1');
-                    if (badgeAc1) {
-                        badgeAc1.innerText = data.ac1.status === 'ON' ? 'ONLINE' : 'STANDBY';
-                        badgeAc1.className = `px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${data.ac1.status === 'ON' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}`;
+                    // Update Node Online Status Pill dynamically
+                    const nodeStatusPill = document.getElementById('node-online-status-pill');
+                    if (nodeStatusPill) {
+                        if (data.is_live) {
+                            nodeStatusPill.innerHTML = `
+                                <span class="text-2xl animate-pulse">🟢</span>
+                                <div>
+                                    <span class="text-sm font-black text-white block">Node Online (Live Telemetri)</span>
+                                    <span class="text-xs text-[#EEEEEE]/70 font-semibold">Sinkronisasi 5 Detik</span>
+                                </div>
+                            `;
+                        } else {
+                            nodeStatusPill.innerHTML = `
+                                <span class="text-2xl">⚪</span>
+                                <div>
+                                    <span class="text-sm font-black text-white block">Node Standby (Menunggu Sinyal)</span>
+                                    <span class="text-xs text-[#EEEEEE]/70 font-semibold">Perangkat Belum Terhubung</span>
+                                </div>
+                            `;
+                        }
                     }
 
-                    // Update AC 2
-                    const valAc2 = document.getElementById('val-current-ac2');
-                    if (valAc2) valAc2.innerText = `${data.ac2.current.toFixed(4)} A`;
-                    const wattAc2 = document.getElementById('val-watt-ac2');
-                    if (wattAc2) wattAc2.innerText = `≈ ${data.ac2.watt} Watt`;
-                    const badgeAc2 = document.getElementById('badge-status-ac2');
-                    if (badgeAc2) {
-                        badgeAc2.innerText = data.ac2.status === 'ON' ? 'ONLINE' : 'STANDBY';
-                        badgeAc2.className = `px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${data.ac2.status === 'ON' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}`;
+                    // Update AC Units dynamically
+                    if (data.units) {
+                        Object.keys(data.units).forEach(uNum => {
+                            const u = data.units[uNum];
+                            const valAc = document.getElementById(`val-current-ac${uNum}`);
+                            if (valAc) valAc.innerText = `${u.current.toFixed(4)} A`;
+                            const wattAc = document.getElementById(`val-watt-ac${uNum}`);
+                            if (wattAc) wattAc.innerText = `≈ ${u.watt} Watt`;
+                            const badgeAc = document.getElementById(`badge-status-ac${uNum}`);
+                            if (badgeAc) {
+                                badgeAc.innerText = u.status === 'ON' ? 'ONLINE' : 'STANDBY';
+                                badgeAc.className = `px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${u.status === 'ON' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}`;
+                            }
+                            const shiftAc = document.getElementById(`shift-text-ac${uNum}`);
+                            if (shiftAc && u.shift) {
+                                shiftAc.innerText = u.shift;
+                                shiftAc.className = `text-xs ${u.shift === 'Belum Ada Jadwal' ? 'font-semibold text-slate-400 italic' : 'font-extrabold text-[#8E1616]'} mt-1.5 block leading-snug`;
+                            }
+                        });
                     }
 
                     // Update Summary

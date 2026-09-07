@@ -1,8 +1,83 @@
+<script>
+function accountSectionComponent() {
+    return {
+        openItem: null,
+        modalPassword: false,
+        copyAccSuccess: false,
+        testToken: '{{ $telegramSettings['bot_token'] ?? '' }}',
+        testChatId: '{{ $telegramSettings['chat_id'] ?? '' }}',
+        isTesting: false,
+        testMessage: '',
+        testSuccess: null,
+        copyAccCmd() {
+            const host = '{{ $serverLanHost ?? '192.168.196.98' }}';
+            const cmd = 'curl -sSL "http://' + host + ':8000/scripts/download/device?device_id=RPI3B_SERVER_TELEPON&broker_host=127.0.0.1" -o /home/alex/pindad_node_rpi3b_server_telepon.py && (crontab -l 2>/dev/null | grep -v "pindad_node"; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &") | crontab - && pkill -f pindad_node 2>/dev/null; nohup python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &';
+            
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(cmd).then(() => {
+                    this.copyAccSuccess = true;
+                    setTimeout(() => { this.copyAccSuccess = false; }, 3000);
+                }).catch(() => {
+                    this.fallbackCopyAcc(cmd);
+                });
+            } else {
+                this.fallbackCopyAcc(cmd);
+            }
+        },
+        fallbackCopyAcc(text) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.top = '0';
+            ta.style.left = '0';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+                document.execCommand('copy');
+                this.copyAccSuccess = true;
+                setTimeout(() => { this.copyAccSuccess = false; }, 3000);
+            } catch(e) {}
+            document.body.removeChild(ta);
+        },
+        async runTest() {
+            if (!this.testToken || !this.testChatId) {
+                this.testMessage = 'Harap isi Bot Token dan Chat ID terlebih dahulu!';
+                this.testSuccess = false;
+                return;
+            }
+            this.isTesting = true;
+            this.testMessage = '';
+            this.testSuccess = null;
+            try {
+                const res = await fetch('{{ route('settings.telegram.test') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        telegram_bot_token: this.testToken,
+                        telegram_chat_id: this.testChatId
+                    })
+                });
+                const data = await res.json();
+                this.testSuccess = data.success;
+                this.testMessage = data.message;
+            } catch (e) {
+                this.testSuccess = false;
+                this.testMessage = 'Koneksi gagal: ' + e.message;
+            } finally {
+                this.isTesting = false;
+            }
+        }
+    };
+}
+</script>
+
 <!-- ================= MODUL 4: PUSAT INFORMASI AKUN & SISTEM IOT ================= -->
-<div class="space-y-6 pb-20" x-data="{ 
-    openItem: null,
-    modalPassword: false,
-}">
+<div class="space-y-6 pb-20" x-data="accountSectionComponent()">
     
     <!-- 1. PAGE HEADER -->
     <div class="border-b border-[#8E1616]/20 pb-4">
@@ -45,16 +120,7 @@
             </button>
 
             <!-- ACCORDION CONTENT: COMPLETE STEP-BY-STEP SOP -->
-            <div x-show="openItem === 'tutorial'" x-cloak x-transition class="px-4 sm:px-6 pb-6 pt-4 border-t border-[#8E1616]/10 space-y-4 bg-slate-50/70"
-                 x-data="{
-                     copyAccSuccess: false,
-                     sampleCommand: `(crontab -l 2>/dev/null | grep -v 'pindad_node'; echo &quot;@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/pindad_node_xxxx.py > /home/alex/node.log 2>&1 &&quot;) | crontab - && nohup python3 -u /home/alex/pindad_node_xxxx.py > /home/alex/node.log 2>&1 &`,
-                     copyAccCmd() {
-                         navigator.clipboard.writeText(this.sampleCommand);
-                         this.copyAccSuccess = true;
-                         setTimeout(() => { this.copyAccSuccess = false; }, 3000);
-                     }
-                 }">
+            <div x-show="openItem === 'tutorial'" x-cloak x-transition class="px-4 sm:px-6 pb-6 pt-4 border-t border-[#8E1616]/10 space-y-4 bg-slate-50/70">
                 
                 <!-- PROMINENT DOWNLOAD PDF BANNER -->
                 <div class="bg-gradient-to-r from-[#1D1616] via-[#8E1616] to-[#D84040] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-md flex flex-col sm:flex-row items-center justify-between gap-3 border border-white/10">
@@ -108,55 +174,46 @@
                     </p>
                 </div>
 
-                <!-- STEP 3: UNDUH FILE SKRIP -->
-                <div class="bg-white rounded-2xl p-4 sm:p-5 border-2 border-emerald-400/80 shadow-xs space-y-2 bg-emerald-50/20">
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                            <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black shrink-0">3</span>
-                            <span>UNDUH FILE SKRIP PYTHON (.PY)</span>
-                        </span>
-                        <span class="text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-sans shrink-0 whitespace-nowrap">Auto-Config</span>
-                    </div>
-                    <p class="text-xs text-slate-600 leading-relaxed">
-                        Buka detail kartu perangkat di halaman <b>Home</b>, lalu klik tombol <b>`📥 Unduh Skrip (.py)`</b>. Simpan file skrip (contoh: <code class="font-bold text-[#1D1616] bg-white px-1.5 py-0.5 rounded border border-slate-200 font-mono text-[11px]">pindad_node_ruang_server.py</code>) ke folder <code class="font-mono text-slate-800 font-bold bg-white px-1.5 py-0.5 rounded text-[11px]">/home/alex/</code> (atau <code class="font-mono text-slate-800 font-bold bg-white px-1.5 py-0.5 rounded text-[11px]">/home/pi/</code>) di Raspberry Pi.
-                    </p>
-                </div>
-
-                <!-- STEP 4: PERINTAH 1-KLIK AUTO-START ON BOOT -->
+                <!-- STEP 3: PERINTAH 1-KLIK OTOMATIS -->
                 <div class="bg-slate-900 rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-800 space-y-3 text-white shadow-lg">
                     <div class="flex items-center justify-between gap-2">
                         <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-400 flex items-center gap-2">
-                            <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center text-[10px] font-black shrink-0">4</span>
-                            <span>PERINTAH 1-KLIK AUTO-START ON BOOT & JALANKAN</span>
+                            <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center text-[10px] font-black shrink-0">3</span>
+                            <span>JALANKAN 1 PERINTAH CEPAT (OTOMATIS UNDUH & AUTO-BOOT)</span>
                         </span>
                         <button @click="copyAccCmd()" 
                                 type="button" 
                                 class="px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0 shadow-xs whitespace-nowrap"
                                 :class="copyAccSuccess ? 'bg-emerald-500 text-white' : 'bg-white/15 hover:bg-white/25 text-amber-300 border border-amber-400/30'">
                             <span x-text="copyAccSuccess ? '✓' : '📋'"></span>
-                            <span x-text="copyAccSuccess ? 'Tersalin!' : 'Salin Perintah'"></span>
+                            <span x-text="copyAccSuccess ? 'Tersalin!' : 'Salin Contoh Perintah'"></span>
                         </button>
                     </div>
                     
-                    <div class="bg-black/60 rounded-xl p-3 sm:p-3.5 border border-white/10 font-mono text-xs text-emerald-400 break-all select-all leading-relaxed" x-text="sampleCommand"></div>
+                    <div class="bg-black/60 rounded-xl p-3 sm:p-3.5 border border-white/10 font-mono text-xs text-emerald-400 break-all select-all leading-relaxed">
+                        curl -sSL "http://{{ $serverLanHost ?? '192.168.196.98' }}:8000/scripts/download/device?device_id=RPI3B_SERVER_TELEPON&broker_host=127.0.0.1" -o /home/alex/pindad_node_rpi3b_server_telepon.py && (crontab -l 2>/dev/null | grep -v 'pindad_node'; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &") | crontab - && pkill -f pindad_node 2>/dev/null; nohup python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &
+                    </div>
 
-                    <p class="text-xs text-slate-300 leading-relaxed">
-                        💡 <strong>Cara Pakai:</strong> Buka SSH terminal Raspberry Pi, <em>paste</em> perintah di atas lalu tekan <strong>Enter</strong>. Skrip akan langsung aktif seketika di background & otomatis berjalan setiap kali listrik menyala (*auto-start saat boot*).
-                    </p>
+                    <div class="bg-amber-400/10 rounded-xl p-3 border border-amber-400/20 text-xs text-amber-200/90 space-y-1.5 leading-relaxed">
+                        <p>💡 <strong>Cara Pakai:</strong> Buka menu <b>Home</b> &rarr; klik tombol <b>`⚡ Setup Node`</b> pada kartu perangkat Anda. Salin perintah 1-baris yang muncul, lalu <em>paste</em> di terminal Raspberry Pi. Perintah tersebut <strong>otomatis mengunduh skrip dan mengaktifkan auto-start</strong> tanpa perlu membuat file manual dengan <code>sudo nano</code>.</p>
+                        <p class="text-[11px] text-amber-300/90 pt-1 border-t border-amber-400/20">
+                            🌐 <strong>Penyesuaian IP / Deploy:</strong> Pada modal Setup Node, Anda dapat mengubah <b>IP Server Host</b> ke IP LAN baru atau Domain saat sistem dideploy ke server permanen (misal: <code>sikomat.pindad.co.id</code>). Perintah cURL otomatis ter-update seketika.
+                        </p>
+                    </div>
                 </div>
 
-                <!-- STEP 5: CEK LOG BERJALAN -->
+                <!-- STEP 4: CEK LOG BERJALAN -->
                 <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-2">
                     <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-full bg-slate-500 text-white flex items-center justify-center text-[10px] font-black shrink-0">5</span>
-                        <span>PERIKSA LOG BERJALAN (OPSIONAL)</span>
+                        <span class="w-5 h-5 rounded-full bg-[#1D1616] text-white flex items-center justify-center text-[10px] font-black shrink-0">4</span>
+                        <span>PERIKSA LOG PENGIRIMAN DATA LIVE</span>
                     </span>
                     <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200">
                         <code class="text-xs sm:text-sm font-mono font-bold text-slate-800">tail -f /home/alex/node.log</code>
                         <span class="text-[11px] font-semibold text-slate-400 shrink-0 whitespace-nowrap">Tekan Ctrl+C keluar</span>
                     </div>
                     <p class="text-[11px] text-slate-500">
-                        Gunakan perintah di atas di terminal untuk memantau pengiriman data telemetri suhu, arus ampere, dan status relay secara live.
+                        Gunakan perintah di atas di terminal untuk memantau pengiriman data telemetri suhu, arus ampere, dan status relay secara live ke web dashboard.
                     </p>
                 </div>
 
@@ -202,45 +259,7 @@
             </button>
 
             <!-- ACCORDION CONTENT: TELEGRAM CONFIGURATION & TESTING -->
-            <div x-show="openItem === 'telegram'" x-cloak x-transition class="px-5 sm:px-6 pb-6 pt-4 border-t border-sky-100 space-y-6 bg-slate-50/70"
-                 x-data="{
-                     testToken: '{{ $telegramSettings['bot_token'] ?? '' }}',
-                     testChatId: '{{ $telegramSettings['chat_id'] ?? '' }}',
-                     isTesting: false,
-                     testMessage: '',
-                     testSuccess: null,
-                     async runTest() {
-                         if (!this.testToken || !this.testChatId) {
-                             this.testMessage = 'Harap isi Bot Token dan Chat ID terlebih dahulu!';
-                             this.testSuccess = false;
-                             return;
-                         }
-                         this.isTesting = true;
-                         this.testMessage = '';
-                         this.testSuccess = null;
-                         try {
-                             const res = await fetch('{{ route('settings.telegram.test') }}', {
-                                 method: 'POST',
-                                 headers: {
-                                     'Content-Type': 'application/json',
-                                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                 },
-                                 body: JSON.stringify({
-                                     telegram_bot_token: this.testToken,
-                                     telegram_chat_id: this.testChatId
-                                 })
-                             });
-                             const data = await res.json();
-                             this.testSuccess = data.success;
-                             this.testMessage = data.message;
-                         } catch (e) {
-                             this.testSuccess = false;
-                             this.testMessage = 'Koneksi gagal: ' + e.message;
-                         } finally {
-                             this.isTesting = false;
-                         }
-                     }
-                 }">
+            <div x-show="openItem === 'telegram'" x-cloak x-transition class="px-5 sm:px-6 pb-6 pt-4 border-t border-sky-100 space-y-6 bg-slate-50/70">
                 
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     
@@ -477,7 +496,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs pt-2">
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Versi Dashboard</span>
-                        <span class="font-black text-[#1D1616] text-sm block mt-0.5">v2.5.0 (Blynk IoT Edition)</span>
+                        <span class="font-black text-[#1D1616] text-sm block mt-0.5">v2.5.0 (PINDAD Enterprise Edition)</span>
                     </div>
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Database Mesin</span>
@@ -488,8 +507,8 @@
                         <span class="font-bold text-emerald-600 block mt-0.5">🟢 Mosquitto TCP 1883</span>
                     </div>
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
-                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Cloud IoT Protocol</span>
-                        <span class="font-bold text-[#1D1616] block mt-0.5">Blynk REST & MQTT Bridge</span>
+                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">IoT Sync Protocol</span>
+                        <span class="font-bold text-[#1D1616] block mt-0.5">Native MQTT & HTTP Dual-Sync</span>
                     </div>
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Firewall Integration</span>
@@ -534,8 +553,8 @@
 
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Sensor Arus Listrik</span>
-                        <span class="font-black text-[#1D1616] text-sm block mt-0.5">Allegro ACS712 30A Hall-Effect</span>
-                        <p class="text-[11px] text-slate-500 mt-1">Sensitivitas 66 mV/A, pembacaan ADC ADS1115 I2C 16-Bit presisi tinggi.</p>
+                        <span class="font-black text-[#1D1616] text-sm block mt-0.5">Allegro ACS712 Hall-Effect (05B / 20A / 30A)</span>
+                        <p class="text-[11px] text-slate-500 mt-1">Sensitivitas 185 mV/A / 100 mV/A, pembacaan ADC ADS1115 I2C 16-Bit presisi tinggi.</p>
                     </div>
 
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
@@ -546,9 +565,29 @@
 
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Modul Saklar Relai</span>
-                        <span class="font-black text-[#1D1616] text-sm block mt-0.5">Dual-Channel 5V Relay Optocoupler</span>
+                        <span class="font-black text-[#1D1616] text-sm block mt-0.5">Dual/Multi-Channel 5V Relay Optocoupler</span>
                         <p class="text-[11px] text-slate-500 mt-1">GPIO 17 (Relay AC 1 / Lampu Bawah), GPIO 27 (Relay AC 2 / Lampu Atas).</p>
                     </div>
+                </div>
+
+                <!-- FOTO PROTOTYPE WIRING FISIK -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-black uppercase text-[#1D1616] tracking-wider flex items-center gap-1.5">
+                            <span>📷</span>
+                            <span>Foto Prototype Rangkaian Hardware & Wiring Adaptor</span>
+                        </span>
+                        <span class="text-[9.5px] font-bold text-[#8E1616] bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100">Lab Prototype</span>
+                    </div>
+                    <div class="rounded-xl overflow-hidden bg-slate-50 border border-slate-100 p-2 flex items-center justify-center">
+                        <img src="/images/ADAPTOR.png" 
+                             alt="Foto Prototype Hardware SIKOMAT PT PINDAD" 
+                             class="max-h-64 w-auto object-contain rounded-lg shadow-xs"
+                             onerror="this.src='/ADAPTOR.png';">
+                    </div>
+                    <p class="text-[10.5px] text-slate-500 leading-tight">
+                        Dokumentasi wiring fisik unit kontroler: Rangkaian catu daya adaptor 5V 3A, sensor arus ACS712, modul ADC ADS1115 I2C, RTC DS3231, dan saklar relay beban AC.
+                    </p>
                 </div>
             </div>
         </div>

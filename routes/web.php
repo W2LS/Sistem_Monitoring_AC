@@ -15,9 +15,6 @@ Route::middleware('auth.session')->group(function () {
     // Dashboard Halaman Utama
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-    // API logs untuk AJAX real-time chart & status
-    Route::get('/api/logs', [DashboardController::class, 'apiLogs'])->name('api.logs');
-
     // Aksi kontrol relay manual lewat MQTT
     Route::post('/ac/control', [DashboardController::class, 'toggleAc'])->name('ac.control');
     Route::post('/devices/control-stream', [DashboardController::class, 'toggleStream'])->name('devices.controlStream');
@@ -28,13 +25,13 @@ Route::middleware('auth.session')->group(function () {
     Route::patch('/schedules/{id}/toggle', [DashboardController::class, 'toggleSchedule'])->name('schedules.toggle');
     Route::delete('/schedules/{id}', [DashboardController::class, 'deleteSchedule'])->name('schedules.destroy');
 
-    // CRUD Manajemen Perangkat IoT (Blynk Fleet-Style)
+    // CRUD Manajemen Perangkat IoT (PINDAD Fleet Management)
     Route::post('/devices', [DashboardController::class, 'storeDevice'])->name('devices.store');
     Route::put('/devices/{id}', [DashboardController::class, 'updateDevice'])->name('devices.update');
     Route::delete('/devices/{id}', [DashboardController::class, 'deleteDevice'])->name('devices.destroy');
     Route::post('/devices/master-control', [DashboardController::class, 'masterControl'])->name('devices.masterControl');
 
-    // CRUD Developer Zone (Templates & Datastreams Console ala Blynk IoT)
+    // CRUD Developer Zone (Templates & Datastreams Console)
     Route::post('/templates', [DashboardController::class, 'storeTemplate'])->name('templates.store');
     Route::put('/templates/{id}', [DashboardController::class, 'updateTemplate'])->name('templates.update');
     Route::delete('/templates/{id}', [DashboardController::class, 'deleteTemplate'])->name('templates.destroy');
@@ -52,14 +49,22 @@ Route::middleware('auth.session')->group(function () {
     Route::get('/logs/export', [DashboardController::class, 'exportCsv'])->name('logs.export');
     Route::post('/logs/clear', [DashboardController::class, 'clearLogs'])->name('logs.clear');
 
-    // Download Skrip & Konfigurasi IoT Raspberry Pi
-    Route::get('/scripts/download/{type}', [DashboardController::class, 'downloadScript'])->name('scripts.download');
-
     // Pengaturan Notifikasi Bot Telegram Darurat
     Route::post('/settings/telegram', [DashboardController::class, 'saveTelegramSettings'])->name('settings.telegram');
     Route::post('/settings/telegram/test', [DashboardController::class, 'testTelegramNotification'])->name('settings.telegram.test');
 
-    // Download / Cetak Buku Panduan & SOP Teknis PDF Lengkap
-    Route::get('/panduan/pdf', [DashboardController::class, 'manualPdf'])->name('panduan.pdf');
-
 });
+
+// --- ROUTE AKSES TERBUKA UNTUK CLIENT IOT & DOKUMENTASI (NO SESSION REQUIRED) ---
+// Ingest Telemetri Sensor Real-Time dari Node Raspberry Pi (Dual-Sync HTTP REST & MQTT)
+Route::post('/api/telemetry', [DashboardController::class, 'receiveTelemetry'])->name('api.telemetry');
+
+// API logs untuk AJAX real-time chart & status dashboard
+Route::get('/api/logs', [DashboardController::class, 'apiLogs'])->name('api.logs');
+
+// Download Skrip & Konfigurasi IoT Raspberry Pi (Diakses via cURL terminal)
+Route::get('/scripts/download/{type}', [DashboardController::class, 'downloadScript'])->name('scripts.download');
+
+// Download / Cetak Buku Panduan & SOP Teknis PDF Lengkap
+Route::get('/panduan/pdf', [DashboardController::class, 'manualPdf'])->name('panduan.pdf');
+

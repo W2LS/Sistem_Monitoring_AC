@@ -80,9 +80,6 @@ def run_wizard():
         "location": location,
         "mqtt_broker_host": broker_ip,
         "mqtt_broker_port": 1883,
-        "blynk_auth_token": "2zT3Crp6HA5DZQaxI26aftTrFUAuwo3F",
-        "blynk_mqtt_host": "blynk.cloud",
-        "blynk_mqtt_port": 1883,
         "sophos_auth": {
             "enabled": True,
             "user": "pin-00020",

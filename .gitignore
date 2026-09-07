@@ -33,3 +33,6 @@ docx_content.txt
 xlsx_content.txt
 /graphify-out
 /.agents
+__pycache__/
+*.pyc
+/scratch

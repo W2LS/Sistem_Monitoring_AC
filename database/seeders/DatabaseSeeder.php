@@ -27,31 +27,10 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 2. Seed Official 12-Hour Server Room Schedules
-        Schedule::truncate();
-        
-        Schedule::create([
-            'label' => 'Shift Siang (Panasonic 1)',
-            'target_ac' => 'all',
-            'start_time' => '06:00:00',
-            'end_time' => '18:00:00',
-            'is_active' => true,
-            'device_id' => 'RPI3B_PINDAD_ROOM_1',
-        ]);
-
-        Schedule::create([
-            'label' => 'Shift Malam (Panasonic 2)',
-            'target_ac' => 'all',
-            'start_time' => '18:00:00',
-            'end_time' => '06:00:00',
-            'is_active' => true,
-            'device_id' => 'RPI3B_PINDAD_ROOM_1',
-        ]);
-
-        // 3. Seed IoT Device Templates (Blynk Standard Datastreams)
+        // 2. Seed IoT Device Templates Standar (PINDAD Standard Datastreams)
         Template::truncate();
 
-        $templateAc = Template::create([
+        Template::create([
             'name' => 'Dual AC Relay Controller',
             'hardware_type' => 'Raspberry Pi 3B+',
             'connection_type' => 'MQTT Broker (TCP 1883)',
@@ -67,7 +46,7 @@ class DatabaseSeeder extends Seeder
             ]
         ]);
 
-        $templateLampu = Template::create([
+        Template::create([
             'name' => 'Smart Industrial Lighting',
             'hardware_type' => 'ESP32 Dual-Core IoT',
             'connection_type' => 'WiFi (IEEE 802.11 b/g/n)',
@@ -80,7 +59,7 @@ class DatabaseSeeder extends Seeder
             ]
         ]);
 
-        $templateDc = Template::create([
+        Template::create([
             'name' => 'Data Center Precision Cooler',
             'hardware_type' => 'Raspberry Pi 4 Model B',
             'connection_type' => 'Gigabit Ethernet LAN',
@@ -90,72 +69,6 @@ class DatabaseSeeder extends Seeder
                 ['pin' => 'V0', 'name' => 'Cooling Unit 1 & 2', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'unit' => '', 'desc' => 'Compressor 1 & 2'],
                 ['pin' => 'V1', 'name' => 'Cooling Unit 3 & 4', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'unit' => '', 'desc' => 'Compressor 3 & 4'],
                 ['pin' => 'V2', 'name' => 'Total Beban Rack DC', 'type' => 'Integer', 'min' => 0, 'max' => 20000, 'unit' => 'W', 'desc' => 'Daya pendingin data center'],
-            ]
-        ]);
-
-        // 4. Seed Default IoT Device Fleet
-        Device::truncate();
-
-        Device::create([
-            'device_id' => 'RPI3B_PINDAD_ROOM_1',
-            'template_id' => (string)$templateAc->_id,
-            'name' => 'Monitoring AC Ruang Server 1',
-            'type' => 'ac_monitoring',
-            'icon' => '❄️',
-            'location' => 'Gedung Divisi Mutu & TI (Lt. 1)',
-            'ip_address' => '192.168.197.64',
-            'hardware_type' => 'Raspberry Pi 3B+',
-            'status' => 'online',
-            'auth_token' => '2zT3Crp6HA5DZQaxI26aftTrFUAuwo3F',
-            'num_ac' => 2,
-            'description' => 'Sistem monitoring & kontrol 2 AC Panasonic ruang server utama.',
-            'current_values' => [
-                'V0' => 1, // AC 1 ON
-                'V1' => 0, // AC 2 OFF
-                'V2' => 4.23, // 4.23 A
-                'V3' => 0.00, // 0.00 A
-                'V4' => 935, // 935 Watt
-                'V5' => 0,
-            ]
-        ]);
-
-        Device::create([
-            'device_id' => 'ESP32_LAMPU_GEDUNG_MUTU',
-            'template_id' => (string)$templateLampu->_id,
-            'name' => 'Lampu Otomatis Selasar TI',
-            'type' => 'smart_lighting',
-            'icon' => '💡',
-            'location' => 'Gedung Divisi Mutu & TI (Selasar)',
-            'ip_address' => '192.168.196.88',
-            'hardware_type' => 'ESP32 Dual-Core IoT',
-            'status' => 'online',
-            'auth_token' => 'TMPL_PINDAD_LAMPU_KEY',
-            'num_ac' => 0,
-            'description' => 'Sistem otomatisasi lampu selasar & sensor cahaya LDR.',
-            'current_values' => [
-                'V0' => 1, // Lampu ON
-                'V1' => 450, // 450 Lux
-                'V2' => 120, // 120 Watt
-            ]
-        ]);
-
-        Device::create([
-            'device_id' => 'RPI4_PINDAD_DC_1',
-            'template_id' => (string)$templateDc->_id,
-            'name' => 'Pendingin Presisi Data Center',
-            'type' => 'datacenter',
-            'icon' => '🏢',
-            'location' => 'Gedung Data Center Utama',
-            'ip_address' => '192.168.196.100',
-            'hardware_type' => 'Raspberry Pi 4 Model B',
-            'status' => 'standby',
-            'auth_token' => 'TMPL_PINDAD_DC_KEY',
-            'num_ac' => 4,
-            'description' => 'Monitoring beban pendingin ruang server rack data center pusat.',
-            'current_values' => [
-                'V0' => 0,
-                'V1' => 0,
-                'V2' => 0,
             ]
         ]);
     }

@@ -14,23 +14,71 @@ function homeFleetComponent() {
         openRpiSetup(dev) {
             const cleanId = (dev.device_id || '').toLowerCase().replace(/[^a-z0-9_]/g, '_');
             const scriptName = 'pindad_node_' + cleanId + '.py';
-            const command = `(crontab -l 2>/dev/null | grep -v 'pindad_node'; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/${scriptName} > /home/alex/node.log 2>&1 &") | crontab - && nohup python3 -u /home/alex/${scriptName} > /home/alex/node.log 2>&1 &`;
+            let serverHost = '{{ $serverLanHost ?? '' }}' || window.location.hostname || '192.168.196.98';
+            if (serverHost === '127.0.0.1' || serverHost === 'localhost') {
+                serverHost = '192.168.196.98';
+            }
+            const serverPort = window.location.port ? (':' + window.location.port) : ':8000';
             
             this.rpiSetupData = {
                 name: dev.name || '',
                 device_id: dev.device_id || '',
                 ip_address: dev.ip_address || '192.168.197.64',
                 script_name: scriptName,
-                download_url: '/scripts/download/device?device_id=' + (dev.device_id || ''),
-                command: command
+                server_host: serverHost,
+                server_port: serverPort,
+                download_url: '',
+                command: ''
             };
+            this.updateRpiSetupUrls();
             this.copySuccess = false;
             this.modalRpiSetup = true;
         },
+        updateRpiSetupUrls() {
+            const cleanId = (this.rpiSetupData.device_id || '').toLowerCase().replace(/[^a-z0-9_]/g, '_');
+            const scriptName = 'pindad_node_' + cleanId + '.py';
+            const host = (this.rpiSetupData.server_host || '192.168.196.98').trim();
+            const port = this.rpiSetupData.server_port || (window.location.port ? (':' + window.location.port) : ':8000');
+            const proto = window.location.protocol || 'http:';
+            const downloadUrl = `${proto}//${host}${port}/scripts/download/device?device_id=${encodeURIComponent(this.rpiSetupData.device_id || '')}&broker_host=127.0.0.1`;
+            
+            this.rpiSetupData.script_name = scriptName;
+            this.rpiSetupData.download_url = downloadUrl;
+            this.rpiSetupData.command = `curl -sSL "${downloadUrl}" -o /home/alex/${scriptName} && (crontab -l 2>/dev/null | grep -v 'pindad_node'; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/${scriptName} > /home/alex/node.log 2>&1 &") | crontab - && pkill -f pindad_node 2>/dev/null; nohup python3 -u /home/alex/${scriptName} > /home/alex/node.log 2>&1 &`;
+        },
         copyCommand() {
-            navigator.clipboard.writeText(this.rpiSetupData.command);
-            this.copySuccess = true;
-            setTimeout(() => { this.copySuccess = false; }, 3000);
+            const text = this.rpiSetupData.command;
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    this.copySuccess = true;
+                    setTimeout(() => { this.copySuccess = false; }, 3000);
+                }).catch(() => {
+                    this.fallbackCopy(text);
+                });
+            } else {
+                this.fallbackCopy(text);
+            }
+        },
+        fallbackCopy(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.opacity = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    this.copySuccess = true;
+                    setTimeout(() => { this.copySuccess = false; }, 3000);
+                }
+            } catch (err) {
+                console.error('Fallback copy failed', err);
+            }
+            document.body.removeChild(textArea);
         },
         openEditDevice(dev) {
             this.editDeviceData = {
@@ -93,6 +141,7 @@ function homeFleetComponent() {
                 </p>
             </div>
 
+            @if(count($devices) > 0)
             <div class="flex items-center gap-3 shrink-0">
                 <button @click="modalNewDevice = true" 
                         type="button"
@@ -101,6 +150,7 @@ function homeFleetComponent() {
                     <span>Tambah Perangkat Baru</span>
                 </button>
             </div>
+            @endif
         </div>
 
         @if(!empty($activeAnomalies))
@@ -178,7 +228,7 @@ function homeFleetComponent() {
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                @foreach($devices as $dev)
+                @forelse($devices as $dev)
                 @php
                     $devStat = $fleetStats[$dev->device_id] ?? ['is_online' => false, 'total_watt' => 0, 'total_current' => 0, 'last_seen' => 'Standby'];
                     $isAcType = ($dev->type === 'ac_monitoring' || $dev->device_id === 'RPI3B_PINDAD_ROOM_1');
@@ -297,7 +347,27 @@ function homeFleetComponent() {
                         </div>
                     </div>
                 </div>
-                @endforeach
+                @empty
+                <div class="col-span-full bg-white rounded-[36px] p-8 sm:p-12 text-center border-2 border-dashed border-slate-200 shadow-sm space-y-4">
+                    <div class="w-16 h-16 rounded-3xl bg-rose-50 text-[#D84040] text-3xl flex items-center justify-center mx-auto shadow-inner">
+                        ✨
+                    </div>
+                    <div class="max-w-md mx-auto space-y-1.5">
+                        <h4 class="text-xl font-black text-[#1D1616]">Belum Ada Perangkat Terdaftar</h4>
+                        <p class="text-xs font-semibold text-slate-500">
+                            Akun Anda (<code>{{ session('user_nip', 'PINDAD-IOT-2026') }}</code>) belum memiliki node perangkat IoT yang terhubung. Silakan daftarkan node pertama Anda untuk memulai monitoring.
+                        </p>
+                    </div>
+                    <div class="pt-2">
+                        <button @click="modalNewDevice = true" 
+                                type="button"
+                                class="inline-flex items-center gap-2 bg-[#D84040] hover:bg-[#8E1616] text-white rounded-2xl text-xs font-black uppercase tracking-wider py-3.5 px-6 shadow-lg shadow-[#D84040]/30 transition cursor-pointer active:scale-95">
+                            <span class="text-base font-black">+</span>
+                            <span>Tambah Perangkat Baru Sekarang</span>
+                        </button>
+                    </div>
+                </div>
+                @endforelse
             </div>
         </div>
     </div>
@@ -311,6 +381,28 @@ function homeFleetComponent() {
          x-transition:enter-start="opacity-0 scale-98"
          x-transition:enter-end="opacity-100 scale-100"
          class="space-y-8">
+
+        @if(!$currentDevice)
+        <div class="bg-white rounded-[36px] p-8 sm:p-12 text-center border-2 border-dashed border-slate-200 shadow-sm space-y-4">
+            <div class="w-16 h-16 rounded-3xl bg-rose-50 text-[#D84040] text-3xl flex items-center justify-center mx-auto shadow-inner">
+                🔍
+            </div>
+            <div class="max-w-md mx-auto space-y-1.5">
+                <h4 class="text-xl font-black text-[#1D1616]">Belum Ada Perangkat Dipilih</h4>
+                <p class="text-xs font-semibold text-slate-500">
+                    Akun Anda belum memiliki perangkat yang dipilih atau terdaftar. Silakan pilih atau daftarkan node IoT pertama Anda.
+                </p>
+            </div>
+            <div class="pt-2 flex items-center justify-center gap-3">
+                <button @click="setView('fleet')" type="button" class="px-5 py-2.5 rounded-2xl bg-[#1D1616] hover:bg-[#8E1616] text-white font-bold text-xs uppercase transition cursor-pointer">
+                    Kembali ke Daftar Armada
+                </button>
+                <button @click="modalNewDevice = true" type="button" class="px-5 py-2.5 rounded-2xl bg-[#D84040] hover:bg-[#8E1616] text-white font-bold text-xs uppercase shadow-md transition cursor-pointer">
+                    + Tambah Perangkat
+                </button>
+            </div>
+        </div>
+        @else
 
         <!-- 1. DETAIL HEADER DENGAN TOMBOL KEMBALI KE SEMUA DEVICE -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#8E1616]/20 pb-4">
@@ -354,12 +446,16 @@ function homeFleetComponent() {
         <div class="bg-[#1D1616] rounded-[40px] p-6 sm:p-7 text-white shadow-[0_20px_50px_-12px_rgba(29,22,22,0.35)] border border-[#8E1616]/30 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div class="space-y-1">
                 <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#D84040] block">Total Konsumsi Ruangan Ini</span>
+                @php
+                    $sumAmpereRoom = collect($unitData ?? [])->sum('ampere');
+                    $sumWattRoom = collect($unitData ?? [])->sum('watt');
+                @endphp
                 <div class="flex items-baseline space-x-3">
                     <span id="stat-total-current" class="text-3xl sm:text-4xl font-black font-mono text-white tracking-tight">
-                        {{ number_format(($latestAc1 ? (float)$latestAc1->current_ampere : 0) + ($latestAc2 ? (float)$latestAc2->current_ampere : 0), 4) }} A
+                        {{ number_format($sumAmpereRoom, 4) }} A
                     </span>
                     <span id="stat-total-watt" class="text-base sm:text-lg font-extrabold text-[#EEEEEE]/80">
-                        ≈ {{ round((($latestAc1 ? (float)$latestAc1->current_ampere : 0) + ($latestAc2 ? (float)$latestAc2->current_ampere : 0)) * 220) }} Watt
+                        ≈ {{ $sumWattRoom }} Watt
                     </span>
                 </div>
                 <span class="text-xs font-bold text-[#D84040] block">⚡ Sumber: Sensor Arus ACS712 & Relai Industri</span>
@@ -368,7 +464,7 @@ function homeFleetComponent() {
             @php
                 $isSelectedDevOnline = $fleetStats[$selectedDeviceId]['is_online'] ?? false;
             @endphp
-            <div class="bg-white/10 backdrop-blur-md rounded-[28px] px-6 py-3.5 border border-white/10 flex items-center space-x-4 shrink-0">
+            <div id="node-online-status-pill" class="bg-white/10 backdrop-blur-md rounded-[28px] px-6 py-3.5 border border-white/10 flex items-center space-x-4 shrink-0">
                 <span class="text-2xl {{ $isSelectedDevOnline ? 'animate-pulse' : '' }}">
                     {{ $isSelectedDevOnline ? '🟢' : '⚪' }}
                 </span>
@@ -462,7 +558,7 @@ function homeFleetComponent() {
 
                         <div class="bg-[#EEEEEE]/60 rounded-[28px] p-4 border border-[#8E1616]/10">
                             <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">Jadwal Shift DS3231</span>
-                            <span id="shift-text-ac{{ $acNum }}" class="text-xs font-extrabold text-[#8E1616] mt-1.5 block leading-snug">
+                            <span id="shift-text-ac{{ $acNum }}" class="text-xs {{ $unit['shift'] === 'Belum Ada Jadwal' ? 'font-semibold text-slate-400 italic' : 'font-extrabold text-[#8E1616]' }} mt-1.5 block leading-snug">
                                 {{ $unit['shift'] }}
                             </span>
                         </div>
@@ -573,6 +669,7 @@ function homeFleetComponent() {
                 @endforelse
             </div>
         </div>
+        @endif
     </div>
 
 
@@ -994,86 +1091,106 @@ function homeFleetComponent() {
     <!-- ========================================================================= -->
     <div x-show="modalRpiSetup" 
          x-cloak
-         class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 pb-20 sm:pb-6 bg-black/70 backdrop-blur-xs"
+         class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 pb-28 sm:pb-6 bg-black/60 backdrop-blur-xs"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100">
         
         <div @click.away="modalRpiSetup = false" 
-             class="bg-white rounded-[28px] sm:rounded-[36px] p-5 sm:p-7 max-w-lg w-full shadow-2xl border border-slate-200 space-y-4 relative max-h-[85vh] sm:max-h-[90vh] overflow-y-auto">
+             class="bg-white rounded-[28px] sm:rounded-[36px] p-5 sm:p-7 max-w-lg w-full shadow-2xl border border-slate-200 space-y-3.5 sm:space-y-4 relative max-h-[82vh] sm:max-h-[88vh] overflow-y-auto">
             
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-slate-900 text-amber-400 flex items-center justify-center font-black text-lg sm:text-xl shadow-xs">
+            <!-- HEADER MODAL -->
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 sm:pb-3.5">
+                <div class="flex items-center gap-2.5 sm:gap-3">
+                    <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-[20px] bg-amber-100 text-amber-800 flex items-center justify-center font-black text-lg sm:text-xl shrink-0">
                         ⚡
                     </div>
                     <div>
-                        <h4 class="text-sm sm:text-base font-black text-[#1D1616]" x-text="'Setup Node: ' + rpiSetupData.name"></h4>
-                        <p class="text-[10px] sm:text-xs text-slate-500 font-semibold flex items-center gap-1">
-                            <span>ID:</span>
-                            <code class="text-[#D84040] font-mono font-bold bg-rose-50 px-1.5 py-0.5 rounded text-[10px]" x-text="rpiSetupData.device_id"></code>
+                        <h4 class="text-base sm:text-lg font-black text-[#1D1616]" x-text="'Setup Node: ' + rpiSetupData.name"></h4>
+                        <p class="text-[11px] sm:text-xs text-slate-500 font-semibold flex items-center gap-1.5">
+                            <span>ID Perangkat:</span>
+                            <code class="text-amber-800 font-mono font-bold bg-amber-50 border border-amber-200 px-1.5 py-0.2 rounded text-[10.5px]" x-text="rpiSetupData.device_id"></code>
                         </p>
                     </div>
                 </div>
-                <button @click="modalRpiSetup = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-[#D84040] flex items-center justify-center text-xl font-bold cursor-pointer transition">&times;</button>
+                <button @click="modalRpiSetup = false" class="text-slate-400 hover:text-amber-800 text-2xl font-bold cursor-pointer transition">&times;</button>
             </div>
 
-            <!-- STEP 1: UNDUH FILE SKRIP -->
-            <div class="bg-slate-50 rounded-2xl p-3.5 sm:p-4 border border-slate-200 space-y-2">
-                <div class="flex items-center justify-between gap-2">
-                    <span class="text-[11px] sm:text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                        <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#1D1616] text-white flex items-center justify-center text-[9px] sm:text-[10px]">1</span>
-                        <span>Unduh File Skrip Python (.py)</span>
-                    </span>
-                    <a :href="rpiSetupData.download_url" 
-                       class="px-3 py-1.5 rounded-xl bg-[#D84040] hover:bg-[#8E1616] text-white text-[11px] font-bold uppercase tracking-wider shadow-xs hover:shadow-md transition flex items-center gap-1 cursor-pointer active:scale-95 shrink-0">
-                        <span>📥</span>
-                        <span>Unduh Skrip</span>
-                    </a>
+            <!-- FORM & SETUP CONTENT -->
+            <div class="space-y-3 sm:space-y-3.5">
+                <!-- 1. PENGATURAN ALAMAT IP HOST SERVER (LAN / CLOUD) -->
+                <div>
+                    <div class="flex items-center justify-between mb-1 sm:mb-1.5">
+                        <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider">
+                            IP Server Host (Komputer Dashboard) *
+                        </label>
+                        <span class="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 font-mono">Port :8000</span>
+                    </div>
+                    <input type="text" 
+                           x-model="rpiSetupData.server_host" 
+                           @input="updateRpiSetupUrls()"
+                           placeholder="Contoh: 192.168.196.98" 
+                           class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono font-bold text-slate-800 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition">
+                    <p class="text-[10.5px] text-slate-500 font-medium leading-tight mt-1.5 flex items-start gap-1">
+                        <span>💡</span>
+                        <span>Dapat diedit jika ganti IP LAN atau sudah dideploy ke domain server. Perintah cURL otomatis menyesuaikan.</span>
+                    </p>
                 </div>
-                <p class="text-[10.5px] sm:text-[11px] text-slate-500 leading-normal">
-                    Unduh skrip <code class="font-bold text-[#1D1616] bg-white px-1 py-0.5 rounded border border-slate-200 text-[10px]" x-text="rpiSetupData.script_name"></code> lalu simpan ke folder <code class="font-mono text-slate-700 font-bold text-[10px]">/home/alex/</code> di Raspberry Pi.
-                </p>
-            </div>
 
-            <!-- STEP 2: SALIN PERINTAH 1-BARIS AUTO-START & JALANKAN -->
-            <div class="bg-slate-900 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4.5 border border-slate-800 space-y-2.5 text-white shadow-lg">
-                <div class="flex items-center justify-between gap-2">
-                    <span class="text-[11px] sm:text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                        <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center text-[9px] sm:text-[10px] font-black">2</span>
-                        <span>Perintah 1-Klik Auto-Start on Boot</span>
-                    </span>
-                    <button @click="copyCommand()" 
-                            type="button" 
-                            class="px-2.5 py-1 rounded-lg text-[10.5px] font-bold uppercase tracking-wider transition flex items-center gap-1 cursor-pointer active:scale-95 shrink-0 shadow-xs"
-                            :class="copySuccess ? 'bg-emerald-500 text-white' : 'bg-white/15 hover:bg-white/25 text-amber-300 border border-amber-400/30'">
-                        <span x-text="copySuccess ? '✓' : '📋'"></span>
-                        <span x-text="copySuccess ? 'Tersalin!' : 'Salin Perintah'"></span>
-                    </button>
+                <!-- 2. PERINTAH 1-KLIK TERMINAL (AUTO-START) -->
+                <div class="bg-slate-900 rounded-2xl p-3.5 sm:p-4 border border-slate-800 space-y-2.5 text-white shadow-md">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-[11px] sm:text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                            <span>⚡ Perintah Terminal (Auto-Start)</span>
+                        </span>
+                        <button @click="copyCommand()" 
+                                type="button" 
+                                class="px-3 py-1 rounded-xl text-[10.5px] font-bold uppercase tracking-wider transition flex items-center gap-1 cursor-pointer active:scale-95 shrink-0 shadow-xs"
+                                :class="copySuccess ? 'bg-emerald-500 text-white' : 'bg-amber-500 hover:bg-amber-600 text-slate-950 font-black'">
+                            <span x-text="copySuccess ? '✓' : '📋'"></span>
+                            <span x-text="copySuccess ? 'Tersalin!' : 'Salin Perintah'"></span>
+                        </button>
+                    </div>
+                    
+                    <div class="bg-black/80 rounded-xl p-2.5 sm:p-3 border border-white/10 font-mono text-[10px] sm:text-[10.5px] text-emerald-400 break-all select-all leading-relaxed max-h-20 overflow-y-auto" 
+                         x-text="rpiSetupData.command">
+                    </div>
+
+                    <p class="text-[10px] text-slate-400 leading-tight">
+                        💡 Jalankan di terminal Raspberry Pi. Skrip otomatis diunduh dan aktif saat boot.
+                    </p>
                 </div>
-                
-                <div class="bg-black/60 rounded-xl p-2.5 sm:p-3 border border-white/10 font-mono text-[10px] sm:text-[11px] text-emerald-400 break-all select-all leading-relaxed max-h-28 overflow-y-auto" x-text="rpiSetupData.command"></div>
 
-                <p class="text-[10px] sm:text-[10.5px] text-slate-400 leading-relaxed">
-                    💡 <strong>Cara Pakai:</strong> Buka SSH terminal Raspberry Pi, <em>paste</em> perintah di atas lalu tekan <strong>Enter</strong>. Skrip akan langsung aktif di background & auto-start saat boot.
-                </p>
-            </div>
+                <!-- 3. CEK LOG & OPSI MANUAL (2 KOLOM KOMPAK) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 text-xs">
+                    <!-- Kolom 1: Cek Log -->
+                    <div class="bg-slate-50 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 border border-slate-200 space-y-1">
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">Periksa Log Real-Time</span>
+                        <code class="font-mono text-[10px] sm:text-[10.5px] font-bold text-slate-800 block bg-white px-2 py-1 rounded-lg border border-slate-200 select-all truncate">tail -f /home/alex/node.log</code>
+                    </div>
 
-            <!-- STEP 3: CEK LOG REAL-TIME -->
-            <div class="bg-slate-50 rounded-2xl p-3 sm:p-3.5 border border-slate-200 space-y-1.5">
-                <span class="text-[11px] sm:text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                    <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-slate-400 text-white flex items-center justify-center text-[9px] sm:text-[10px]">3</span>
-                    <span>Periksa Log Berjalan (Opsional)</span>
-                </span>
-                <div class="flex items-center justify-between bg-white p-2 rounded-xl border border-slate-200">
-                    <code class="text-[10.5px] sm:text-xs font-mono font-bold text-slate-700">tail -f /home/alex/node.log</code>
-                    <span class="text-[9.5px] font-semibold text-slate-400">Tekan Ctrl+C keluar</span>
+                    <!-- Kolom 2: Unduh Manual -->
+                    <div class="bg-slate-50 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 border border-slate-200 flex flex-col justify-between">
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">Transfer Manual (SCP/USB)</span>
+                        <a :href="rpiSetupData.download_url" 
+                           class="mt-1 w-full text-center py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 font-bold text-[10.5px] border border-slate-200 transition flex items-center justify-center gap-1">
+                            <span>📥 Unduh .py</span>
+                        </a>
+                    </div>
                 </div>
             </div>
 
-            <div class="pt-2 flex items-center justify-end">
-                <button @click="modalRpiSetup = false" type="button" class="w-full sm:w-auto px-5 py-2.5 rounded-xl sm:rounded-2xl bg-[#1D1616] hover:bg-[#8E1616] text-white font-bold text-xs uppercase tracking-wider shadow-md transition cursor-pointer active:scale-95 text-center">
-                    Tutup Panduan
+            <!-- FOOTER AKSI (SEIRAMA DENGAN EDIT PERANGKAT) -->
+            <div class="pt-2.5 sm:pt-3 flex items-center justify-end gap-2.5 sm:gap-3 border-t border-slate-100">
+                <button @click="modalRpiSetup = false" 
+                        type="button" 
+                        class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer transition">
+                    Tutup
+                </button>
+                <button @click="copyCommand()" 
+                        type="button" 
+                        class="px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-xs uppercase shadow-md hover:opacity-95 cursor-pointer transition flex items-center gap-1.5 active:scale-95">
+                    <span x-text="copySuccess ? '✓ Perintah Tersalin' : '📋 Salin Perintah'"></span>
                 </button>
             </div>
         </div>

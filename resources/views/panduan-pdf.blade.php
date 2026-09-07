@@ -111,7 +111,7 @@
                 </div>
                 <div>
                     <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Versi Engine</span>
-                    <span class="font-bold text-[#8E1616] text-[11px] block mt-0.5">v2.5.0 (Blynk Architecture)</span>
+                    <span class="font-bold text-[#8E1616] text-[11px] block mt-0.5">v2.5.0 (PINDAD Enterprise Architecture)</span>
                 </div>
                 <div>
                     <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Penyusun / Operator</span>
@@ -487,6 +487,51 @@
                 </div>
             </div>
 
+            <!-- SUB-SECTION 3.4: FOTO PROTOTYPE & WIRING FISIK ADAPTOR -->
+            <div class="space-y-3 avoid-break">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">
+                        3.4 Foto Visual Prototype Alat & Skema Wiring Fisik
+                    </h3>
+                    <span class="text-[9.5px] font-black uppercase bg-[#8E1616]/10 text-[#8E1616] px-2 py-0.5 rounded font-sans">Hardware Prototype</span>
+                </div>
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    Berikut adalah dokumentasi foto prototype perangkat keras unit kontroler dan rangkaian adaptor listrik yang telah dirakit dan diuji di laboratorium:
+                </p>
+
+                <!-- KOTAK GAMBAR PROTOTYPE -->
+                @php
+                    $adaptorImgSrc = '/images/ADAPTOR.png';
+                    if (file_exists(public_path('images/ADAPTOR.png'))) {
+                        $adaptorImgSrc = 'data:image/png;base64,' . base64_encode(file_get_contents(public_path('images/ADAPTOR.png')));
+                    } elseif (file_exists(base_path('Gambar Prototype/ADAPTOR.png'))) {
+                        $adaptorImgSrc = 'data:image/png;base64,' . base64_encode(file_get_contents(base_path('Gambar Prototype/ADAPTOR.png')));
+                    }
+                @endphp
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="rounded-xl overflow-hidden bg-slate-50 border border-slate-100 p-2 flex items-center justify-center">
+                        <img src="{{ $adaptorImgSrc }}" 
+                             alt="Foto Prototype Wiring Hardware SIKOMAT - PT PINDAD" 
+                             class="max-h-[340px] w-auto max-w-full object-contain rounded-lg shadow-xs">
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11px] text-slate-600">
+                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                            <span class="font-bold text-[#8E1616] block uppercase text-[10px]">1. Modul Power Supply & Adaptor</span>
+                            <span class="text-slate-500 text-[10.5px]">Menyuplai daya DC 5V 3A stabil untuk Raspberry Pi 3B+, koil relay, dan sensor ACS712.</span>
+                        </div>
+                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                            <span class="font-bold text-[#8E1616] block uppercase text-[10px]">2. Rangkaian Sensor ACS712 & Relai</span>
+                            <span class="text-slate-500 text-[10.5px]">Sensor arus dipasang seri pada fasa beban AC, dikendalikan kontak relay COM & NO.</span>
+                        </div>
+                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                            <span class="font-bold text-[#8E1616] block uppercase text-[10px]">3. Komunikasi I2C ADC & RTC</span>
+                            <span class="text-slate-500 text-[10.5px]">Jalur data I2C SDA (Pin 3) & SCL (Pin 5) menghubungkan ADC ADS1115 dan RTC DS3231.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- K3 LISTRIK PERINGATAN -->
             <div class="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-900 space-y-1 avoid-break">
                 <div class="flex items-center gap-2 font-black">
@@ -512,65 +557,148 @@
 
             <div class="space-y-4 text-xs">
                 
-                <!-- LANGKAH 1 -->
+                <!-- LANGKAH 1: INTERFACE HARDWARE -->
                 <div class="p-4 bg-white rounded-2xl border border-slate-200 space-y-2">
-                    <span class="font-black text-slate-900 text-xs uppercase tracking-wider block">
-                        Langkah 1: Pengaturan Awal Raspberry Pi OS & I2C Interface
-                    </span>
+                    <div class="flex items-center justify-between">
+                        <span class="font-black text-slate-900 text-xs uppercase tracking-wider block">
+                            4.1 Pengaturan Interface I2C (Hardware Enable)
+                        </span>
+                        <span class="text-[9.5px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">Terminal SSH</span>
+                    </div>
                     <p class="text-slate-600 leading-relaxed">
-                        Nyalakan Raspberry Pi dan buka terminal SSH. Aktifkan interface I2C dengan menjalankan:
+                        Interface I2C wajib diaktifkan pada Raspberry Pi agar sistem dapat berkomunikasi dengan sensor ADC ADS1115 (arus ACS712) dan modul jam RTC DS3231:
                     </p>
                     <code class="block font-mono bg-slate-900 text-slate-100 p-2.5 rounded-xl select-all">
                         sudo raspi-config
                     </code>
-                    <p class="text-slate-500 text-[11px]">
-                        Pilih <b>Interface Options &rarr; I2C &rarr; Enable &rarr; Finish &rarr; Reboot</b>.
+                    <p class="text-slate-500 text-[11px] leading-relaxed">
+                        Pilih menu: <b>3 Interface Options &rarr; I5 I2C &rarr; Pilih &lt;Yes&gt; &rarr; Finish &rarr; Reboot</b>.<br>
+                        <em>Verifikasi deteksi hardware:</em> Jalankan <code>sudo i2cdetect -y 1</code>. Alamat <code>0x48</code> (ADS1115) dan <code>0x68</code> (DS3231) akan muncul pada tabel matriks I2C.
                     </p>
                 </div>
 
-                <!-- LANGKAH 2 -->
+                <!-- LANGKAH 2: DEPENDENSI PYTHON -->
                 <div class="p-4 bg-white rounded-2xl border border-slate-200 space-y-2">
-                    <span class="font-black text-slate-900 text-xs uppercase tracking-wider block">
-                        Langkah 2: Instalasi Library Python (Khusus Raspberry Pi Baru / 1x Setup)
-                    </span>
+                    <div class="flex items-center justify-between">
+                        <span class="font-black text-slate-900 text-xs uppercase tracking-wider block">
+                            4.2 Instalasi Library Python IoT (1x Setup pada RPi Baru)
+                        </span>
+                        <span class="text-[9.5px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">Python 3 Pip</span>
+                    </div>
                     <p class="text-slate-600 leading-relaxed">
-                        Jalankan 1 baris perintah pip berikut untuk menginstall library MQTT, sensor ADC, dan RTC:
+                        Jalankan 1 baris perintah pip berikut di terminal Raspberry Pi untuk menginstall pustaka protokol MQTT, komunikasi ADC, modul RTC, dan kontrol GPIO:
                     </p>
-                    <code class="block font-mono bg-slate-900 text-slate-100 p-2.5 rounded-xl select-all overflow-x-auto leading-relaxed">
+                    <code class="block font-mono bg-slate-900 text-slate-100 p-2.5 rounded-xl select-all overflow-x-auto leading-relaxed text-[11px]">
                         pip3 install paho-mqtt adafruit-circuitpython-ads1x15 adafruit-circuitpython-ds3231 RPi.GPIO
                     </code>
                 </div>
 
-                <!-- LANGKAH 3 -->
-                <div class="p-4 bg-slate-900 text-white rounded-2xl border border-slate-800 space-y-2.5 shadow-md">
+                <!-- LANGKAH 3: PANDUAN FLEKSIBILITAS IP & SKENARIO DEPLOYMENT (DETAIL) -->
+                <div class="p-4 bg-amber-50/70 rounded-2xl border border-amber-200/90 space-y-3">
                     <div class="flex items-center justify-between">
-                        <span class="font-black text-amber-400 text-xs uppercase tracking-wider block">
-                            Langkah 3: Perintah 1-Baris Auto-Start on Boot & Jalankan Skrip
+                        <span class="font-black text-amber-900 text-xs uppercase tracking-wider block">
+                            4.3 Penyesuaian IP Server Host & Skenario Deployment (Penting)
                         </span>
-                        <span class="text-[9px] font-mono bg-amber-400/20 text-amber-300 px-2 py-0.5 rounded">Rekomendasi</span>
+                        <span class="text-[9.5px] font-bold text-amber-900 bg-amber-200/70 px-2 py-0.5 rounded">Fleksibel & Dinamis</span>
                     </div>
-                    <p class="text-slate-300 leading-relaxed text-[11.5px]">
-                        Salin skrip <code class="font-bold text-white bg-white/10 px-1 py-0.5 rounded">pindad_node_xxxx.py</code> ke folder <code class="font-mono text-emerald-400">/home/alex/</code> (atau <code class="font-mono text-emerald-400">/home/pi/</code>). Buka terminal SSH lalu jalankan 1 perintah ini:
+                    <p class="text-slate-700 leading-relaxed text-[11.5px]">
+                        Pada antarmuka Web Dashboard (Modul <b>Home</b> &rarr; tombol <b>`⚡ Setup Node`</b>), terdapat kolom input <b>`IP Server Host (Komputer Dashboard)`</b>. Kolom ini dirancang agar dapat disesuaikan dengan skenario infrastruktur jaringan PT PINDAD:
                     </p>
-                    <code class="block font-mono text-[10.5px] bg-black/60 text-emerald-400 p-3 rounded-xl select-all break-all leading-relaxed">
-                        (crontab -l 2>/dev/null | grep -v 'pindad_node'; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/pindad_node_xxxx.py > /home/alex/node.log 2>&1 &") | crontab - && nohup python3 -u /home/alex/pindad_node_xxxx.py > /home/alex/node.log 2>&1 &
-                    </code>
-                    <p class="text-slate-400 text-[10.5px]">
-                        💡 Skrip langsung aktif seketika di background dan otomatis berjalan kembali setiap kali listrik menyala.
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-[11px]">
+                        <div class="bg-white p-3 rounded-xl border border-amber-200 space-y-1">
+                            <span class="font-black text-[#8E1616] block uppercase text-[10px]">Skenario 1: LAN Lokal / Uji Coba</span>
+                            <p class="text-slate-600 leading-tight">
+                                Jika dashboard dijalankan pada laptop/PC teknisi, masukkan IP LAN laptop (misal: <code>192.168.196.98</code>).
+                            </p>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-amber-200 space-y-1">
+                            <span class="font-black text-[#8E1616] block uppercase text-[10px]">Skenario 2: Server Produksi / VPS</span>
+                            <p class="text-slate-600 leading-tight">
+                                Saat web sudah dideploy ke server permanen atau domain intranet PINDAD, cukup masukkan domain/IP server (misal: <code>sikomat.pindad.co.id</code> atau <code>10.10.15.20</code>).
+                            </p>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-amber-200 space-y-1">
+                            <span class="font-black text-[#8E1616] block uppercase text-[10px]">Skenario 3: Pergantian Router / IP</span>
+                            <p class="text-slate-600 leading-tight">
+                                Jika IP komputer berganti, <strong>tidak perlu mengedit kode Python manual</strong>. Cukup ketik IP baru di modal web, salin perintah baru, dan jalankan di Raspberry Pi.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <p class="text-amber-900 text-[10.5px] font-medium leading-tight">
+                        💡 <strong>Otomatisasi Penuh:</strong> Setiap kali nilai IP/Domain pada kolom diubah, perintah <code>curl</code> pada antarmuka web langsung menyesuaikan secara *real-time*.
                     </p>
                 </div>
 
-                <!-- LANGKAH 4 -->
+                <!-- LANGKAH 4: PERINTAH ALL-IN-ONE -->
+                <div class="p-4 bg-slate-900 text-white rounded-2xl border border-slate-800 space-y-3 shadow-md">
+                    <div class="flex items-center justify-between">
+                        <span class="font-black text-amber-400 text-xs uppercase tracking-wider block">
+                            4.4 Eksekusi Perintah All-In-One (Unduh, Auto-Boot & Run)
+                        </span>
+                        <span class="text-[9px] font-mono bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">1-Klik Eksekusi</span>
+                    </div>
+                    <p class="text-slate-300 leading-relaxed text-[11.5px]">
+                        Salin perintah 1-baris dari modal <b>`⚡ Setup Node`</b> dan jalankan langsung di terminal SSH Raspberry Pi:
+                    </p>
+                    <code class="block font-mono text-[10px] bg-black/70 text-emerald-400 p-3 rounded-xl select-all break-all leading-relaxed border border-white/10">
+                        curl -sSL "http://192.168.196.98:8000/scripts/download/device?device_id=RPI3B_SERVER_TELEPON&broker_host=127.0.0.1" -o /home/alex/pindad_node_rpi3b_server_telepon.py && (crontab -l 2>/dev/null | grep -v 'pindad_node'; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &") | crontab - && pkill -f pindad_node 2>/dev/null; nohup python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &
+                    </code>
+
+                    <!-- DEKONSTRUKSI ANATOMI PERINTAH -->
+                    <div class="bg-white/5 rounded-xl p-3 border border-white/10 space-y-1.5 text-[10.5px]">
+                        <span class="font-black text-amber-300 block uppercase">Anatomi & Alur Kerja Baris Perintah:</span>
+                        <ul class="space-y-1 text-slate-300 list-disc list-inside">
+                            <li><strong class="text-white">curl -sSL ... -o:</strong> Mengunduh skrip Python siap pakai yang sudah dipersonalisasi sesuai ID perangkat, pin GPIO, dan alamat broker MQTT.</li>
+                            <li><strong class="text-white">crontab @reboot sleep 10:</strong> Mendaftarkan otomatisasi pada cron sistem agar skrip selalu otomatis menyala 10 detik setelah Raspberry Pi reboot (anti mati listrik).</li>
+                            <li><strong class="text-white">pkill -f pindad_node:</strong> Menghentikan skrip versi sebelumnya secara bersih jika ada pembaruan konfigurasi.</li>
+                            <li><strong class="text-white">nohup python3 -u ... &:</strong> Menjalankan proses di latar belakang (*background daemon*) tanpa terputus meskipun jendela terminal SSH ditutup.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- LANGKAH 5: MONITORING LOG -->
                 <div class="p-4 bg-white rounded-2xl border border-slate-200 space-y-2">
-                    <span class="font-black text-slate-900 text-xs uppercase tracking-wider block">
-                        Langkah 4: Pemantauan Log Pengiriman Data Real-Time
-                    </span>
+                    <div class="flex items-center justify-between">
+                        <span class="font-black text-slate-900 text-xs uppercase tracking-wider block">
+                            4.5 Pemantauan Log Pengiriman Data Real-Time
+                        </span>
+                        <span class="text-[9.5px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">Live Verification</span>
+                    </div>
                     <p class="text-slate-600 leading-relaxed">
-                        Untuk memastikan data telemetri suhu dan arus ampere terkirim normal ke web dashboard:
+                        Untuk memverifikasi apakah pembacaan arus sensor dan telemetri berhasil terkirim ke dashboard:
                     </p>
                     <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-200">
                         <code class="font-mono font-bold text-slate-800 text-xs">tail -f /home/alex/node.log</code>
-                        <span class="text-[10px] text-slate-400">Tekan Ctrl+C keluar</span>
+                        <span class="text-[10px] text-slate-400">Tekan Ctrl+C untuk keluar</span>
+                    </div>
+                    <div class="bg-slate-900 rounded-xl p-2.5 text-[10.5px] font-mono text-emerald-400 space-y-0.5 border border-slate-800">
+                        <p class="text-slate-400"># Contoh output log berhasil di terminal:</p>
+                        <p>[2026-09-07 10:15:02] [INFO] Koneksi MQTT lokal terhubung ke 127.0.0.1:1883</p>
+                        <p>[2026-09-07 10:15:17] [TELEMETRY] AC1=5.2100A (1146W) | AC2=0.0000A (0W) | Suhu=24.2°C</p>
+                        <p>[2026-09-07 10:15:17] [HTTP-REST] Telemetri berhasil tersinkronisasi ke Dashboard (200 OK)</p>
+                    </div>
+                </div>
+
+                <!-- LANGKAH 6: TROUBLESHOOTING PERINTAH CEPAT -->
+                <div class="p-4 bg-white rounded-2xl border border-slate-200 space-y-2">
+                    <span class="font-black text-slate-900 text-xs uppercase tracking-wider block">
+                        4.6 Perintah Cepat Manajemen Proses Node
+                    </span>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                            <span class="font-bold text-slate-700 block text-[10px] uppercase">Cek Status Proses</span>
+                            <code class="font-mono text-[10px] text-indigo-700 block mt-1">ps aux | grep pindad_node</code>
+                        </div>
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                            <span class="font-bold text-slate-700 block text-[10px] uppercase">Hentikan Skrip Manual</span>
+                            <code class="font-mono text-[10px] text-rose-700 block mt-1">pkill -f pindad_node</code>
+                        </div>
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                            <span class="font-bold text-slate-700 block text-[10px] uppercase">Jalankan Ulang Manual</span>
+                            <code class="font-mono text-[10px] text-emerald-700 block mt-1">python3 -u pindad_node_*.py</code>
+                        </div>
                     </div>
                 </div>
 

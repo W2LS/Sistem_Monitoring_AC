@@ -35,7 +35,7 @@
 ## 📌 Ringkasan Proyek
 **SIKOMAT (Sistem Kontrol & Monitoring Otomatis AC)** adalah platform Industrial IoT yang dirancang khusus untuk memantau beban arus listrik (Ampere), konsumsi daya (Watt), dan mengotomasi pergantian shift 12 jam pada unit pendingin ruangan (AC) di berbagai fasilitas strategis **PT PINDAD (PERSERO)** secara *real-time*, *fail-safe*, dan terintegrasi dengan alarm darurat bot Telegram.
 
-Platform ini mengadopsi arsitektur **Enterprise Multi-Tenancy** (mirip arsitektur *Blynk IoT / AWS IoT Core*) di mana **1 Template Cetak Biru Hardware** dapat digunakan oleh **banyak perangkat ruangan (*Multi-Device Fleet*)** secara terisolasi tanpa risiko interferensi data atau salah kendali.
+Platform ini mengadopsi arsitektur **Enterprise Multi-Tenancy & Edge Computing** di mana **1 Template Cetak Biru Hardware** dapat digunakan oleh **banyak perangkat ruangan (*Multi-Device Fleet*)** secara terisolasi tanpa risiko interferensi data atau salah kendali.
 
 ---
 
@@ -85,7 +85,7 @@ Platform ini mengadopsi arsitektur **Enterprise Multi-Tenancy** (mirip arsitektu
   * **Pendaftaran Perangkat Cepat:** Form pendaftaran node baru dengan validasi IP Address anti-duplikasi.
   * **Unduh Skrip (.py) Otomatis:** Tombol `📥 Unduh Skrip (.py)` pada kartu ruangan untuk men-generate file Python siap pakai per-device.
 
-### 🛠️ Modul 2: DevZone (Developer Console ala Blynk IoT)
+### 🛠️ Modul 2: DevZone (PINDAD Hardware Templates & Datastreams Console)
 * **Template Blueprint Manager:** Manajemen cetak biru spesifikasi modul relay (Preset 1 Channel, 2 Channel, 4 Channel, 8 Channel).
 * **Virtual Datastreams Editor:** Konfigurasi Virtual Pin (`V0` - `V3` untuk relay, `V10` suhu, `V20` - `V27` sensor arus, `V30` turbo).
 * **Ekspor & Impor JSON:** Kemudahan backup dan migrasi template ke server lain.

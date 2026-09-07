@@ -10,6 +10,7 @@ class Schedule extends Model
     protected $collection = 'schedules';
 
     protected $fillable = [
+        'user_nip',
         'label',
         'start_time',
         'end_time',

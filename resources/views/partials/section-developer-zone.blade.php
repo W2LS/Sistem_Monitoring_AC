@@ -1,4 +1,4 @@
-<!-- ================= MODUL 2: DEVELOPER ZONE (BLYNK IOT TEMPLATES & DATASTREAMS CONSOLE) ================= -->
+<!-- ================= MODUL 2: DEVELOPER ZONE (PINDAD HARDWARE TEMPLATES & DATASTREAMS CONSOLE) ================= -->
 <div class="space-y-6 pb-20" x-data="{ 
     selectedTemplateId: '{{ session('selected_template_id') }}' || localStorage.getItem('pindad_selected_template_id') || '{{ $templates->first()->id ?? '' }}',
     modalNewTemplate: false,
@@ -27,13 +27,13 @@
         <div>
             <span class="text-[11px] font-extrabold uppercase tracking-widest text-[#8E1616] flex items-center gap-1.5">
                 <span>🛠️</span>
-                <span>DEVELOPER ZONE • BLYNK PROTOCOL ENGINE</span>
+                <span>DEVELOPER ZONE • PINDAD TEMPLATE ENGINE</span>
             </span>
             <h2 class="text-2xl sm:text-3xl font-black text-[#1D1616] tracking-tight mt-0.5">
                 Manajemen Template & Datastreams
             </h2>
             <p class="text-xs font-semibold text-slate-500 mt-1">
-                Rancang blueprint perangkat keras dan konfigurasikan saluran Virtual Pin (V0 - V255) ala Blynk IoT.
+                Rancang blueprint perangkat keras dan konfigurasikan saluran Virtual Pin (V0 - V255) PINDAD Datastreams Standard.
             </p>
         </div>
 
@@ -207,7 +207,7 @@
                             <span>Daftar Virtual Pins (Datastreams)</span>
                             <span class="text-[10px] font-bold text-[#8E1616] bg-[#8E1616]/10 px-2 py-0.5 rounded-full">{{ count($tmpl->datastreams ?? []) }} Terdaftar</span>
                         </h4>
-                        <span class="text-xs text-slate-400 font-mono">Blynk V-Pin Standard</span>
+                        <span class="text-xs text-slate-400 font-mono">PINDAD V-Pin Standard</span>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -326,11 +326,10 @@
 
                     <div>
                         <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Tipe Koneksi *</label>
-                        <select name="connection_type" class="w-full px-3.5 py-2.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-[#D84040] outline-none">
-                            <option value="MQTT Broker (TCP 1883)">MQTT Broker (TCP 1883)</option>
+                        <select name="connection_type" class="w-full px-3.5 py-2.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-[#D84040] outline-none cursor-pointer">
+                            <option value="Ethernet LAN">Ethernet LAN (Kabel RJ45)</option>
                             <option value="WiFi (IEEE 802.11 b/g/n)">WiFi (IEEE 802.11 b/g/n)</option>
-                            <option value="Ethernet LAN">Ethernet LAN</option>
-                            <option value="RS485 Modbus RTU">RS485 Modbus RTU</option>
+                            <option value="MQTT Broker (TCP 1883)">MQTT Broker Lokal (TCP 1883)</option>
                         </select>
                     </div>
                 </div>
@@ -399,11 +398,10 @@
 
                     <div>
                         <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Tipe Koneksi *</label>
-                        <select name="connection_type" x-model="editTemplate.connection_type" class="w-full px-3.5 py-2.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-[#8E1616] outline-none">
-                            <option value="MQTT Broker (TCP 1883)">MQTT Broker (TCP 1883)</option>
+                        <select name="connection_type" x-model="editTemplate.connection_type" class="w-full px-3.5 py-2.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-[#8E1616] outline-none cursor-pointer">
+                            <option value="Ethernet LAN">Ethernet LAN (Kabel RJ45)</option>
                             <option value="WiFi (IEEE 802.11 b/g/n)">WiFi (IEEE 802.11 b/g/n)</option>
-                            <option value="Ethernet LAN">Ethernet LAN</option>
-                            <option value="RS485 Modbus RTU">RS485 Modbus RTU</option>
+                            <option value="MQTT Broker (TCP 1883)">MQTT Broker Lokal (TCP 1883)</option>
                         </select>
                     </div>
                 </div>

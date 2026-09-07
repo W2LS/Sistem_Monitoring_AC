@@ -1,4 +1,4 @@
-<!-- FLOATING BOTTOM NAVIGATION BAR (4 MODUL BLYNK IOT ENGINE) -->
+<!-- FLOATING BOTTOM NAVIGATION BAR (4 MODUL PINDAD IOT SUITE) -->
 <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md">
     
     <div class="bg-[#1D1616] h-16 rounded-[32px] px-4 flex items-center justify-between shadow-[0_20px_50px_-12px_rgba(29,22,22,0.5)] border border-[#8E1616]/30 relative">
@@ -15,7 +15,7 @@
             <span class="text-[9px] font-black uppercase tracking-wider mt-0.5" :class="activeTab === 'home' ? 'text-[#D84040]' : 'text-[#EEEEEE]/50'">Home</span>
         </button>
 
-        <!-- 2. DEVELOPER ZONE (TEMPLATES & DATASTREAMS ALA BLYNK IOT) -->
+        <!-- 2. DEVELOPER ZONE (TEMPLATES & DATASTREAMS ENGINE) -->
         <button 
             @click="activeTab = 'devzone'" 
             type="button"

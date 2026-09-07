@@ -10,6 +10,7 @@ class Device extends Model
     protected $collection = 'devices';
 
     protected $fillable = [
+        'user_nip', // Owner account NIP / Username (User-scoping)
         'device_id',
         'template_id',
         'name',
@@ -22,7 +23,7 @@ class Device extends Model
         'auth_token',
         'num_ac',
         'description',
-        'current_values', // Store latest datastream values like ['V0' => 1, 'V1' => 0, 'V2' => 4.23]
+        'current_values', // Store latest datastream values like ['V0' => 1, 'V1' => 0, 'V2' => 0.0]
     ];
 
     protected $casts = [

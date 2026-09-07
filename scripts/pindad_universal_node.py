@@ -44,15 +44,13 @@ def load_config():
         "room_name": "Ruang Server Utama",
         "mqtt_broker_host": "127.0.0.1",
         "mqtt_broker_port": 1883,
-        "blynk_auth_token": "",
-        "blynk_mqtt_host": "blynk.cloud",
-        "blynk_mqtt_port": 1883,
         "sophos_auth": {"enabled": False},
         "relays": [
             {"ac_number": 1, "gpio_pin": 17, "name": "AC 1", "adc_channel": 0},
             {"ac_number": 2, "gpio_pin": 27, "name": "AC 2", "adc_channel": 1}
         ],
-        "turbo_cooling_seconds": 300,
+        "schedules": [],
+        "turbo_cooling_seconds": 0,
         "telemetry_interval_seconds": 15
     }
     if os.path.exists(CONFIG_PATH):
@@ -65,14 +63,21 @@ def load_config():
 
 config = load_config()
 
-# Cek apakah user memberikan Device ID lewat CLI argumen (misal: python3 pindad_universal_node.py RPI3B_MONITORING_AC_RUANG_SERVER_2)
+# Cek argumen CLI (misal: python3 pindad_universal_node.py RPI3B_MONITORING_AC_RUANG_SERVER_2 192.168.1.50)
 if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
     config["device_id"] = sys.argv[1].strip()
     config["room_name"] = sys.argv[1].strip().replace("_", " ")
 
+for i, arg in enumerate(sys.argv):
+    if arg in ["--broker", "--broker-host", "--host"] and i + 1 < len(sys.argv):
+        config["mqtt_broker_host"] = sys.argv[i + 1].strip()
+    elif len(sys.argv) > 2 and not sys.argv[2].startswith("-") and i == 2:
+        config["mqtt_broker_host"] = sys.argv[2].strip()
+
 DEVICE_ID = config["device_id"]
 RELAYS = config["relays"]
-TURBO_COOLING_SEC = config.get("turbo_cooling_seconds", 300)
+active_schedules = config.get("schedules", [])
+TURBO_COOLING_SEC = config.get("turbo_cooling_seconds", 0)
 INTERVAL_SEC = config.get("telemetry_interval_seconds", 15)
 
 # ================= AUTO-START INSTALLER FEATURE (--install / --autostart) =================
@@ -240,6 +245,78 @@ def get_current_timestamp():
             pass
     return time.strftime("%Y-%m-%d %H:%M:%S")
 
+def get_current_time_hm():
+    if HAS_HARDWARE and has_rtc:
+        try:
+            t = rtc.datetime
+            return f"{t.tm_hour:02d}:{t.tm_min:02d}"
+        except Exception:
+            pass
+    return time.strftime("%H:%M")
+
+def is_schedule_active_for_ac(sch, ac_num, now_hm):
+    start = str(sch.get("start_time", "00:00"))[:5]
+    end = str(sch.get("end_time", "00:00"))[:5]
+    
+    if start <= end:
+        is_inside = (now_hm >= start and now_hm < end)
+    else:
+        # Overnight shift (misal: 18:00 - 06:00)
+        is_inside = (now_hm >= start or now_hm < end)
+        
+    if not is_inside:
+        return False
+        
+    target = str(sch.get("target_ac", "all")).lower().strip()
+    if target in ["all", "seluruh", "2 unit", "semua", "0", "", "none", "null"]:
+        return True
+        
+    if target == str(ac_num) or target == f"ac {ac_num}" or target == f"ac_{ac_num}":
+        return True
+        
+    return False
+
+def evaluate_schedules(force=False):
+    global active_schedules, is_turbo_cooling_active
+    
+    if not active_schedules:
+        return
+        
+    if is_turbo_cooling_active and not force:
+        return
+        
+    now_hm = get_current_time_hm()
+    
+    desired_states = {}
+    active_labels = {}
+    
+    for r in RELAYS:
+        ac_num = r["ac_number"]
+        is_ac_on = False
+        matched_label = ""
+        
+        for sch in active_schedules:
+            if not sch.get("is_active", True):
+                continue
+            if is_schedule_active_for_ac(sch, ac_num, now_hm):
+                is_ac_on = True
+                matched_label = sch.get("label", "Rotasi Shift")
+                break
+                
+        desired_states[ac_num] = is_ac_on
+        active_labels[ac_num] = matched_label
+        
+    for r in RELAYS:
+        ac_num = r["ac_number"]
+        desired = desired_states.get(ac_num, False)
+        current = relay_states.get(ac_num)
+        
+        if current != desired or force:
+            status_str = "ON 🟢 (MENYALA)" if desired else "OFF ⚪ (PADAM)"
+            lbl = active_labels.get(ac_num) or "Standby / Diluar Shift"
+            print(f"⏰ [RTC ROTASI JADWAL] Pukul {now_hm} WIB ➔ AC {ac_num} ({r['name']}) diatur ke {status_str} [Jadwal: {lbl}]")
+            switch_relay(ac_num, desired)
+
 def _pulse_tactile(gpio_pin, duration_sec):
     """Pemicu pulsa ke tombol taktikal AC (Non-blocking background thread)"""
     try:
@@ -276,7 +353,7 @@ def switch_relay(ac_num, state_bool):
     except Exception:
         pass
 
-# ================= 4. MQTT CLIENTS (LOCAL & BLYNK) =================
+# ================= 4. MQTT CLIENT & TELEMETRY ENGINE =================
 local_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=f"pindad_node_{DEVICE_ID}")
 
 def on_local_connect(client, userdata, flags, rc, properties=None):
@@ -348,16 +425,104 @@ def read_current_ampere(ac_num):
         v_rms = (v_peak_to_peak / 2.0) * 0.707
         arus_fisik_riil = v_rms / SENSITIVITAS_ACS712
 
-    # 1. Jika terpasang beban fisik riil AC 220V (arus fisik >= 0.15 A):
-    if arus_fisik_riil >= 0.15:
+    # Hanya laporkan arus riil terukur dari sensor fisik ACS712 & ADS1115
+    # (Jika saklar ON tapi kabel beban AC belum dialiri listrik / < 0.05 A, laporkan 0.0000 A)
+    if arus_fisik_riil >= 0.05:
         return round(arus_fisik_riil, 4)
     
-    # 2. Fallback Cerdas (Mode Laboratorium / Prototipe):
-    # Saat saklar ON tapi kabel beban 220V AC belum dihubungkan ke terminal baut ACS712,
-    # berikan estimasi beban AC 1 PK realistis (~2.15 A ± fluktuasi) agar dashboard, log, dan grafik tetap hidup:
-    nominal = 2.15 if ac_num == 1 else (2.08 if ac_num == 2 else 2.10)
-    fluktuasi = random.uniform(-0.035, 0.045)
-    return round(nominal + fluktuasi, 4)
+    return 0.0000
+
+last_telegram_alert = {}
+relay_turned_on_time = {r["ac_number"]: time.time() for r in RELAYS}
+
+def send_direct_telegram_alert(ac_num, unit_name, current_amp, failure_type="GAGAL_HIDUP"):
+    tele = config.get("telegram", {})
+    if not tele or not tele.get("enabled", True):
+        return
+    bot_token = tele.get("bot_token")
+    chat_id = tele.get("chat_id")
+    if not bot_token or not chat_id:
+        return
+        
+    cooldown_sec = max(60, tele.get("cooldown_minutes", 15) * 60)
+    now_ts = time.time()
+    last_sent = last_telegram_alert.get((ac_num, failure_type), 0)
+    if now_ts - last_sent < cooldown_sec:
+        return
+        
+    last_telegram_alert[(ac_num, failure_type)] = now_ts
+    
+    ts_str = get_current_timestamp()
+    room = config.get("room_name", DEVICE_ID)
+    loc = config.get("location", "PT PINDAD (PERSERO)")
+    
+    msg = f"🚨 <b>[PERINGATAN KRITIS EDGE • PT PINDAD]</b>\n"
+    msg += f"⚠️ <b>GANGGUAN: AC GAGAL MENYALA / MATI!</b>\n\n"
+    msg += f"📍 <b>Ruangan:</b> <code>{room}</code>\n"
+    msg += f"🏢 <b>Lokasi:</b> {loc}\n"
+    msg += f"🆔 <b>ID Perangkat:</b> <code>{DEVICE_ID}</code> (Pengirim: Edge Node Mandiri)\n"
+    msg += f"❄️ <b>Unit AC:</b> <b>Unit {ac_num} ({unit_name})</b>\n"
+    msg += f"⚡ <b>Arus Terukur Sensor ACS712:</b> <code>{current_amp:.4f} A</code> (0 Watt)\n"
+    msg += f"⚙️ <b>Status Relai:</b> ON (Jadwal Aktif)\n"
+    msg += f"⏰ <b>Waktu Deteksi:</b> {ts_str} WIB\n\n"
+    msg += f"🔍 <b>DIAGNOSA SENSOR EDGE (RASPBERRY PI MANDIRI):</b>\n"
+    msg += f"Relai ON tetapi sensor ACS712 mendeteksi 0 Ampere (Kompresor mati / MCB trip / Kapasitor rusak).\n"
+    msg += f"<i>(Peringatan darurat ini dikirim langsung oleh Raspberry Pi tanpa membutuhkan PC Dashboard)</i>\n\n"
+    msg += f"👨‍🔧 <b>TINDAKAN:</b> Mohon teknisi segera lakukan pengecekan di lokasi <b>{room}</b>!"
+
+    try:
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        req_body = json.dumps({
+            "chat_id": chat_id,
+            "text": msg,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": True
+        }).encode('utf-8')
+        req = urllib.request.Request(url, data=req_body, headers={'Content-Type': 'application/json', 'User-Agent': 'PindadEdgeNode/1.0'})
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        with urllib.request.urlopen(req, context=ctx, timeout=5) as resp:
+            print(f"📲 [TELEGRAM DIRECT] Berhasil mengirim pesan darurat anomali langsung dari Raspberry Pi!")
+    except Exception as e:
+        pass
+
+def send_http_telemetry(payload):
+    """Kirim telemetri HTTP REST langsung ke Laravel Web Dashboard (Dual-Sync Real-Time)"""
+    global active_schedules
+    dash_url = config.get("dashboard_http_url")
+    if not dash_url:
+        return
+    try:
+        req_data = json.dumps(payload).encode('utf-8')
+        req = urllib.request.Request(
+            f"{dash_url}/api/telemetry", 
+            data=req_data, 
+            headers={'Content-Type': 'application/json', 'User-Agent': 'PindadIoTNode/1.0'}
+        )
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            resp_bytes = resp.read()
+            if resp_bytes:
+                resp_json = json.loads(resp_bytes.decode('utf-8'))
+                # Dual-Sync Telegram Settings
+                if "telegram" in resp_json and isinstance(resp_json["telegram"], dict):
+                    config["telegram"] = resp_json["telegram"]
+
+                # Dual-Sync Jadwal dari Web Dashboard
+                if "schedules" in resp_json and isinstance(resp_json["schedules"], list):
+                    new_scheds = resp_json["schedules"]
+                    if json.dumps(new_scheds, sort_keys=True) != json.dumps(active_schedules, sort_keys=True):
+                        active_schedules = new_scheds
+                        config["schedules"] = new_scheds
+                        print(f"🔄 [SYNC JADWAL WEB] Menerima {len(active_schedules)} aturan jadwal terbaru dari Dashboard!")
+                        try:
+                            with open(CONFIG_PATH, "w") as f:
+                                json.dump(config, f, indent=2)
+                        except Exception:
+                            pass
+                        evaluate_schedules(force=True)
+    except Exception as e:
+        pass
 
 def send_instant_telemetry(target_ac_num=None):
     """Kirim telemetri instan seketika saat saklar relay berganti status (Zero Delay)"""
@@ -380,6 +545,7 @@ def send_instant_telemetry(target_ac_num=None):
             }
             local_client.publish("pindad/ac/logs", json.dumps(payload))
             local_client.publish(f"pindad/devices/{DEVICE_ID}/telemetry", json.dumps(payload))
+            send_http_telemetry(payload)
     except Exception as e:
         print(f"⚠️ [INSTANT TELEMETRY ERROR] {e}")
 
@@ -388,12 +554,19 @@ def telemetry_loop():
     global is_turbo_cooling_active
     start_time = time.time()
 
+    # Evaluasi jadwal awal saat boot
+    evaluate_schedules(force=True)
+
     while True:
         try:
             # Check Turbo Cooling Expiry
             if is_turbo_cooling_active and (time.time() - start_time > TURBO_COOLING_SEC):
                 is_turbo_cooling_active = False
-                print("⏱️ [TURBO COOLING SELESAI] Masa pendinginan boot 5 menit berakhir. Siap rotasi jadwal.")
+                print("⏱️ [TURBO COOLING SELESAI] Masa pendinginan boot berakhir. Menjalankan rotasi jadwal RTC.")
+                evaluate_schedules(force=True)
+
+            # Evaluasi jadwal RTC DS3231 setiap siklus telemetri
+            evaluate_schedules()
 
             ts = get_current_timestamp()
 
@@ -407,15 +580,27 @@ def telemetry_loop():
                 payload = {
                     "device_id": DEVICE_ID,
                     "active_ac": f"AC_{ac_num}_{'ON' if is_on else 'OFF'}",
+                    "ac_number": ac_num,
+                    "state": "ON" if is_on else "OFF",
                     "current_ampere": current_amp,
                     "watt": round(current_amp * 220),
                     "recorded_at": ts,
                     "turbo_active": is_turbo_cooling_active
                 }
 
-                # Publish ke local broker untuk Laravel Dashboard
+                # 1. Publish ke local broker untuk MQTT
                 local_client.publish("pindad/ac/logs", json.dumps(payload))
                 local_client.publish(f"pindad/devices/{DEVICE_ID}/telemetry", json.dumps(payload))
+
+                # 2. Dual-Sync HTTP REST langsung ke Web Dashboard
+                send_http_telemetry(payload)
+
+                # 3. Direct Edge Anomaly Alert (Tetap Mengirim Peringatan ke Telegram Walaupun Komputer Dashboard Dimatikan)
+                if is_on and current_amp < 0.05 and not is_turbo_cooling_active:
+                    send_direct_telegram_alert(ac_num, r.get('name', f'AC {ac_num}'), current_amp, 'GAGAL_HIDUP')
+
+                # 4. Tampilkan log pembacaan sensor ke terminal
+                print(f"📊 [TELEMETRI] AC {ac_num} ({r.get('name', 'Unit')}): {'ON 🟢' if is_on else 'OFF ⚪'} | Sensor ACS712: {current_amp:.4f} A ({payload['watt']} W) | RTC: {ts}")
 
             time.sleep(INTERVAL_SEC)
         except Exception as e:
@@ -426,10 +611,21 @@ def telemetry_loop():
 if __name__ == "__main__":
     login_sophos()
     try:
-        local_client.connect(config["mqtt_broker_host"], config["mqtt_broker_port"], 60)
+        broker_target = config.get("mqtt_broker_host", "127.0.0.1")
+        broker_p = config.get("mqtt_broker_port", 1883)
+        local_client.connect(broker_target, broker_p, 60)
         local_client.loop_start()
+        print(f"📡 [MQTT CONNECT SUCCESS] Terhubung ke Broker MQTT: {broker_target}:{broker_p}")
     except Exception as e:
-        print(f"❌ [MQTT CONNECT ERROR] Gagal tersambung ke broker: {e}")
+        print(f"❌ [MQTT CONNECT ERROR] Gagal tersambung ke broker ({config.get('mqtt_broker_host')}): {e}")
+        if config.get("mqtt_broker_host") != "127.0.0.1":
+            print("🔄 [MQTT AUTO-RETRY] Mencoba koneksi fallback ke broker lokal 127.0.0.1:1883...")
+            try:
+                local_client.connect("127.0.0.1", 1883, 60)
+                local_client.loop_start()
+                print("📡 [MQTT CONNECT SUCCESS] Berhasil terhubung ke Broker Lokal (127.0.0.1)!")
+            except Exception as e2:
+                print(f"❌ [MQTT LOCAL ERROR] Broker lokal 127.0.0.1 juga tidak aktif: {e2}")
 
     # Start telemetry thread
     t = threading.Thread(target=telemetry_loop, daemon=True)

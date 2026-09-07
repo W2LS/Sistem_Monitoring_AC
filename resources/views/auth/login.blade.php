@@ -93,19 +93,18 @@
         
         <!-- LEFT SIDE: BRAND HERO -->
         <div class="col-12 col-md-6 text-white px-md-4">
-            <div class="d-inline-flex items-center gap-2 badge-pindad mb-3">
-                🛡️ PT PINDAD (PERSERO)
+            <div class="text-white fw-bold text-uppercase mb-3" style="letter-spacing: 2px; font-size: 11px; opacity: 0.95;">
+                PT PINDAD (PERSERO)
             </div>
 
-            <h1 class="display-5 fw-black text-white mb-3 tracking-tight">
-                Sistem Kontrol & Monitoring AC IoT
-            </h1>
+            <div class="mb-4">
+                <img src="{{ asset('SIKOMAT.png') }}" 
+                     alt="SIKOMAT Logo PT PINDAD" 
+                     class="img-fluid select-none"
+                     style="max-height: 85px; width: auto; filter: brightness(0) invert(1);">
+            </div>
 
-            <p class="lead text-white-50 fs-6 fw-normal mb-4">
-                Platform pemantauan telemetri arus listrik dan saklar kontrol pendingin udara (AC) otomatis berbasis ESP32 & MQTT di Ruang Server 1.
-            </p>
-
-            <div class="text-white-50">
+            <div class="text-white-50 mt-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-grip-horizontal" viewBox="0 0 16 16">
                 <path d="M2 8a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm0-3a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm3 3a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm0-3a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm3 3a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm0-3a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm3 3a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm0-3a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm3 3a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm0-3a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
               </svg>
@@ -118,8 +117,8 @@
                 <div class="card-body p-2">
                     
                     <div class="mb-3">
-                        <h2 class="h4 fw-black text-dark mb-1">Login Operator</h2>
-                        <p class="fs-7 text-secondary m-0">Masukkan NIP & Password untuk masuk</p>
+                        <h2 class="h5 fw-black text-dark mb-1">Masuk Akun</h2>
+                        <p class="fs-7 text-secondary m-0">Silakan login untuk melanjutkan</p>
                     </div>
 
                     <!-- ERROR / SUCCESS NOTIFICATIONS -->
@@ -140,25 +139,25 @@
                         @csrf
 
                         <div class="mb-3">
-                            <label for="nip" class="form-label fs-7 font-semibold text-secondary mb-1">NIP / Username Operator</label>
-                            <input type="text" class="form-control py-2 fs-7 rounded-3" name="nip" id="nip" value="{{ old('nip') }}" placeholder="Masukkan NIP Operator" required autofocus>
+                            <label for="nip" class="form-label fs-7 font-semibold text-secondary mb-1">NIP Operator</label>
+                            <input type="text" class="form-control py-2 fs-7 rounded-3" name="nip" id="nip" value="{{ old('nip') }}" placeholder="Masukkan NIP" required autofocus>
                         </div>
 
                         <div class="mb-3">
-                            <label for="password" class="form-label fs-7 font-semibold text-secondary mb-1">Kata Sandi (Password)</label>
-                            <input type="password" class="form-control py-2 fs-7 rounded-3" name="password" id="password" value="" placeholder="Masukkan Kata Sandi" required>
+                            <label for="password" class="form-label fs-7 font-semibold text-secondary mb-1">Kata Sandi</label>
+                            <input type="password" class="form-control py-2 fs-7 rounded-3" name="password" id="password" value="" placeholder="••••••••" required>
                         </div>
 
                         <div class="form-check mb-4">
                             <input class="form-check-input" type="checkbox" value="1" name="remember" id="remember" checked>
                             <label class="form-check-label text-secondary fs-7" for="remember">
-                                Ingat Sesi Operator
+                                Ingat saya
                             </label>
                         </div>
 
                         <div class="d-grid mb-2">
                             <button class="btn btn-pindad fs-7" type="submit">
-                                Masuk ke Dashboard ➔
+                                Masuk ➔
                             </button>
                         </div>
 

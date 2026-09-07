@@ -10,6 +10,7 @@ class Template extends Model
     protected $collection = 'templates';
 
     protected $fillable = [
+        'user_nip',
         'name',
         'hardware_type',
         'connection_type',

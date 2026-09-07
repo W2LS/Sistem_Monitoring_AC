@@ -4,9 +4,6 @@
   "location": "Gedung Divisi Mutu & TI",
   "mqtt_broker_host": "127.0.0.1",
   "mqtt_broker_port": 1883,
-  "blynk_auth_token": "2zT3Crp6HA5DZQaxI26aftTrFUAuwo3F",
-  "blynk_mqtt_host": "blynk.cloud",
-  "blynk_mqtt_port": 1883,
   "sophos_auth": {
     "enabled": true,
     "user": "pin-00020",
