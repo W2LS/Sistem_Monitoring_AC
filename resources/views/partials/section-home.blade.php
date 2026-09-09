@@ -44,7 +44,7 @@ function homeFleetComponent() {
             
             this.rpiSetupData.script_name = scriptName;
             this.rpiSetupData.download_url = downloadUrl;
-            this.rpiSetupData.command = `sudo rm -f /home/alex/node.log 2>/dev/null; sudo pkill -f pindad_node 2>/dev/null; pkill -f pindad_node 2>/dev/null; curl -sSL "${downloadUrl}" -o /home/alex/${scriptName} && (crontab -l 2>/dev/null | grep -v 'pindad_node'; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/${scriptName} > /home/alex/node.log 2>&1 &") | crontab - && nohup python3 -u /home/alex/${scriptName} > /home/alex/node.log 2>&1 &`;
+            this.rpiSetupData.command = `sudo pkill -9 -f python3 2>/dev/null; sudo rm -f /home/alex/pindad_*.py /home/alex/node.log 2>/dev/null; curl -sSL "${downloadUrl}" -o /home/alex/${scriptName} && (crontab -l 2>/dev/null | grep -v 'pindad'; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/${scriptName} > /home/alex/node.log 2>&1 &") | crontab - && nohup python3 -u /home/alex/${scriptName} > /home/alex/node.log 2>&1 &`;
         },
         copyCommand() {
             const text = this.rpiSetupData.command;

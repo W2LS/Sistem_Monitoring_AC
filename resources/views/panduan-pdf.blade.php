@@ -643,13 +643,14 @@
                         Salin perintah 1-baris dari modal <b>`⚡ Setup Node`</b> dan jalankan langsung di terminal SSH Raspberry Pi:
                     </p>
                     <code class="block font-mono text-[10px] bg-black/70 text-emerald-400 p-3 rounded-xl select-all break-all leading-relaxed border border-white/10">
-                        curl -sSL "http://192.168.196.98:8000/scripts/download/device?device_id=RPI3B_SERVER_TELEPON&broker_host=127.0.0.1" -o /home/alex/pindad_node_rpi3b_server_telepon.py && (crontab -l 2>/dev/null | grep -v 'pindad_node'; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &") | crontab - && pkill -f pindad_node 2>/dev/null; nohup python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &
+                        sudo pkill -9 -f python3 2>/dev/null; sudo rm -f /home/alex/pindad_*.py /home/alex/node.log 2>/dev/null; curl -sSL "http://192.168.196.98:8000/scripts/download/device?device_id=RPI3B_SERVER_TELEPON&broker_host=127.0.0.1" -o /home/alex/pindad_node_rpi3b_server_telepon.py && (crontab -l 2>/dev/null | grep -v 'pindad'; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &") | crontab - && nohup python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &
                     </code>
 
                     <!-- DEKONSTRUKSI ANATOMI PERINTAH -->
                     <div class="bg-white/5 rounded-xl p-3 border border-white/10 space-y-1.5 text-[10.5px]">
                         <span class="font-black text-amber-300 block uppercase">Anatomi & Alur Kerja Baris Perintah:</span>
                         <ul class="space-y-1 text-slate-300 list-disc list-inside">
+                            <li><strong class="text-white">sudo pkill -9 -f python3 & rm:</strong> Membersihkan seluruh proses Python lama dan file script sebelumnya agar tidak terjadi bentrokan (0 ghost process).</li>
                             <li><strong class="text-white">curl -sSL ... -o:</strong> Mengunduh skrip Python siap pakai yang sudah dipersonalisasi sesuai ID perangkat, pin GPIO, dan alamat broker MQTT.</li>
                             <li><strong class="text-white">crontab @reboot sleep 10:</strong> Mendaftarkan otomatisasi pada cron sistem agar skrip selalu otomatis menyala 10 detik setelah Raspberry Pi reboot (anti mati listrik).</li>
                             <li><strong class="text-white">pkill -f pindad_node:</strong> Menghentikan skrip versi sebelumnya secara bersih jika ada pembaruan konfigurasi.</li>

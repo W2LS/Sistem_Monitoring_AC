@@ -632,7 +632,38 @@ def telemetry_loop():
             time.sleep(5)
 
 # ================= 6. START PROGRAM =================
+def ensure_single_instance():
+    """Mencegah script berjalan ganda (mencegah tabrakan telemetri & ghost process).
+    Jika ada proses node lama yang masih berjalan, proses lama akan dihentikan secara otomatis."""
+    lock_file_path = f"/tmp/pindad_node_{DEVICE_ID.lower()}.lock"
+    my_pid = os.getpid()
+    
+    if os.path.exists(lock_file_path):
+        try:
+            with open(lock_file_path, "r") as f:
+                old_pid_str = f.read().strip()
+                if old_pid_str.isdigit():
+                    old_pid = int(old_pid_str)
+                    if old_pid != my_pid and old_pid > 0:
+                        try:
+                            # Cek apakah proses lama masih hidup
+                            os.kill(old_pid, 0)
+                            print(f"⚠️ [SINGLE INSTANCE] Terdeteksi proses lama (PID: {old_pid}) sedang aktif. Menghentikan proses lama...")
+                            os.kill(old_pid, 9)
+                            time.sleep(0.5)
+                        except OSError:
+                            pass
+        except Exception:
+            pass
+
+    try:
+        with open(lock_file_path, "w") as f:
+            f.write(str(my_pid))
+    except Exception:
+        pass
+
 if __name__ == "__main__":
+    ensure_single_instance()
     login_sophos()
     try:
         broker_target = config.get("mqtt_broker_host", "127.0.0.1")
