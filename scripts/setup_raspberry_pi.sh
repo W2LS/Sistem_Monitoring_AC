@@ -21,45 +21,11 @@ echo "🐍 [3/4] Menginstall library Python sensor (MQTT, ADS1115, DS3231)..."
 pip3 install paho-mqtt adafruit-circuitpython-ads1x15 adafruit-circuitpython-ds3231 RPi.GPIO --break-system-packages 2>/dev/null || pip3 install paho-mqtt adafruit-circuitpython-ads1x15 adafruit-circuitpython-ds3231 RPi.GPIO
 
 # 4. Verifikasi Hardware Sensor I2C
-echo "🔍 [4/6] Memeriksa deteksi hardware I2C (ADS1115 = 0x48, DS3231 = 0x68)..."
+echo "🔍 [4/4] Memeriksa deteksi hardware I2C (ADS1115 = 0x48, DS3231 = 0x68)..."
 i2cdetect -y 1
 
-# 5. Jalankan Wizard Interaktif Pengaturan GPIO & Device ID
-CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "$CURRENT_DIR/pindad_setup_wizard.py" ]; then
-    echo "📋 [5/6] Menjalankan Wizard Pengaturan Pin GPIO & Nama Ruangan..."
-    python3 "$CURRENT_DIR/pindad_setup_wizard.py"
-fi
-
-# 6. Konfigurasi Auto-Start Systemd Service (Booting Daemon)
-echo "⚙️ [6/6] Memasang service auto-start Linux (pindad-iot.service)..."
-SERVICE_FILE="/etc/systemd/system/pindad-iot.service"
-
-sudo bash -c "cat > $SERVICE_FILE" <<EOF
-[Unit]
-Description=PINDAD IoT Node Controller Daemon
-After=network.target network-online.target
-Wants=network-online.target
-
-[Service]
-Type=simple
-ExecStart=/usr/bin/python3 $CURRENT_DIR/pindad_universal_node.py
-WorkingDirectory=$CURRENT_DIR
-Restart=always
-RestartSec=5
-User=$USER
-Environment=PYTHONUNBUFFERED=1
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-sudo systemctl daemon-reload
-sudo systemctl enable pindad-iot.service
-sudo systemctl restart pindad-iot.service
-
 echo "======================================================="
-echo "🎉 SETUP RASPBERRY PI 100% SELESAI & SUKSES!"
-echo "Alat sudah otomatis terhubung ke Web Dashboard."
-echo "Service pindad-iot.service sekarang AKTIF di latar belakang."
+echo "🎉 INSTALASI DEPENDENCY RASPBERRY PI 100% SUKSES!"
+echo "Semua library Python (paho-mqtt, adafruit, RPi.GPIO) sudah siap."
+echo "Silakan salin & jalankan perintah 1-klik dari modal Setup Node di Dashboard."
 echo "======================================================="
