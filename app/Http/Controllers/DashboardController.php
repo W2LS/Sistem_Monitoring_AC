@@ -155,7 +155,7 @@ class DashboardController extends Controller
                           ->orWhere('active_ac', 'like', "AC {$i}%")
                           ->orWhere('active_ac', 'like', "IN{$i}%")
                           ->orWhere('ac_number', $i);
-                    })->latest('recorded_at')->first();
+                    })->orderBy('recorded_at', 'desc')->orderBy('_id', 'desc')->orderBy('id', 'desc')->first();
                 
                 $isOn = false;
                 if ($log) {
@@ -365,10 +365,10 @@ class DashboardController extends Controller
         }
         $dev = Device::where('device_id', $deviceId)->first();
 
-        $latestAc1 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->first();
-        $latestAc2 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->first();
-        $logsAc1 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_1%')->latest('recorded_at')->take(10)->get()->reverse();
-        $logsAc2 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_2%')->latest('recorded_at')->take(10)->get()->reverse();
+        $latestAc1 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_1%')->orderBy('recorded_at', 'desc')->orderBy('_id', 'desc')->orderBy('id', 'desc')->first();
+        $latestAc2 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_2%')->orderBy('recorded_at', 'desc')->orderBy('_id', 'desc')->orderBy('id', 'desc')->first();
+        $logsAc1 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_1%')->orderBy('recorded_at', 'desc')->orderBy('_id', 'desc')->orderBy('id', 'desc')->take(10)->get()->reverse();
+        $logsAc2 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_2%')->orderBy('recorded_at', 'desc')->orderBy('_id', 'desc')->orderBy('id', 'desc')->take(10)->get()->reverse();
 
         $chartLabels = [];
         $chartDataAc1 = [];
@@ -383,7 +383,7 @@ class DashboardController extends Controller
             $chartDataAc2[] = (float) $log->current_ampere;
         }
 
-        $devLast = AcLog::where('device_id', $deviceId)->latest('recorded_at')->first();
+        $devLast = AcLog::where('device_id', $deviceId)->orderBy('recorded_at', 'desc')->orderBy('_id', 'desc')->orderBy('id', 'desc')->first();
         $isLive = false;
         if ($devLast && $devLast->recorded_at) {
             $isLive = Carbon::parse($devLast->recorded_at)->diffInSeconds(now()) <= 60;
@@ -403,7 +403,7 @@ class DashboardController extends Controller
                     $q->where('active_ac', 'like', "AC_{$i}%")
                       ->orWhere('active_ac', 'like', "AC {$i}%")
                       ->orWhere('ac_number', $i);
-                })->latest('recorded_at')->first();
+                })->orderBy('recorded_at', 'desc')->orderBy('_id', 'desc')->orderBy('id', 'desc')->first();
 
             $vState = (int)($dev?->current_values['V' . ($i - 1)] ?? 0);
             $uStatus = 'OFF';

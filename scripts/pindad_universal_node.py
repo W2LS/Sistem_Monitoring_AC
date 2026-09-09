@@ -145,7 +145,7 @@ print(f"🚀 [INIT] Memulai Node Controller: {DEVICE_ID} ({config.get('room_name
 
 # Track states
 relay_states = {r["ac_number"]: True for r in RELAYS}
-is_turbo_cooling_active = True
+is_turbo_cooling_active = (TURBO_COOLING_SEC > 0)
 
 # ================= 2. SOPHOS FIREWALL AUTH RESILIENCE =================
 def login_sophos():
@@ -277,9 +277,10 @@ def is_schedule_active_for_ac(sch, ac_num, now_hm):
     return False
 
 last_schedule_state = {}
+manual_override = {}
 
 def evaluate_schedules(force=False):
-    global active_schedules, is_turbo_cooling_active, last_schedule_state
+    global active_schedules, is_turbo_cooling_active, last_schedule_state, manual_override
     
     if not active_schedules:
         return
@@ -314,16 +315,24 @@ def evaluate_schedules(force=False):
         prev_sched = last_schedule_state.get(ac_num)
         
         # Eksekusi switch hanya saat terjadi transisi waktu jadwal (masuk shift atau keluar shift)
-        # ATAU saat inisialisasi boot pertama / pembaruan jadwal dari dashboard (force=True)
         is_transition = (prev_sched is not None and prev_sched != desired)
-        is_initial_boot = (prev_sched is None or force)
         
-        if is_transition or is_initial_boot:
+        if is_transition:
+            # Saat transisi jam shift berganti, reset manual override dan ikuti jadwal baru
+            manual_override[ac_num] = False
             last_schedule_state[ac_num] = desired
             status_str = "ON 🟢 (MENYALA)" if desired else "OFF ⚪ (PADAM)"
             lbl = active_labels.get(ac_num) or "Standby / Diluar Shift"
             print(f"⏰ [RTC ROTASI JADWAL] Pukul {now_hm} WIB ➔ AC {ac_num} ({r['name']}) diatur ke {status_str} [Jadwal: {lbl}]")
             switch_relay(ac_num, desired)
+        elif prev_sched is None or force:
+            # Inisialisasi saat boot awal
+            last_schedule_state[ac_num] = desired
+            if not manual_override.get(ac_num, False):
+                status_str = "ON 🟢 (MENYALA)" if desired else "OFF ⚪ (PADAM)"
+                lbl = active_labels.get(ac_num) or "Standby / Diluar Shift"
+                print(f"⏰ [BOOT JADWAL AWAL] Pukul {now_hm} WIB ➔ AC {ac_num} ({r['name']}) diatur ke {status_str} [Jadwal: {lbl}]")
+                switch_relay(ac_num, desired)
 
 def _pulse_tactile(gpio_pin, duration_sec):
     """Pemicu pulsa ke tombol taktikal AC (Non-blocking background thread)"""
@@ -372,7 +381,7 @@ def on_local_connect(client, userdata, flags, rc, properties=None):
     print(f"👂 [SUBSCRIBE] Mendengarkan topik: pindad/devices/{DEVICE_ID}/control")
 
 def on_local_message(client, userdata, msg):
-    global is_turbo_cooling_active
+    global is_turbo_cooling_active, manual_override
     try:
         payload = json.loads(msg.payload.decode())
         target_dev = payload.get("device_id")
@@ -387,18 +396,25 @@ def on_local_message(client, userdata, msg):
 
         # Parse AC commands: AC_1_ON, AC_2_OFF, MASTER_ON, MASTER_OFF, or direct command & ac_number/relay
         if "MASTER_ON" in cmd:
-            for r in RELAYS: switch_relay(r["ac_number"], True)
+            for r in RELAYS:
+                manual_override[r["ac_number"]] = True
+                switch_relay(r["ac_number"], True)
         elif "MASTER_OFF" in cmd:
-            for r in RELAYS: switch_relay(r["ac_number"], False)
+            for r in RELAYS:
+                manual_override[r["ac_number"]] = True
+                switch_relay(r["ac_number"], False)
         elif cmd in ["ON", "OFF"]:
             ac_num = payload.get("ac_number") or payload.get("relay")
             if ac_num is not None:
-                switch_relay(int(ac_num), cmd == "ON")
+                ac_num = int(ac_num)
+                manual_override[ac_num] = True
+                switch_relay(ac_num, cmd == "ON")
         elif cmd.startswith("AC_"):
             parts = cmd.split("_") # ['AC', '1', 'ON']
             if len(parts) >= 3:
                 ac_num = int(parts[1])
                 st = (parts[2].upper() == "ON")
+                manual_override[ac_num] = True
                 switch_relay(ac_num, st)
     except Exception as e:
         print(f"❌ [MQTT MSG ERROR] {e}")
@@ -528,7 +544,7 @@ def send_http_telemetry(payload):
                                 json.dump(config, f, indent=2)
                         except Exception:
                             pass
-                        evaluate_schedules(force=True)
+                        evaluate_schedules(force=False)
     except Exception as e:
         pass
 
