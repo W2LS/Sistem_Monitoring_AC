@@ -231,38 +231,30 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <!-- Nyalakan Semua Device -->
-                    <form action="{{ route('devices.masterControl') }}" method="POST" class="w-full">
-                        @csrf
-                        <input type="hidden" name="command" value="ON">
-                        <button type="submit" 
-                                onclick="return confirm('Nyalakan SELURUH unit perangkat di semua ruangan?')"
-                                class="w-full py-4 px-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100/80 hover:from-emerald-100 hover:to-emerald-200/90 text-emerald-900 border-2 border-emerald-300 font-black text-xs uppercase tracking-wider flex flex-col items-center justify-center gap-2.5 cursor-pointer active:scale-95 shadow-sm hover:shadow-md transition group">
-                            <div class="w-11 h-11 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-xl shadow-xs group-hover:scale-110 transition-transform">
-                                ⚡
-                            </div>
-                            <div class="text-center">
-                                <span class="block font-black text-xs text-emerald-950">Nyalakan Semua Device</span>
-                                <span class="text-[10.5px] text-emerald-700 font-semibold normal-case">Semua AC Langsung ON</span>
-                            </div>
-                        </button>
-                    </form>
+                    <button type="button" 
+                            @click="if (confirm('Nyalakan SELURUH unit perangkat di semua ruangan?')) { executeMasterControl('ON'); modalFabOpen = false; }"
+                            class="w-full py-4 px-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100/80 hover:from-emerald-100 hover:to-emerald-200/90 text-emerald-900 border-2 border-emerald-300 font-black text-xs uppercase tracking-wider flex flex-col items-center justify-center gap-2.5 cursor-pointer active:scale-95 shadow-sm hover:shadow-md transition group">
+                        <div class="w-11 h-11 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-xl shadow-xs group-hover:scale-110 transition-transform">
+                            ⚡
+                        </div>
+                        <div class="text-center">
+                            <span class="block font-black text-xs text-emerald-950">Nyalakan Semua Device</span>
+                            <span class="text-[10.5px] text-emerald-700 font-semibold normal-case">Semua AC Langsung ON</span>
+                        </div>
+                    </button>
 
                     <!-- Matikan Semua Device -->
-                    <form action="{{ route('devices.masterControl') }}" method="POST" class="w-full">
-                        @csrf
-                        <input type="hidden" name="command" value="OFF">
-                        <button type="submit" 
-                                onclick="return confirm('Matikan SELURUH unit perangkat di semua ruangan?')"
-                                class="w-full py-4 px-4 rounded-2xl bg-gradient-to-br from-rose-50 to-rose-100/80 hover:from-rose-100 hover:to-rose-200/90 text-rose-900 border-2 border-rose-300 font-black text-xs uppercase tracking-wider flex flex-col items-center justify-center gap-2.5 cursor-pointer active:scale-95 shadow-sm hover:shadow-md transition group">
-                            <div class="w-11 h-11 rounded-xl bg-rose-600 text-white flex items-center justify-center text-xl shadow-xs group-hover:scale-110 transition-transform">
-                                ⭕
-                            </div>
-                            <div class="text-center">
-                                <span class="block font-black text-xs text-rose-950">Matikan Semua Device</span>
-                                <span class="text-[10.5px] text-rose-700 font-semibold normal-case">Semua AC Langsung OFF</span>
-                            </div>
-                        </button>
-                    </form>
+                    <button type="button" 
+                            @click="if (confirm('Matikan SELURUH unit perangkat di semua ruangan?')) { executeMasterControl('OFF'); modalFabOpen = false; }"
+                            class="w-full py-4 px-4 rounded-2xl bg-gradient-to-br from-rose-50 to-rose-100/80 hover:from-rose-100 hover:to-rose-200/90 text-rose-900 border-2 border-rose-300 font-black text-xs uppercase tracking-wider flex flex-col items-center justify-center gap-2.5 cursor-pointer active:scale-95 shadow-sm hover:shadow-md transition group">
+                        <div class="w-11 h-11 rounded-xl bg-rose-600 text-white flex items-center justify-center text-xl shadow-xs group-hover:scale-110 transition-transform">
+                            ⭕
+                        </div>
+                        <div class="text-center">
+                            <span class="block font-black text-xs text-rose-950">Matikan Semua Device</span>
+                            <span class="text-[10.5px] text-rose-700 font-semibold normal-case">Semua AC Langsung OFF</span>
+                        </div>
+                    </button>
                 </div>
             </div>
         </div>
@@ -345,7 +337,32 @@
             });
         }
 
+        let isFetchingTelemetry = false;
+
+        async function executeMasterControl(command) {
+            try {
+                const res = await fetch('{{ route('devices.masterControl') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ command: command })
+                });
+                const json = await res.json();
+                if (json.success) {
+                    fetchRealTimeTelemetry();
+                }
+            } catch (e) {
+                console.error('Master control error:', e);
+            }
+        }
+
         async function fetchRealTimeTelemetry() {
+            if (isFetchingTelemetry) return;
+            isFetchingTelemetry = true;
             try {
                 const res = await fetch(`/api/logs?device_id=${currentDeviceId}`);
                 if (!res.ok) return;
@@ -414,12 +431,14 @@
                 }
             } catch (err) {
                 console.error("Telemetry fetch error:", err);
+            } finally {
+                isFetchingTelemetry = false;
             }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             initChart();
-            setInterval(fetchRealTimeTelemetry, 2500);
+            setInterval(fetchRealTimeTelemetry, 1500);
         });
     </script>
 </body>

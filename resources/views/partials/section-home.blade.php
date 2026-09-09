@@ -295,7 +295,7 @@ function homeFleetComponent() {
                     <div class="mt-5 pt-4 border-t border-slate-100 flex flex-col gap-2">
                         <!-- Primary Action: Full Width Kontrol & Jadwal -->
                         <a href="{{ route('dashboard', ['device_id' => $dev->device_id]) }}" 
-                           @click="setView('detail')"
+                           @if($selectedDeviceId === $dev->device_id) @click.prevent="setView('detail')" @else @click="setView('detail')" @endif
                            class="w-full h-11 px-4 rounded-2xl text-center font-black text-xs uppercase tracking-wider bg-[#1D1616] hover:bg-[#8E1616] text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95">
                             <span>Kontrol & Jadwal</span>
                             <span class="text-sm">➔</span>

@@ -863,6 +863,15 @@ class DashboardController extends Controller
         }
 
         $label = $isStateOn ? 'DINYALAKAN (ON)' : 'DIMATIKAN (OFF)';
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'command' => $command,
+                'message' => "Seluruh unit perangkat di semua ruangan berhasil {$label}!"
+            ]);
+        }
+
         return redirect()->back()->with('success', "Seluruh unit perangkat di semua ruangan berhasil {$label}!");
     }
 
