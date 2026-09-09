@@ -276,8 +276,10 @@ def is_schedule_active_for_ac(sch, ac_num, now_hm):
         
     return False
 
+last_schedule_state = {}
+
 def evaluate_schedules(force=False):
-    global active_schedules, is_turbo_cooling_active
+    global active_schedules, is_turbo_cooling_active, last_schedule_state
     
     if not active_schedules:
         return
@@ -309,9 +311,15 @@ def evaluate_schedules(force=False):
     for r in RELAYS:
         ac_num = r["ac_number"]
         desired = desired_states.get(ac_num, False)
-        current = relay_states.get(ac_num)
+        prev_sched = last_schedule_state.get(ac_num)
         
-        if current != desired or force:
+        # Eksekusi switch hanya saat terjadi transisi waktu jadwal (masuk shift atau keluar shift)
+        # ATAU saat inisialisasi boot pertama / pembaruan jadwal dari dashboard (force=True)
+        is_transition = (prev_sched is not None and prev_sched != desired)
+        is_initial_boot = (prev_sched is None or force)
+        
+        if is_transition or is_initial_boot:
+            last_schedule_state[ac_num] = desired
             status_str = "ON 🟢 (MENYALA)" if desired else "OFF ⚪ (PADAM)"
             lbl = active_labels.get(ac_num) or "Standby / Diluar Shift"
             print(f"⏰ [RTC ROTASI JADWAL] Pukul {now_hm} WIB ➔ AC {ac_num} ({r['name']}) diatur ke {status_str} [Jadwal: {lbl}]")
