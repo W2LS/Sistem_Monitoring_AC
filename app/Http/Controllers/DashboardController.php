@@ -1386,7 +1386,7 @@ class DashboardController extends Controller
                 ->get()
                 ->map(function($s) {
                     return [
-                        'id' => (string)$s->_id,
+                        'id' => (string)($s->_id ?? $s->id),
                         'label' => $s->label,
                         'start_time' => Carbon::parse($s->start_time)->format('H:i'),
                         'end_time' => Carbon::parse($s->end_time)->format('H:i'),
@@ -1629,7 +1629,7 @@ class DashboardController extends Controller
             ->get()
             ->map(function($s) {
                 return [
-                    'id' => (string)$s->_id,
+                    'id' => (string)($s->_id ?? $s->id),
                     'label' => $s->label,
                     'start_time' => Carbon::parse($s->start_time)->format('H:i'),
                     'end_time' => Carbon::parse($s->end_time)->format('H:i'),
