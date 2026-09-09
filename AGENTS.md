@@ -96,9 +96,9 @@ Dashboard web SIKOMAT dirancang dengan navigasi melayang (*Glassmorphic Floating
 ### 1. Pinout Sensor & Bus I2C:
 | Modul / Komponen | Pin Modul | Pin Raspberry Pi 3B+ | Fungsi / Keterangan |
 | :--- | :--- | :--- | :--- |
-| **ADS1115 (ADC 16-Bit)** | `VDD` & `GND` | `Pin 1 (3.3V)` & `Pin 6 (GND)` | Catu daya & Common Ground |
+| **ADS1115 (ADC 16-Bit)** | `VDD` & `GND` | `Pin 2 / 4 (5V)` & `Pin 6 (GND)` | Catu daya 5V (mencegah latch-up cold boot & match range ACS712 5V) |
 | **ADS1115 (I2C Bus)** | `SDA` & `SCL` | `Pin 3 (GPIO 2)` & `Pin 5 (GPIO 3)` | Alamat I2C: `0x48` • Data & Clock ADC |
-| **DS3231 (RTC Clock)** | `VCC` & `GND` | `Pin 17 (3.3V)` & `Pin 9 (GND)` | Catu daya RTC presisi baterai CR2032 |
+| **DS3231 (RTC Clock)** | `VCC` & `GND` | `Pin 1 / 17 (3.3V)` & `Pin 9 (GND)` | Catu daya RTC presisi baterai CR2032 |
 | **DS3231 (I2C Bus)** | `SDA` & `SCL` | `Pin 3 (GPIO 2)` & `Pin 5 (GPIO 3)` | Alamat I2C: `0x68` • Paralel pada Bus I2C |
 | **ACS712 (30A Hall Sensor)** | `VCC` & `GND` | `Pin 2 (5V)` & `Pin 14 (GND)` | Catu daya 5V sensor efek Hall |
 | **Modul Relai 5V** | `VCC` & `GND` | `Pin 4 (5V)` & `Pin 20 (GND)` | Catu daya koil optocoupler relai |
