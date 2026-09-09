@@ -486,6 +486,14 @@ function homeFleetComponent() {
                      ac{{ $uNum }}On: {{ $u['is_on'] ? 'true' : 'false' }},
                  @endforeach
                  loadingNum: null,
+                 updateFromTelemetry(detail) {
+                     if (!detail || !detail.units) return;
+                     Object.keys(detail.units).forEach(num => {
+                         if (this.loadingNum != num) {
+                             this['ac' + num + 'On'] = (detail.units[num].status === 'ON');
+                         }
+                     });
+                 },
                  async toggleSwitch(acNumber) {
                      let key = 'ac' + acNumber + 'On';
                      let currentState = this[key];
@@ -511,7 +519,12 @@ function homeFleetComponent() {
                              })
                          });
                          let json = await res.json();
-                         if (!json.success) {
+                         if (json.success) {
+                             this[key] = (json.state === 'ON');
+                             if (typeof fetchRealTimeTelemetry === 'function') {
+                                 fetchRealTimeTelemetry();
+                             }
+                         } else {
                              this[key] = currentState;
                          }
                      } catch (e) {
@@ -521,7 +534,8 @@ function homeFleetComponent() {
                          this.loadingNum = null;
                      }
                  }
-             }">
+             }"
+             @telemetry-updated.window="updateFromTelemetry($event.detail)">
             
             @foreach($unitData ?? [] as $acNum => $unit)
             <!-- AC UNIT {{ $acNum }} CARD -->

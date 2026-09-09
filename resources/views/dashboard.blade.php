@@ -352,6 +352,9 @@
                 const data = await res.json();
 
                 if (data.status === 'success') {
+                    // Dispatch Custom Event for Alpine.js reactive components across all active computers
+                    window.dispatchEvent(new CustomEvent('telemetry-updated', { detail: data }));
+
                     // Update Node Online Status Pill dynamically
                     const nodeStatusPill = document.getElementById('node-online-status-pill');
                     if (nodeStatusPill) {
@@ -360,7 +363,7 @@
                                 <span class="text-2xl animate-pulse">🟢</span>
                                 <div>
                                     <span class="text-sm font-black text-white block">Node Online (Live Telemetri)</span>
-                                    <span class="text-xs text-[#EEEEEE]/70 font-semibold">Sinkronisasi 5 Detik</span>
+                                    <span class="text-xs text-[#EEEEEE]/70 font-semibold">Sinkronisasi Real-Time</span>
                                 </div>
                             `;
                         } else {
@@ -416,7 +419,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             initChart();
-            setInterval(fetchRealTimeTelemetry, 5000);
+            setInterval(fetchRealTimeTelemetry, 2500);
         });
     </script>
 </body>

@@ -157,7 +157,21 @@ class DashboardController extends Controller
                           ->orWhere('ac_number', $i);
                     })->latest('recorded_at')->first();
                 
-                $isOn = ($vState === 1) || ($log && str_contains($log->active_ac, 'ON'));
+                $isOn = false;
+                if ($log) {
+                    if (!empty($log->state)) {
+                        $isOn = (strtoupper($log->state) === 'ON');
+                    } elseif (str_contains(strtoupper($log->active_ac), 'OFF')) {
+                        $isOn = false;
+                    } elseif (str_contains(strtoupper($log->active_ac), 'ON')) {
+                        $isOn = true;
+                    } else {
+                        $isOn = ($vState === 1);
+                    }
+                } else {
+                    $isOn = ($vState === 1);
+                }
+
                 $curPin = 'V' . ($numAc + $i - 1);
                 $ampere = 0.0;
                 if ($isOn) {
@@ -392,7 +406,20 @@ class DashboardController extends Controller
                 })->latest('recorded_at')->first();
 
             $vState = (int)($dev?->current_values['V' . ($i - 1)] ?? 0);
-            $uStatus = ($vState === 1) || ($uLog && str_contains($uLog->active_ac, 'ON')) ? 'ON' : 'OFF';
+            $uStatus = 'OFF';
+            if ($uLog) {
+                if (!empty($uLog->state)) {
+                    $uStatus = (strtoupper($uLog->state) === 'ON') ? 'ON' : 'OFF';
+                } elseif (str_contains(strtoupper($uLog->active_ac), 'OFF')) {
+                    $uStatus = 'OFF';
+                } elseif (str_contains(strtoupper($uLog->active_ac), 'ON')) {
+                    $uStatus = 'ON';
+                } else {
+                    $uStatus = ($vState === 1) ? 'ON' : 'OFF';
+                }
+            } else {
+                $uStatus = ($vState === 1) ? 'ON' : 'OFF';
+            }
 
             $curPin = 'V' . ($numAc + $i - 1);
             $uCurrent = 0.0;
@@ -1525,9 +1552,16 @@ class DashboardController extends Controller
         $uNum = 1;
         $uState = 'ON';
 
-        if (!empty($activeAc) && preg_match('/(?:AC|IN)[_\s]?(\d+)(?:[_\s]+([A-Za-z]+))?/i', $activeAc, $matches)) {
+        if (isset($data['state']) && in_array(strtoupper($data['state']), ['ON', 'OFF'])) {
+            $uState = strtoupper($data['state']);
+            if (isset($data['ac_number']) || isset($data['relay'])) {
+                $uNum = (int)($data['ac_number'] ?? $data['relay']);
+            } elseif (!empty($activeAc) && preg_match('/(?:AC|IN)[_\s]?(\d+)/i', $activeAc, $matches)) {
+                $uNum = (int)$matches[1];
+            }
+        } elseif (!empty($activeAc) && preg_match('/(?:AC|IN)[_\s]?(\d+)(?:[_\s]+([A-Za-z]+))?/i', $activeAc, $matches)) {
             $uNum = (int)$matches[1];
-            $uState = isset($matches[2]) ? strtoupper($matches[2]) : (str_contains(strtoupper($activeAc), 'ON') ? 'ON' : 'OFF');
+            $uState = isset($matches[2]) ? strtoupper($matches[2]) : (str_contains(strtoupper($activeAc), 'OFF') ? 'OFF' : 'ON');
         } elseif (isset($data['relay']) || isset($data['ac_number'])) {
             $uNum = (int)($data['relay'] ?? $data['ac_number']);
             $uState = strtoupper($data['command'] ?? $data['state'] ?? 'ON');
