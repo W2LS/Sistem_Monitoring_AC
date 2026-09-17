@@ -1,6 +1,6 @@
 <!-- ================= MODUL 2: DEVELOPER ZONE (PINDAD HARDWARE TEMPLATES & DATASTREAMS CONSOLE) ================= -->
 <div class="space-y-6 pb-20" x-data="{ 
-    selectedTemplateId: '{{ session('selected_template_id') }}' || localStorage.getItem('pindad_selected_template_id') || '{{ $templates->first()->id ?? '' }}',
+    selectedTemplateId: '{{ session('selected_template_id') }}' || localStorage.getItem('pindad_selected_template_id') || '{{ (string)($templates->first()?->_id ?? $templates->first()?->id ?? '') }}',
     modalNewTemplate: false,
     modalEditTemplate: false,
     modalNewDatastream: false,
@@ -201,69 +201,71 @@
                 </div>
 
                 <!-- Datastreams Table (Virtual Pins) -->
-                <div class="bg-white rounded-[32px] p-6 shadow-sm border border-[#8E1616]/20 space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <h4 class="font-black text-sm text-[#1D1616] flex items-center gap-2">
-                            <span>Daftar Virtual Pins (Datastreams)</span>
-                            <span class="text-[10px] font-bold text-[#8E1616] bg-[#8E1616]/10 px-2 py-0.5 rounded-full">{{ count($tmpl->datastreams ?? []) }} Terdaftar</span>
-                        </h4>
-                        <span class="text-xs text-slate-400 font-mono">PINDAD V-Pin Standard</span>
+                <div class="bg-white rounded-[28px] sm:rounded-[32px] p-4 sm:p-6 shadow-sm border border-[#8E1616]/20 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3.5">
+                        <div class="flex items-center gap-2.5 flex-wrap">
+                            <h4 class="font-black text-sm text-[#1D1616]">Daftar Virtual Pins (Datastreams)</h4>
+                            <span class="text-[10px] font-black text-[#8E1616] bg-[#8E1616]/10 px-2.5 py-0.5 rounded-full whitespace-nowrap">{{ count($tmpl->datastreams ?? []) }} Terdaftar</span>
+                        </div>
+                        <span class="text-[11px] sm:text-xs text-slate-400 font-mono tracking-wide">PINDAD V-Pin Standard</span>
                     </div>
 
                     <div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
                         <table class="w-full min-w-[620px] text-left border-collapse text-xs">
                             <thead>
                                 <tr class="border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                                    <th class="py-2.5 px-3">Virtual Pin</th>
-                                    <th class="py-2.5 px-3">Nama Datastream</th>
-                                    <th class="py-2.5 px-3">Tipe Data</th>
-                                    <th class="py-2.5 px-3">Rentang Nilai</th>
-                                    <th class="py-2.5 px-3">Default Value</th>
-                                    <th class="py-2.5 px-3">Satuan</th>
-                                    <th class="py-2.5 px-3 text-right">Aksi</th>
+                                    <th class="py-3 px-3 whitespace-nowrap">Virtual Pin</th>
+                                    <th class="py-3 px-3 min-w-[190px]">Nama Datastream</th>
+                                    <th class="py-3 px-3 whitespace-nowrap text-center">Tipe Data</th>
+                                    <th class="py-3 px-3 whitespace-nowrap text-center">Rentang Nilai</th>
+                                    <th class="py-3 px-3 whitespace-nowrap text-center">Default</th>
+                                    <th class="py-3 px-3 whitespace-nowrap text-center">Satuan</th>
+                                    <th class="py-3 px-3 text-right whitespace-nowrap">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
                                 @forelse($tmpl->datastreams ?? [] as $ds)
                                 <tr class="hover:bg-slate-50 transition">
-                                    <td class="py-3 px-3">
-                                        <span class="font-mono font-black text-xs px-2.5 py-1 rounded-lg bg-[#1D1616] text-white whitespace-nowrap">
+                                    <td class="py-3.5 px-3 whitespace-nowrap align-middle">
+                                        <span class="inline-flex items-center justify-center font-mono font-black text-xs px-2.5 py-1 rounded-lg bg-[#1D1616] text-white shadow-xs">
                                             {{ $ds['pin'] }}
                                         </span>
                                     </td>
-                                    <td class="py-3 px-3 font-bold text-[#1D1616] min-w-[190px]">
-                                        {{ $ds['name'] }}
+                                    <td class="py-3.5 px-3 min-w-[190px] align-middle">
+                                        <div class="font-bold text-[#1D1616] text-xs leading-snug">{{ $ds['name'] }}</div>
                                         @if(!empty($ds['desc']) && $ds['desc'] !== '-')
-                                             <div class="text-[10px] text-slate-400 font-normal">{{ $ds['desc'] }}</div>
+                                            <div class="text-[10px] text-slate-400 font-normal leading-normal mt-0.5">{{ $ds['desc'] }}</div>
                                         @endif
                                     </td>
-                                    <td class="py-3 px-3">
-                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase whitespace-nowrap {{ $ds['type'] === 'Integer' ? 'bg-blue-50 text-blue-700' : ($ds['type'] === 'Double' ? 'bg-emerald-50 text-emerald-700' : 'bg-purple-50 text-purple-700') }}">
+                                    <td class="py-3.5 px-3 whitespace-nowrap text-center align-middle">
+                                        <span class="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wide {{ $ds['type'] === 'Integer' ? 'bg-blue-50 text-blue-700 border border-blue-100' : ($ds['type'] === 'Double' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-purple-50 text-purple-700 border border-purple-100') }}">
                                             {{ $ds['type'] }}
                                         </span>
                                     </td>
-                                    <td class="py-3 px-3 font-mono font-semibold text-slate-600 whitespace-nowrap">
-                                        {{ $ds['min'] ?? 0 }} – {{ $ds['max'] ?? 1 }}
+                                    <td class="py-3.5 px-3 font-mono font-semibold text-slate-600 whitespace-nowrap text-center align-middle">
+                                        {{ $ds['min'] ?? 0 }} &ndash; {{ $ds['max'] ?? 1 }}
                                     </td>
-                                    <td class="py-3 px-3 font-mono font-bold text-slate-700 whitespace-nowrap">
-                                        <span class="bg-slate-100 px-2 py-0.5 rounded text-xs border border-slate-200">{{ $ds['default_value'] ?? ($ds['min'] ?? 0) }}</span>
+                                    <td class="py-3.5 px-3 font-mono font-bold text-slate-700 whitespace-nowrap text-center align-middle">
+                                        <span class="bg-slate-100 px-2.5 py-0.5 rounded text-xs border border-slate-200 inline-block min-w-[24px] text-center">{{ $ds['default_value'] ?? ($ds['min'] ?? 0) }}</span>
                                     </td>
-                                    <td class="py-3 px-3 font-bold text-slate-700 whitespace-nowrap">
+                                    <td class="py-3.5 px-3 font-bold text-slate-700 whitespace-nowrap text-center align-middle">
                                         {{ !empty($ds['unit']) ? $ds['unit'] : '-' }}
                                     </td>
-                                    <td class="py-3 px-3 text-right whitespace-nowrap">
+                                    <td class="py-3.5 px-3 text-right whitespace-nowrap align-middle">
                                         <form action="{{ route('templates.deleteDatastream', ['id' => $tmpl->id, 'pin' => $ds['pin']]) }}" method="POST" onsubmit="return confirm('Hapus Datastream {{ $ds['pin'] }}?')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition cursor-pointer" title="Hapus Datastream">
-                                                🗑️
+                                            <button type="submit" class="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition cursor-pointer inline-flex items-center justify-center shadow-2xs" title="Hapus Datastream">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
                                             </button>
                                         </form>
                                     </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="6" class="py-12 text-center">
+                                    <td colspan="7" class="py-12 text-center">
                                         <div class="space-y-2 max-w-sm mx-auto">
                                             <span class="text-3xl block">📋</span>
                                             <span class="font-bold text-slate-700 text-xs block">Belum ada Virtual Pin (Datastream) terdaftar</span>

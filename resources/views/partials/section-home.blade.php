@@ -1,5 +1,6 @@
 @php
-    $isAdmin = session('user_role_type') === 'admin' || session('user_role') === 'Super Administrator' || session('user_nip') === 'admin' || session('user_nip') === 'PINDAD-IOT-2026';
+    $isSuperAdmin = (session('user_role') === 'admin' || session('user_nip') === 'PINDAD-IOT-2026');
+    $isOperator = !$isSuperAdmin;
 @endphp
 <script>
 function homeFleetComponent() {
@@ -10,7 +11,7 @@ function homeFleetComponent() {
         modalSchedule: false,
         modalEditSchedule: false,
         modalRpiSetup: false,
-        modalDeviceRequest: false,
+        modalRequestDevice: false,
         rpiSetupData: { name: '', device_id: '', script_name: '', download_url: '', command: '' },
         copySuccess: false,
         editDeviceData: { id: '', name: '', template_id: '', location: '', device_id: '', ip_address: '', num_ac: 2 },
@@ -146,7 +147,7 @@ function homeFleetComponent() {
             </div>
 
             <div class="flex items-center gap-3 shrink-0">
-                @if($isAdmin)
+                @if($isSuperAdmin)
                 <button @click="modalNewDevice = true" 
                         type="button"
                         class="bg-[#D84040] hover:bg-[#8E1616] text-white rounded-[24px] text-xs font-black uppercase tracking-wider py-3.5 px-6 shadow-lg shadow-[#D84040]/30 transition flex items-center space-x-2 shrink-0 cursor-pointer active:scale-95">
@@ -154,15 +155,41 @@ function homeFleetComponent() {
                     <span>Tambah Perangkat Baru</span>
                 </button>
                 @else
-                <button @click="modalDeviceRequest = true" 
+                <button @click="modalRequestDevice = true" 
                         type="button"
-                        class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-[24px] text-xs font-black uppercase tracking-wider py-3.5 px-6 shadow-lg shadow-emerald-600/30 transition flex items-center space-x-2 shrink-0 cursor-pointer active:scale-95">
-                    <span class="text-base leading-none font-black">+</span>
+                        class="bg-gradient-to-r from-[#8E1616] to-[#1D1616] hover:opacity-95 text-white rounded-[24px] text-xs font-black uppercase tracking-wider py-3.5 px-5 shadow-lg shadow-[#8E1616]/30 transition flex items-center space-x-2 shrink-0 cursor-pointer active:scale-95">
+                    <span class="text-sm leading-none font-black">📋</span>
                     <span>Ajukan Perangkat Baru</span>
                 </button>
                 @endif
             </div>
         </div>
+
+        @if(!$isSuperAdmin && isset($myDeviceRequests) && count($myDeviceRequests) > 0)
+        <!-- STATUS TIKET PENGAJUAN OPERATOR -->
+        <div class="bg-white rounded-[28px] p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
+            <div class="flex items-center gap-2">
+                <span class="text-sm">📋</span>
+                <h4 class="text-xs font-black uppercase tracking-wider text-[#1D1616]">Riwayat Pengajuan Perangkat</h4>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                @foreach($myDeviceRequests as $myReq)
+                <div class="p-3 rounded-2xl border {{ $myReq->status === 'approved' ? 'bg-emerald-50/60 border-emerald-200' : ($myReq->status === 'rejected' ? 'bg-rose-50/60 border-rose-200' : 'bg-amber-50/60 border-amber-200') }} flex items-start justify-between gap-3">
+                    <div>
+                        <div class="font-black text-xs text-[#1D1616]">{{ $myReq->room_name }}</div>
+                        <div class="text-[10px] text-slate-500 font-medium">📍 {{ $myReq->location }} &bull; {{ $myReq->request_type === 'new_device' ? 'Pengadaan Baru' : 'Izin Akses' }}</div>
+                        @if($myReq->admin_notes)
+                            <div class="text-[10px] text-slate-600 mt-1 italic bg-white/70 px-2 py-0.5 rounded border border-black/5">Admin: {{ $myReq->admin_notes }}</div>
+                        @endif
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 {{ $myReq->status === 'approved' ? 'bg-emerald-600 text-white' : ($myReq->status === 'rejected' ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white') }}">
+                        {{ $myReq->status === 'approved' ? 'Disetujui' : ($myReq->status === 'rejected' ? 'Ditolak' : 'Menunggu Review') }}
+                    </span>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
 
         @if(!empty($activeAnomalies))
         <!-- BANNER PERINGATAN ANOMALI KEGAGALAN AC (TELEGRAM ALERT ACTIVE) -->
@@ -217,7 +244,7 @@ function homeFleetComponent() {
                 </p>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 shrink-0 relative z-10">
+            <div class="grid grid-cols-2 gap-3 shrink-0 relative z-10 w-full sm:w-auto">
                 <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3.5 border border-white/10">
                     <span class="text-[10px] font-bold text-[#EEEEEE]/60 uppercase block">Total Perangkat</span>
                     <span class="text-xl font-black text-white mt-0.5 block">{{ count($devices) }} Node</span>
@@ -288,7 +315,7 @@ function homeFleetComponent() {
 
                             <div class="bg-slate-50 rounded-2xl p-3 border border-slate-100">
                                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Alamat IP</span>
-                                <span class="text-[11px] font-bold text-slate-700 mt-0.5 block font-mono">
+                                <span class="text-[11px] font-bold text-slate-700 mt-0.5 block font-mono truncate">
                                     {{ $dev->ip_address ?? '192.168.197.64' }}
                                 </span>
                             </div>
@@ -312,8 +339,8 @@ function homeFleetComponent() {
                             <span class="text-sm">➔</span>
                         </a>
 
-                        @if($isAdmin)
-                        <!-- Secondary Utilities: Setup Node, Edit, Hapus -->
+                        @if($isSuperAdmin)
+                        <!-- Secondary Utilities: Setup Node, Edit, Hapus (Super Admin Only) -->
                         <div class="flex items-center gap-2">
                             <!-- Setup Node Button -->
                             <button @click="openRpiSetup({
@@ -362,32 +389,43 @@ function homeFleetComponent() {
                 </div>
                 @empty
                 <div class="col-span-full bg-white rounded-[36px] p-8 sm:p-12 text-center border-2 border-dashed border-slate-200 shadow-sm space-y-4">
+                    @if($isSuperAdmin)
                     <div class="w-16 h-16 rounded-3xl bg-rose-50 text-[#D84040] text-3xl flex items-center justify-center mx-auto shadow-inner">
                         ✨
                     </div>
                     <div class="max-w-md mx-auto space-y-1.5">
                         <h4 class="text-xl font-black text-[#1D1616]">Belum Ada Perangkat Terdaftar</h4>
                         <p class="text-xs font-semibold text-slate-500">
-                            Akun Anda (<code>{{ session('user_nip', 'PINDAD-IOT-2026') }}</code>) belum memiliki node perangkat IoT yang terhubung. Silakan daftarkan node pertama Anda untuk memulai monitoring.
+                            Sistem belum memiliki node perangkat IoT yang terdaftar. Silakan daftarkan node pertama Anda untuk memulai monitoring armada.
                         </p>
                     </div>
                     <div class="pt-2">
-                        @if($isAdmin)
                         <button @click="modalNewDevice = true" 
                                 type="button"
                                 class="inline-flex items-center gap-2 bg-[#D84040] hover:bg-[#8E1616] text-white rounded-2xl text-xs font-black uppercase tracking-wider py-3.5 px-6 shadow-lg shadow-[#D84040]/30 transition cursor-pointer active:scale-95">
                             <span class="text-base font-black">+</span>
                             <span>Tambah Perangkat Baru Sekarang</span>
                         </button>
-                        @else
-                        <button @click="modalDeviceRequest = true" 
-                                type="button"
-                                class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-black uppercase tracking-wider py-3.5 px-6 shadow-lg shadow-emerald-600/30 transition cursor-pointer active:scale-95">
-                            <span class="text-base font-black">+</span>
-                            <span>Ajukan Perangkat Baru</span>
-                        </button>
-                        @endif
                     </div>
+                    @else
+                    <div class="w-16 h-16 rounded-3xl bg-rose-50 text-[#8E1616] text-3xl flex items-center justify-center mx-auto shadow-inner">
+                        🔒
+                    </div>
+                    <div class="max-w-md mx-auto space-y-1.5">
+                        <h4 class="text-xl font-black text-[#1D1616]">Belum Ada Akses Perangkat Ruangan</h4>
+                        <p class="text-xs font-semibold text-slate-500">
+                            Akun Operator Anda (<code>{{ session('user_nip') }}</code>) belum memiliki izin akses ke perangkat AC manapun. Anda dapat mengajukan permohonan pengadaan atau izin akses ruangan baru ke Super Administrator.
+                        </p>
+                    </div>
+                    <div class="pt-2">
+                        <button @click="modalRequestDevice = true" 
+                                type="button"
+                                class="inline-flex items-center gap-2 bg-gradient-to-r from-[#8E1616] to-[#1D1616] hover:opacity-95 text-white rounded-2xl text-xs font-black uppercase tracking-wider py-3.5 px-6 shadow-lg shadow-[#8E1616]/30 transition cursor-pointer active:scale-95">
+                            <span class="text-sm font-black">📋</span>
+                            <span>Ajukan Permohonan Perangkat / Akses Ruangan</span>
+                        </button>
+                    </div>
+                    @endif
                 </div>
                 @endforelse
             </div>
@@ -419,13 +457,9 @@ function homeFleetComponent() {
                 <button @click="setView('fleet')" type="button" class="px-5 py-2.5 rounded-2xl bg-[#1D1616] hover:bg-[#8E1616] text-white font-bold text-xs uppercase transition cursor-pointer">
                     Kembali ke Daftar Armada
                 </button>
-                @if($isAdmin)
+                @if($isSuperAdmin)
                 <button @click="modalNewDevice = true" type="button" class="px-5 py-2.5 rounded-2xl bg-[#D84040] hover:bg-[#8E1616] text-white font-bold text-xs uppercase shadow-md transition cursor-pointer">
                     + Tambah Perangkat
-                </button>
-                @else
-                <button @click="modalDeviceRequest = true" type="button" class="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase shadow-md transition cursor-pointer">
-                    + Ajukan Perangkat
                 </button>
                 @endif
             </div>
@@ -492,17 +526,23 @@ function homeFleetComponent() {
             @php
                 $isSelectedDevOnline = $fleetStats[$selectedDeviceId]['is_online'] ?? false;
             @endphp
-            <div id="node-online-status-pill" class="bg-white/10 backdrop-blur-md rounded-[28px] px-6 py-3.5 border border-white/10 flex items-center space-x-4 shrink-0">
-                <span class="text-2xl {{ $isSelectedDevOnline ? 'animate-pulse' : '' }}">
-                    {{ $isSelectedDevOnline ? '🟢' : '⚪' }}
-                </span>
-                <div>
-                    <span class="text-sm font-black text-white block">
-                        {{ $isSelectedDevOnline ? 'Node Online (Live Telemetri)' : 'Node Standby (Menunggu Sinyal)' }}
+            <div class="flex flex-col sm:flex-row items-end gap-2.5 shrink-0">
+                <div id="ws-realtime-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-black uppercase tracking-wider transition-all duration-300 shadow-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>⚡ WebSocket Live (&lt; 5ms)</span>
+                </div>
+                <div id="node-online-status-pill" class="bg-white/10 backdrop-blur-md rounded-[28px] px-6 py-3.5 border border-white/10 flex items-center space-x-4 shrink-0">
+                    <span class="text-2xl {{ $isSelectedDevOnline ? 'animate-pulse' : '' }}">
+                        {{ $isSelectedDevOnline ? '🟢' : '⚪' }}
                     </span>
-                    <span class="text-xs text-[#EEEEEE]/70 font-semibold">
-                        {{ $isSelectedDevOnline ? 'Sinkronisasi 5 Detik' : 'Perangkat Belum Terhubung' }}
-                    </span>
+                    <div>
+                        <span class="text-sm font-black text-white block">
+                            {{ $isSelectedDevOnline ? 'Node Online (Live Telemetri)' : 'Node Standby (Menunggu Sinyal)' }}
+                        </span>
+                        <span class="text-xs text-[#EEEEEE]/70 font-semibold">
+                            {{ $isSelectedDevOnline ? 'Sinkronisasi 5 Detik' : 'Perangkat Belum Terhubung' }}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -715,8 +755,8 @@ function homeFleetComponent() {
     </div>
 
 
-    @if($isAdmin)
     <!-- ========================================================================= -->
+@if($isSuperAdmin)
     <!-- MODAL 1: TAMBAH PERANGKAT IOT BARU (PILIH TEMPLATE & DAFTARKAN) -->
     <!-- ========================================================================= -->
     <div x-show="modalNewDevice" 
@@ -854,10 +894,11 @@ function homeFleetComponent() {
             </form>
         </div>
     </div>
-    @endif
 
 
     <!-- ========================================================================= -->
+@endif
+
     <!-- MODAL 2: TAMBAH ATURAN JADWAL SHIFT -->
     <!-- ========================================================================= -->
     <div x-show="modalSchedule" 
@@ -956,7 +997,7 @@ function homeFleetComponent() {
                     <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Label / Nama Shift *</label>
                     <input type="text" 
                            name="label" 
-                           x-model="editScheduleData.label" 
+                           x-model="editScheduleData.label"
                            required 
                            placeholder="Contoh: Shift Siang (AC 1)" 
                            class="w-full px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#8E1616] outline-none">
@@ -965,7 +1006,7 @@ function homeFleetComponent() {
                 <div>
                     <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Target Unit AC *</label>
                     <select name="target_ac" 
-                            x-model="editScheduleData.target_ac" 
+                            x-model="editScheduleData.target_ac"
                             class="w-full px-3.5 py-2.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-[#8E1616] outline-none cursor-pointer">
                         @foreach($unitData ?? [] as $acNum => $unit)
                             <option value="{{ $acNum }}">{{ $unit['name'] }} (Pin GPIO {{ $unit['gpio'] }})</option>
@@ -979,7 +1020,7 @@ function homeFleetComponent() {
                         <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Jam Mulai (WIB) *</label>
                         <input type="time" 
                                name="start_time" 
-                               x-model="editScheduleData.start_time" 
+                               x-model="editScheduleData.start_time"
                                required 
                                class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
                     </div>
@@ -987,7 +1028,7 @@ function homeFleetComponent() {
                         <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Jam Berakhir (WIB) *</label>
                         <input type="time" 
                                name="end_time" 
-                               x-model="editScheduleData.end_time" 
+                               x-model="editScheduleData.end_time"
                                required 
                                class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-[#8E1616] outline-none">
                     </div>
@@ -1012,8 +1053,8 @@ function homeFleetComponent() {
         </div>
     </div>
 
-    @if($isAdmin)
     <!-- ========================================================================= -->
+@if($isSuperAdmin)
     <!-- MODAL 4: EDIT INFORMASI PERANGKAT IOT -->
     <!-- ========================================================================= -->
     <div x-show="modalEditDevice" 
@@ -1173,7 +1214,7 @@ function homeFleetComponent() {
                     </div>
                     <input type="text" 
                            x-model="rpiSetupData.server_host" 
-                           @input="updateRpiSetupUrls()" 
+                           @input="updateRpiSetupUrls()"
                            placeholder="Contoh: 192.168.196.98" 
                            class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono font-bold text-slate-800 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition">
                     <p class="text-[10.5px] text-slate-500 font-medium leading-tight mt-1.5 flex items-start gap-1">
@@ -1190,7 +1231,7 @@ function homeFleetComponent() {
                         </span>
                         <button @click="copyCommand()" 
                                 type="button" 
-                                class="px-3 py-1 rounded-xl text-[10.5px] font-bold uppercase tracking-wider transition flex items-center gap-1 cursor-pointer active:scale-95 shrink-0 shadow-xs" 
+                                class="px-3 py-1 rounded-xl text-[10.5px] font-bold uppercase tracking-wider transition flex items-center gap-1 cursor-pointer active:scale-95 shrink-0 shadow-xs"
                                 :class="copySuccess ? 'bg-emerald-500 text-white' : 'bg-amber-500 hover:bg-amber-600 text-slate-950 font-black'">
                             <span x-text="copySuccess ? '✓' : '📋'"></span>
                             <span x-text="copySuccess ? 'Tersalin!' : 'Salin Perintah'"></span>
@@ -1240,66 +1281,84 @@ function homeFleetComponent() {
             </div>
         </div>
     </div>
-    @endif
 
-    <!-- ========================================================================= -->
-    <!-- MODAL 6: AJUKAN PERANGKAT BARU (KHUSUS OPERATOR RUANGAN) -->
-    <!-- ========================================================================= -->
-    <div x-show="modalDeviceRequest" 
-         x-cloak
-         class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 pb-28 sm:pb-6 bg-black/60 backdrop-blur-xs"
+@endif
+
+    <!-- ================= MODAL PENGAJUAN PERANGKAT / AKSES (OPERATOR) ================= -->
+    <div x-show="modalRequestDevice" 
+         x-cloak 
+         class="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-6 pb-28 sm:pb-6 bg-black/60 backdrop-blur-xs"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100">
         
-        <div @click.away="modalDeviceRequest = false" 
-             class="bg-white rounded-[28px] sm:rounded-[36px] p-5 sm:p-7 max-w-lg w-full shadow-2xl border border-slate-200 space-y-3.5 sm:space-y-4 relative max-h-[82vh] sm:max-h-[88vh] overflow-y-auto">
+        <div @click.away="modalRequestDevice = false" 
+             class="bg-white rounded-[28px] sm:rounded-[36px] p-5 sm:p-7 max-w-lg w-full shadow-2xl border border-slate-200 space-y-4 relative max-h-[90vh] overflow-y-auto">
             
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3 sm:pb-3.5">
-                <div class="flex items-center gap-2.5 sm:gap-3">
-                    <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-[20px] bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-lg sm:text-xl shrink-0">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-rose-100 text-[#8E1616] flex items-center justify-center font-black text-xl shrink-0 shadow-xs">
                         📋
                     </div>
                     <div>
-                        <h4 class="text-base sm:text-lg font-black text-[#1D1616]">Ajukan Perangkat Baru</h4>
-                        <p class="text-[11px] sm:text-xs text-slate-500">Tiket permohonan penambahan node IoT ke Super Admin</p>
+                        <h4 class="text-base font-black text-[#1D1616]">Pengajuan Perangkat / Akses Ruangan</h4>
+                        <p class="text-[11px] text-slate-500">Tiket permohonan ke Super Admin (PINDAD-IOT-2026)</p>
                     </div>
                 </div>
-                <button @click="modalDeviceRequest = false" class="text-slate-400 hover:text-emerald-700 text-2xl font-bold cursor-pointer">&times;</button>
+                <button @click="modalRequestDevice = false" type="button" class="text-slate-400 hover:text-rose-700 text-2xl font-bold cursor-pointer">&times;</button>
             </div>
 
-            <form action="{{ route('device-requests.store') }}" method="POST" class="space-y-3 sm:space-y-3.5">
+            <form action="{{ route('operator.device-requests.store') }}" method="POST" class="space-y-3.5">
                 @csrf
-                
-                <div>
-                    <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Nama Perangkat / Ruangan *</label>
-                    <input type="text" name="room_name" required placeholder="Contoh: Ruang QC Lab Mutu" class="w-full px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5">
-                    <div>
-                        <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Lokasi Gedung / Lantai *</label>
-                        <input type="text" name="location" required placeholder="Contoh: Gedung Mutu Lt. 2" class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Estimasi Jumlah Unit AC *</label>
-                        <input type="number" name="num_ac" min="1" max="8" value="2" required class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-emerald-500 outline-none">
-                    </div>
-                </div>
 
                 <div>
-                    <label class="block text-[11px] sm:text-xs font-black uppercase text-slate-700 tracking-wider mb-1 sm:mb-1.5">Catatan / Keterangan Kebutuhan</label>
-                    <textarea name="description" rows="3" placeholder="Jelaskan kebutuhan operasional atau spesifikasi khusus pendingin ruangan..." class="w-full px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none resize-none"></textarea>
+                    <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Jenis Pengajuan: <span class="text-rose-600">*</span></label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-[#8E1616] cursor-pointer transition has-checked:border-[#8E1616] has-checked:bg-rose-50/50">
+                            <input type="radio" name="request_type" value="new_device" checked class="text-[#8E1616] focus:ring-[#8E1616]">
+                            <div class="text-[11px] leading-tight">
+                                <span class="font-bold text-[#1D1616] block">Pengadaan Baru</span>
+                                <span class="text-[10px] text-slate-400">Pemasangan alat IoT baru</span>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-[#8E1616] cursor-pointer transition has-checked:border-[#8E1616] has-checked:bg-rose-50/50">
+                            <input type="radio" name="request_type" value="access_existing" class="text-[#8E1616] focus:ring-[#8E1616]">
+                            <div class="text-[11px] leading-tight">
+                                <span class="font-bold text-[#1D1616] block">Izin Akses Ruangan</span>
+                                <span class="text-[10px] text-slate-400">Ruangan sudah terpasang</span>
+                            </div>
+                        </label>
+                    </div>
                 </div>
 
-                <div class="pt-2.5 sm:pt-3 flex items-center justify-end gap-2.5 sm:gap-3 border-t border-slate-100">
-                    <button @click="modalDeviceRequest = false" type="button" class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase cursor-pointer">Batal</button>
-                    <button type="submit" class="px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:opacity-95 text-white font-bold text-xs uppercase shadow-md cursor-pointer transition active:scale-95">
-                        Kirim Pengajuan
+                <div>
+                    <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Nama Ruangan / Perangkat AC: <span class="text-rose-600">*</span></label>
+                    <input type="text" name="room_name" required class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-[#8E1616] focus:ring-1 focus:ring-[#8E1616] outline-none" placeholder="Contoh: Ruang Server B / Lab Komputer">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Lokasi / Gedung: <span class="text-rose-600">*</span></label>
+                    <input type="text" name="location" required class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-[#8E1616] focus:ring-1 focus:ring-[#8E1616] outline-none" placeholder="Contoh: Gedung Koperasi Lt. 2 / Gedung Direktorat">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Alasan & Keterangan Kebutuhan:</label>
+                    <textarea name="notes" rows="2" class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:border-[#8E1616] focus:ring-1 focus:ring-[#8E1616] outline-none resize-none" placeholder="Contoh: Ruangan server baru membutuhkan pemantauan suhu otomatis dan rotasi jadwal AC 24 jam."></textarea>
+                </div>
+
+                <div class="p-3 bg-rose-50/70 rounded-xl border border-rose-100 text-[11px] text-slate-600 leading-relaxed">
+                    💡 <strong>Informasi:</strong> Pengajuan Anda akan masuk ke akun Super Administrator (PINDAD-IOT-2026) untuk ditinjau dan dicek secara langsung di lapangan sebelum disetujui.
+                </div>
+
+                <div class="pt-2 flex items-center justify-end gap-2.5 border-t border-slate-100">
+                    <button @click="modalRequestDevice = false" type="button" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer">Batal</button>
+                    <button type="submit" class="px-5 py-2.5 text-xs font-bold bg-gradient-to-r from-[#8E1616] to-[#1D1616] text-white rounded-xl shadow-md hover:opacity-95 cursor-pointer flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                        <span>Kirim Pengajuan</span>
                     </button>
                 </div>
             </form>
         </div>
     </div>
+
 </div>

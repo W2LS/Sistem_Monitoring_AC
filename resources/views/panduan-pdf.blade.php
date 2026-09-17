@@ -103,7 +103,7 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
                 <div>
                     <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block">No. Dokumen</span>
-                    <span class="font-mono font-bold text-slate-800 text-[11px] block mt-0.5">SOP/TI-PINDAD/AC/2026/V2.6</span>
+                    <span class="font-mono font-bold text-slate-800 text-[11px] block mt-0.5">SOP/TI-PINDAD/AC/2026/V2.5</span>
                 </div>
                 <div>
                     <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Klasifikasi</span>
@@ -111,7 +111,7 @@
                 </div>
                 <div>
                     <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Versi Engine</span>
-                    <span class="font-bold text-[#8E1616] text-[11px] block mt-0.5">v2.6.0 (PINDAD Industrial IoT Edition)</span>
+                    <span class="font-bold text-[#8E1616] text-[11px] block mt-0.5">v2.5.0 (PINDAD Enterprise Architecture)</span>
                 </div>
                 <div>
                     <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Penyusun / Operator</span>
@@ -231,7 +231,7 @@
                     <li><strong>Alokasi Virtual Pin:</strong>
                         <ul class="list-circle pl-5 mt-1 space-y-1 text-slate-600">
                             <li><code class="font-bold text-slate-800">V0, V1, V2, V3</code> : Saklar Relay Kontrol Unit AC 1 s/d AC 4</li>
-                            <li><code class="font-bold text-slate-800">V10</code> : Telemetri Suhu Udara Ruangan (°C)</li>
+                            <li><code class="font-bold text-slate-800">V4</code> : Total Akumulasi Beban Daya Nyata (Watt)</li>
                             <li><code class="font-bold text-slate-800">V20, V21, V22</code> : Telemetri Arus Listrik AC 1 s/d AC 4 (Ampere)</li>
                             <li><code class="font-bold text-slate-800">V30</code> : Mode Turbo Cooling Priority (Emergency Dual-Cooling)</li>
                         </ul>
@@ -271,12 +271,12 @@
                 <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">3.1 Daftar Komponen Perangkat Keras</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
                     <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                        <span class="font-bold text-slate-900 block">1. Raspberry Pi 3 Model B+ / 4B</span>
+                        <span class="font-bold text-slate-900 block">1. Raspberry Pi 3 Model B+</span>
                         <span class="text-slate-500 text-[11px]">Kontroler komputasi utama + MicroSD 16GB/32GB + PSU 5V 3A</span>
                     </div>
                     <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
                         <span class="font-bold text-slate-900 block">2. Modul ADC ADS1115 (16-Bit I2C)</span>
-                        <span class="text-slate-500 text-[11px]">Mengubah sinyal analog sensor arus ACS712 menjadi data digital (Alamat I2C: 0x48)</span>
+                        <span class="text-slate-500 text-[11px]">Mengubah sinyal analog sensor arus ACS712 menjadi data digital</span>
                     </div>
                     <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
                         <span class="font-bold text-slate-900 block">3. Sensor Arus Listrik ACS712 (30A)</span>
@@ -314,8 +314,8 @@
                             <tr class="bg-slate-50/50">
                                 <td class="p-2.5 font-bold" rowspan="5">ADS1115 (ADC 16-Bit I2C)</td>
                                 <td class="p-2.5 font-mono">VDD</td>
-                                <td class="p-2.5 font-mono font-bold text-rose-700">Pin 2 / 4 (5V DC)</td>
-                                <td class="p-2.5 text-slate-500">Catu daya 5V ADC (match input ACS712 5V & anti latch-up)</td>
+                                <td class="p-2.5 font-mono font-bold text-rose-700">Pin 2 / Pin 4 (5V DC)</td>
+                                <td class="p-2.5 text-slate-500">Daya modul ADC (Mendukung rentang input analog 0-5V ACS712)</td>
                             </tr>
                             <tr class="bg-slate-50/50">
                                 <td class="p-2.5 font-mono">GND</td>
@@ -324,23 +324,23 @@
                             </tr>
                             <tr class="bg-slate-50/50">
                                 <td class="p-2.5 font-mono">ADDR</td>
-                                <td class="p-2.5 font-mono font-bold text-emerald-700">Pin 9 / Pin 6 (GND)</td>
-                                <td class="p-2.5 text-emerald-700 font-bold">Kunci Alamat I2C ke 0x48</td>
+                                <td class="p-2.5 font-mono font-bold text-slate-800">GND (Pin 9 / Common GND)</td>
+                                <td class="p-2.5 text-slate-500"><b>Wajib ke GND:</b> Mengunci alamat I2C stabil di <code class="font-bold text-emerald-700">0x48</code> & anti-noise</td>
                             </tr>
                             <tr class="bg-slate-50/50">
                                 <td class="p-2.5 font-mono">SDA</td>
                                 <td class="p-2.5 font-mono font-bold text-amber-600">Pin 3 (GPIO 2 / SDA)</td>
-                                <td class="p-2.5 text-slate-500">Jalur data I2C Bus</td>
+                                <td class="p-2.5 text-slate-500">Jalur data I2C Bus (Paralel dengan DS3231)</td>
                             </tr>
                             <tr class="bg-slate-50/50">
                                 <td class="p-2.5 font-mono">SCL</td>
                                 <td class="p-2.5 font-mono font-bold text-amber-600">Pin 5 (GPIO 3 / SCL)</td>
-                                <td class="p-2.5 text-slate-500">Jalur clock I2C Bus</td>
+                                <td class="p-2.5 text-slate-500">Jalur clock I2C Bus (Paralel dengan DS3231)</td>
                             </tr>
                             <tr>
                                 <td class="p-2.5 font-bold" rowspan="4">DS3231 (RTC Clock I2C)</td>
                                 <td class="p-2.5 font-mono">VCC</td>
-                                <td class="p-2.5 font-mono font-bold text-rose-700">Pin 1 (3.3V DC)</td>
+                                <td class="p-2.5 font-mono font-bold text-rose-700">Pin 17 (3.3V DC)</td>
                                 <td class="p-2.5 text-slate-500">Daya modul RTC</td>
                             </tr>
                             <tr>
@@ -351,12 +351,12 @@
                             <tr>
                                 <td class="p-2.5 font-mono">SDA</td>
                                 <td class="p-2.5 font-mono font-bold text-amber-600">Pin 3 (GPIO 2 / SDA)</td>
-                                <td class="p-2.5 text-slate-500">I2C SDA Paralel dengan ADS1115 (Alamat 0x68)</td>
+                                <td class="p-2.5 text-slate-500">I2C SDA Paralel dengan ADS1115</td>
                             </tr>
                             <tr>
                                 <td class="p-2.5 font-mono">SCL</td>
                                 <td class="p-2.5 font-mono font-bold text-amber-600">Pin 5 (GPIO 3 / SCL)</td>
-                                <td class="p-2.5 text-slate-500">I2C SCL Paralel dengan ADS1115 (Alamat 0x68)</td>
+                                <td class="p-2.5 text-slate-500">I2C SCL Paralel dengan ADS1115</td>
                             </tr>
                             <tr class="bg-slate-50/50">
                                 <td class="p-2.5 font-bold" rowspan="3">Sensor ACS712 (30A)</td>
@@ -506,20 +506,18 @@
 
                 <!-- KOTAK GAMBAR PROTOTYPE -->
                 @php
-                    $adaptorImgSrc = '/images/WIRING_AC.png';
+                    $wiringImgSrc = '/images/WIRING_AC.png';
                     if (file_exists(public_path('images/WIRING_AC.png'))) {
-                        $adaptorImgSrc = 'data:image/png;base64,' . base64_encode(file_get_contents(public_path('images/WIRING_AC.png')));
-                    } elseif (file_exists(public_path('WIRING_AC.png'))) {
-                        $adaptorImgSrc = 'data:image/png;base64,' . base64_encode(file_get_contents(public_path('WIRING_AC.png')));
-                    } elseif (file_exists(base_path('Gambar Prototype/WIRING_AC.png'))) {
-                        $adaptorImgSrc = 'data:image/png;base64,' . base64_encode(file_get_contents(base_path('Gambar Prototype/WIRING_AC.png')));
+                        $wiringImgSrc = 'data:image/png;base64,' . base64_encode(file_get_contents(public_path('images/WIRING_AC.png')));
+                    } elseif (file_exists(public_path('images/ADAPTOR.png'))) {
+                        $wiringImgSrc = 'data:image/png;base64,' . base64_encode(file_get_contents(public_path('images/ADAPTOR.png')));
                     }
                 @endphp
-                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                    <div class="rounded-xl overflow-hidden bg-slate-50 border border-slate-100 p-2 flex items-center justify-center">
-                        <img src="{{ $adaptorImgSrc }}" 
-                             alt="Foto Prototype Wiring Hardware SIKOMAT - PT PINDAD" 
-                             class="max-h-[340px] w-auto max-w-full object-contain rounded-lg shadow-xs">
+                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3.5">
+                    <div class="rounded-xl overflow-hidden bg-slate-50 border border-slate-200 p-2 sm:p-4 flex items-center justify-center">
+                        <img src="{{ $wiringImgSrc }}" 
+                             alt="Foto Prototype Skema Wiring Hardware SIKOMAT AC - PT PINDAD" 
+                             class="max-h-[360px] w-auto max-w-full object-contain rounded-lg shadow-xs">
                     </div>
                     
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11px] text-slate-600">
@@ -529,11 +527,11 @@
                         </div>
                         <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
                             <span class="font-bold text-[#8E1616] block uppercase text-[10px]">2. Rangkaian Sensor ACS712 & Relai</span>
-                            <span class="text-slate-500 text-[10.5px]">Sensor arus dipasang seri pada fasa beban AC, dikendalikan kontak relay COM & NO.</span>
+                            <span class="text-slate-500 text-[10.5px]">Sensor arus dipasang seri pada kabel fasa AC 220V, dikendalikan saklar relay COM & NO.</span>
                         </div>
                         <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
-                            <span class="font-bold text-[#8E1616] block uppercase text-[10px]">3. Komunikasi I2C ADC & RTC</span>
-                            <span class="text-slate-500 text-[10.5px]">Jalur data I2C SDA (Pin 3) & SCL (Pin 5) menghubungkan ADC ADS1115 (ADDR ke GND) dan RTC DS3231.</span>
+                            <span class="font-bold text-[#8E1616] block uppercase text-[10px]">3. Komunikasi I2C Bus & Pin ADDR</span>
+                            <span class="text-slate-500 text-[10.5px]">SDA (Pin 3) & SCL (Pin 5) paralel ke ADS1115 (0x48) & DS3231 (0x68). <b>Pin ADDR dikunci ke GND</b>.</span>
                         </div>
                     </div>
                 </div>
@@ -684,7 +682,7 @@
                     <div class="bg-slate-900 rounded-xl p-2.5 text-[10.5px] font-mono text-emerald-400 space-y-0.5 border border-slate-800">
                         <p class="text-slate-400"># Contoh output log berhasil di terminal:</p>
                         <p>[2026-09-07 10:15:02] [INFO] Koneksi MQTT lokal terhubung ke 127.0.0.1:1883</p>
-                        <p>[2026-09-07 10:15:17] [TELEMETRY] AC1=5.2100A (1146W) | AC2=0.0000A (0W) | Suhu=24.2°C</p>
+                        <p>[2026-09-07 10:15:17] [TELEMETRY] AC1=5.2100A (1146W) | AC2=0.0000A (0W) | Total=1146W</p>
                         <p>[2026-09-07 10:15:17] [HTTP-REST] Telemetri berhasil tersinkronisasi ke Dashboard (200 OK)</p>
                     </div>
                 </div>

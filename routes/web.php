@@ -1,71 +1,108 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\AcControlController;
+use App\Http\Controllers\DeviceFleetController;
+use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\DeveloperZoneController;
+use App\Http\Controllers\TelemetryLogController;
+use App\Http\Controllers\ProfileSettingsController;
+use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\DeviceRequestController;
 
-// --- ROUTE AUTENTIKASI ---
+// ==========================================
+// 1. ROUTE AUTENTIKASI & 2FA OPERATOR
+// ==========================================
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::get('/login/2fa', [AuthController::class, 'show2faForm'])->name('login.2fa');
+Route::post('/login/2fa', [AuthController::class, 'verify2fa'])->name('login.2fa.verify');
+Route::get('/login/2fa-setup', [AuthController::class, 'show2faSetupForm'])->name('login.2fa.setup');
+Route::post('/login/2fa-setup', [AuthController::class, 'confirm2faSetup'])->name('login.2fa.setup.confirm');
+Route::post('/login/2fa/cancel', [AuthController::class, 'cancel2fa'])->name('login.2fa.cancel');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// --- ROUTE TERPROTEKSI OPERATOR DASHBOARD ---
+// ==========================================
+// 2. ROUTE TERPROTEKSI OPERATOR DASHBOARD
+// ==========================================
 Route::middleware('auth.session')->group(function () {
     
-    // Dashboard Halaman Utama
+    // A. Dashboard Utama & Real-Time Analytics
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Aksi kontrol relay manual lewat MQTT
-    Route::post('/ac/control', [DashboardController::class, 'toggleAc'])->name('ac.control');
-    Route::post('/devices/control-stream', [DashboardController::class, 'toggleStream'])->name('devices.controlStream');
+    // B. Kontrol Relay & Virtual Datastreams (AcControlController)
+    Route::post('/ac/control', [AcControlController::class, 'toggleAc'])->name('ac.control');
+    Route::post('/devices/control-stream', [AcControlController::class, 'toggleStream'])->name('devices.controlStream');
+    Route::post('/devices/master-control', [AcControlController::class, 'masterControl'])->name('devices.masterControl');
 
-    // CRUD Penjadwalan
-    Route::post('/schedules', [DashboardController::class, 'storeSchedule'])->name('schedules.store');
-    Route::put('/schedules/{id}', [DashboardController::class, 'updateSchedule'])->name('schedules.update');
-    Route::patch('/schedules/{id}/toggle', [DashboardController::class, 'toggleSchedule'])->name('schedules.toggle');
-    Route::delete('/schedules/{id}', [DashboardController::class, 'deleteSchedule'])->name('schedules.destroy');
+    // C. Manajemen Perangkat IoT & Fleet (DeviceFleetController)
+    Route::post('/devices', [DeviceFleetController::class, 'storeDevice'])->name('devices.store');
+    Route::put('/devices/{id}', [DeviceFleetController::class, 'updateDevice'])->name('devices.update');
+    Route::delete('/devices/{id}', [DeviceFleetController::class, 'deleteDevice'])->name('devices.destroy');
+    Route::delete('/devices/{id}/delete', [DeviceFleetController::class, 'deleteDevice'])->name('devices.delete');
 
-    // CRUD Manajemen Perangkat IoT (PINDAD Fleet Management)
-    Route::post('/devices', [DashboardController::class, 'storeDevice'])->name('devices.store');
-    Route::put('/devices/{id}', [DashboardController::class, 'updateDevice'])->name('devices.update');
-    Route::delete('/devices/{id}', [DashboardController::class, 'deleteDevice'])->name('devices.destroy');
-    Route::post('/devices/master-control', [DashboardController::class, 'masterControl'])->name('devices.masterControl');
-    Route::post('/device-requests', [DashboardController::class, 'storeDeviceRequest'])->name('device-requests.store');
+    // D. Penjadwalan Rotasi AC (ScheduleController)
+    Route::post('/schedules', [ScheduleController::class, 'storeSchedule'])->name('schedules.store');
+    Route::put('/schedules/{id}', [ScheduleController::class, 'updateSchedule'])->name('schedules.update');
+    Route::post('/schedules/{id}/toggle', [ScheduleController::class, 'toggleSchedule'])->name('schedules.toggle');
+    Route::delete('/schedules/{id}', [ScheduleController::class, 'deleteSchedule'])->name('schedules.destroy');
+    Route::delete('/schedules/{id}/delete', [ScheduleController::class, 'deleteSchedule'])->name('schedules.delete');
 
-    // CRUD Developer Zone (Templates & Datastreams Console)
-    Route::post('/templates', [DashboardController::class, 'storeTemplate'])->name('templates.store');
-    Route::put('/templates/{id}', [DashboardController::class, 'updateTemplate'])->name('templates.update');
-    Route::delete('/templates/{id}', [DashboardController::class, 'deleteTemplate'])->name('templates.destroy');
-    Route::post('/templates/{id}/datastreams', [DashboardController::class, 'addDatastream'])->name('templates.addDatastream');
-    Route::delete('/templates/{id}/datastreams/{pin}', [DashboardController::class, 'deleteDatastream'])->name('templates.deleteDatastream');
-    Route::get('/templates/{id}/export', [DashboardController::class, 'exportTemplate'])->name('templates.export');
-    Route::post('/templates/import', [DashboardController::class, 'importTemplate'])->name('templates.import');
-    Route::post('/templates/preset', [DashboardController::class, 'createPresetTemplate'])->name('templates.preset');
+    // E. Developer Zone: Dynamic Templates & Datastreams (DeveloperZoneController)
+    Route::post('/templates', [DeveloperZoneController::class, 'storeTemplate'])->name('templates.store');
+    Route::put('/templates/{id}', [DeveloperZoneController::class, 'updateTemplate'])->name('templates.update');
+    Route::delete('/templates/{id}', [DeveloperZoneController::class, 'deleteTemplate'])->name('templates.destroy');
+    Route::delete('/templates/{id}/delete', [DeveloperZoneController::class, 'deleteTemplate'])->name('templates.delete');
+    Route::post('/templates/{id}/datastreams', [DeveloperZoneController::class, 'addDatastream'])->name('templates.addDatastream');
+    Route::delete('/templates/{id}/datastreams/{pin}', [DeveloperZoneController::class, 'removeDatastream'])->name('templates.deleteDatastream');
+    Route::post('/templates/preset', [DeveloperZoneController::class, 'createPresetTemplate'])->name('templates.preset');
+    Route::get('/templates/export/{id}', [DeveloperZoneController::class, 'exportTemplate'])->name('templates.export');
+    Route::post('/templates/import', [DeveloperZoneController::class, 'importTemplate'])->name('templates.import');
 
-    // Pengelolaan Akun & Profil Operator
-    Route::post('/profile/update', [DashboardController::class, 'updateProfile'])->name('profile.update');
-    Route::post('/profile/password', [DashboardController::class, 'updatePassword'])->name('profile.password');
+    // F. Riwayat Telemetri & Export Data (TelemetryLogController)
+    Route::get('/logs/export', [TelemetryLogController::class, 'exportCsv'])->name('logs.export');
+    Route::post('/logs/clear', [TelemetryLogController::class, 'clearLogs'])->name('logs.clear');
+    Route::post('/logs/prune', [TelemetryLogController::class, 'pruneLogs'])->name('logs.prune');
+    Route::get('/logs/stats', [TelemetryLogController::class, 'getLogStats'])->name('logs.stats');
 
-    // Ekspor & Pembersihan Log Telemetri CSV (Bisa per-device)
-    Route::get('/logs/export', [DashboardController::class, 'exportCsv'])->name('logs.export');
-    Route::post('/logs/clear', [DashboardController::class, 'clearLogs'])->name('logs.clear');
+    // G. Pengaturan Profil, Telegram & Unduh Skrip (ProfileSettingsController)
+    Route::post('/profile', [ProfileSettingsController::class, 'updateProfile'])->name('profile.update');
+    Route::post('/profile/password', [ProfileSettingsController::class, 'updatePassword'])->name('profile.password');
+    Route::post('/profile/telegram', [ProfileSettingsController::class, 'saveTelegramSettings'])->name('settings.telegram');
+    Route::post('/profile/telegram/save', [ProfileSettingsController::class, 'saveTelegramSettings'])->name('profile.telegram');
+    Route::post('/profile/telegram/test', [ProfileSettingsController::class, 'testTelegramNotification'])->name('settings.telegram.test');
+    Route::get('/download-script/{type}', [ProfileSettingsController::class, 'downloadScript'])->name('scripts.download');
+    Route::get('/scripts/download/{type}', [ProfileSettingsController::class, 'downloadScript'])->name('profile.downloadScript');
+    Route::get('/panduan-pdf', [ProfileSettingsController::class, 'manualPdf'])->name('panduan.pdf');
+    Route::get('/profile/panduan-pdf', [ProfileSettingsController::class, 'manualPdf'])->name('profile.manualPdf');
 
-    // Pengaturan Notifikasi Bot Telegram Darurat
-    Route::post('/settings/telegram', [DashboardController::class, 'saveTelegramSettings'])->name('settings.telegram');
-    Route::post('/settings/telegram/test', [DashboardController::class, 'testTelegramNotification'])->name('settings.telegram.test');
+    // H. Fitur Keamanan 2FA TOTP (AuthController / Profile 2FA)
+    Route::get('/profile/2fa/setup', [AuthController::class, 'setup2fa'])->name('profile.2fa.setup');
+    Route::post('/profile/2fa/enable', [AuthController::class, 'enable2fa'])->name('profile.2fa.enable');
+    Route::post('/profile/2fa/disable', [AuthController::class, 'disable2fa'])->name('profile.2fa.disable');
 
+    // I. Manajemen User Operator & Role-Based Access Control (UserManagementController)
+    Route::post('/admin/users', [UserManagementController::class, 'storeUser'])->name('admin.users.store');
+    Route::put('/admin/users/{id}', [UserManagementController::class, 'updateUser'])->name('admin.users.update');
+    Route::post('/admin/users/{id}/password', [UserManagementController::class, 'resetPassword'])->name('admin.users.password');
+    Route::post('/admin/users/{id}/reset-2fa', [UserManagementController::class, 'reset2fa'])->name('admin.users.reset-2fa');
+    Route::delete('/admin/users/{id}', [UserManagementController::class, 'deleteUser'])->name('admin.users.delete');
+    Route::post('/admin/users/{id}/toggle-status', [UserManagementController::class, 'toggleStatus'])->name('admin.users.toggleStatus');
+
+    // J. Tiket Pengajuan Perangkat Operator (DeviceRequestController)
+    Route::post('/operator/device-requests', [DeviceRequestController::class, 'store'])->name('operator.device-requests.store');
+    Route::post('/admin/device-requests/{id}/approve', [DeviceRequestController::class, 'approve'])->name('admin.device-requests.approve');
+    Route::post('/admin/device-requests/{id}/reject', [DeviceRequestController::class, 'reject'])->name('admin.device-requests.reject');
+    Route::delete('/admin/device-requests/{id}', [DeviceRequestController::class, 'delete'])->name('admin.device-requests.delete');
 });
 
-// --- ROUTE AKSES TERBUKA UNTUK CLIENT IOT & DOKUMENTASI (NO SESSION REQUIRED) ---
-// Ingest Telemetri Sensor Real-Time dari Node Raspberry Pi (Dual-Sync HTTP REST & MQTT)
-Route::post('/api/telemetry', [DashboardController::class, 'receiveTelemetry'])->name('api.telemetry');
-
-// API logs untuk AJAX real-time chart & status dashboard
-Route::get('/api/logs', [DashboardController::class, 'apiLogs'])->name('api.logs');
-
-// Download Skrip & Konfigurasi IoT Raspberry Pi (Diakses via cURL terminal)
-Route::get('/scripts/download/{type}', [DashboardController::class, 'downloadScript'])->name('scripts.download');
-
-// Download / Cetak Buku Panduan & SOP Teknis PDF Lengkap
-Route::get('/panduan/pdf', [DashboardController::class, 'manualPdf'])->name('panduan.pdf');
-
+// ==========================================
+// 3. API TELEMETRI PUBLIK / IoT CLIENT
+// ==========================================
+Route::get('/api/logs', [TelemetryLogController::class, 'getLiveLogs'])->name('api.logs');
+Route::get('/api/live-status', [TelemetryLogController::class, 'getLiveLogs'])->name('api.liveStatus');
+Route::post('/api/telemetry', [TelemetryLogController::class, 'receiveTelemetry'])->name('api.telemetry');
+Route::get('/telemetry', [TelemetryLogController::class, 'getLiveLogs'])->name('telemetry.get');
+Route::post('/telemetry', [TelemetryLogController::class, 'receiveTelemetry'])->name('telemetry.ingest');

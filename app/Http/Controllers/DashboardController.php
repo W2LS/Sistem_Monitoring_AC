@@ -2,20 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\AcLog;
-use App\Models\Schedule;
 use App\Models\Device;
-use App\Models\Template;
-use App\Models\User;
 use App\Models\DeviceRequest;
+use App\Models\Schedule;
 use App\Models\SystemSetting;
-use App\Services\MqttService;
-use App\Services\TelegramService;
+use App\Models\Template;
+use App\Models\TwoFactorSetting;
+use App\Models\User;
 use App\Services\AnomalyDetectorService;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Hash;
+use App\Services\MqttService;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -26,74 +24,6 @@ class DashboardController extends Controller
         $this->mqttService = $mqttService;
     }
 
-    /**
-     * Check if current session belongs to Super Administrator.
-     */
-    protected function isSuperAdmin(): bool
-    {
-        $role = session('user_role', '');
-        $roleType = session('user_role_type', '');
-        $nip = session('user_nip', '');
-        return ($role === 'Super Administrator' || $roleType === 'admin' || $nip === 'admin' || $nip === 'PINDAD-IOT-2026');
-    }
-
-    /**
-     * Get active shift description for a specific AC unit based on current time.
-     */
-    private function getActiveShiftText(int $acNum, ?string $deviceId = null, ?string $userNip = null): string
-    {
-        $nowTime = Carbon::now('Asia/Jakarta')->format('H:i');
-        $userNip = $userNip ?? session('user_nip', 'PINDAD-IOT-2026');
-        
-        $query = Schedule::where('is_active', true)
-            ->where(function($q) use ($userNip) {
-                $q->where('user_nip', $userNip)->orWhereNull('user_nip');
-            })
-            ->where(function($q) use ($acNum) {
-                $q->where('target_ac', (string) $acNum)
-                  ->orWhere('target_ac', 'all')
-                  ->orWhereNull('target_ac');
-            });
-            
-        if ($deviceId) {
-            $query->where('device_id', $deviceId);
-        }
-        
-        $schedules = $query->get();
-
-        if ($schedules->isEmpty()) {
-            return "Belum Ada Jadwal";
-        }
-
-        foreach ($schedules as $s) {
-            $start = Carbon::parse($s->start_time)->format('H:i');
-            $end = Carbon::parse($s->end_time)->format('H:i');
-
-            $isInside = false;
-            if ($start <= $end) {
-                $isInside = ($nowTime >= $start && $nowTime < $end);
-            } else {
-                $isInside = ($nowTime >= $start || $nowTime < $end);
-            }
-
-            if ($isInside) {
-                return "{$s->label} ({$start} - {$end} WIB)";
-            }
-        }
-
-        $upcoming = $schedules->first();
-        if ($upcoming) {
-            $start = Carbon::parse($upcoming->start_time)->format('H:i');
-            $end = Carbon::parse($upcoming->end_time)->format('H:i');
-            return "Standby: {$upcoming->label} ({$start} - {$end} WIB)";
-        }
-
-        return "Belum Ada Jadwal";
-    }
-
-    /**
-     * Helper to calculate actual AC/Relay control channels from template datastreams or fallback to num_ac
-     */
     protected function getDeviceRelayCapacity(?Device $dev, ?Template $tmpl = null): int
     {
         $template = $tmpl ?? ($dev?->template ?? ($dev?->template_id ? Template::find($dev->template_id) : null));
@@ -116,41 +46,44 @@ class DashboardController extends Controller
     }
 
     /**
-     * Display the dashboard page with Multi-Device Fleet & Developer Zone support (Scoped per User Account).
+     * Display the dashboard page with Multi-Device Fleet & Developer Zone support (Role-Based Scoped).
      */
     public function index(Request $request)
     {
         $userNip = session('user_nip', 'PINDAD-IOT-2026');
-        $isAdmin = $this->isSuperAdmin();
+        $userRole = session('user_role', 'admin');
+        $userRoleType = session('user_role_type', '');
+        $isAdmin = ($userRole === 'admin' || $userRole === 'Super Administrator' || $userRoleType === 'admin' || $userNip === 'admin' || $userNip === 'PINDAD-IOT-2026');
+        $assignedDeviceIds = session('assigned_devices', []);
 
-        // 1. Fetch Devices & Templates strictly according to RBAC Matrix
+        // 1. Fetch Devices & Templates based on Role
         if ($isAdmin) {
+            // Super Admin: Claim legacy devices and schedules if unassigned
+            $legacyDevices = Device::whereNull('user_nip')->get();
+            foreach ($legacyDevices as $ld) {
+                $ld->user_nip = $userNip;
+                $ld->save();
+            }
+            $legacySchedules = Schedule::whereNull('user_nip')->get();
+            foreach ($legacySchedules as $ls) {
+                $ls->user_nip = $userNip;
+                $ls->save();
+            }
             $devices = Device::all();
-            if ($devices->isEmpty()) {
-                // Ensure default device exists
-                $devices = Device::where('device_id', 'RPI3B_PINDAD_ROOM_1')->get();
-            }
         } else {
-            $assigned = session('assigned_devices', []);
-            $devices = Device::where(function($q) use ($userNip, $assigned) {
-                $q->where('user_nip', $userNip);
-                if (!empty($assigned) && !in_array('*', $assigned)) {
-                    $q->orWhereIn('device_id', $assigned);
-                }
-            })->get();
-
-            if ($devices->isEmpty()) {
-                $devices = Device::where('device_id', 'RPI3B_PINDAD_ROOM_1')->get();
-                if ($devices->isEmpty()) {
-                    $devices = Device::take(1)->get();
-                }
+            // Operator: Strictly load assigned devices
+            if (empty($assignedDeviceIds)) {
+                $dbUser = User::where('username', $userNip)->orWhere('nip', $userNip)->first();
+                $assignedDeviceIds = $dbUser?->assigned_device_ids ?? [];
+                session(['assigned_devices' => $assignedDeviceIds]);
             }
+            $devices = Device::whereIn('device_id', $assignedDeviceIds)->get();
         }
 
+        $allFleetDevices = Device::all(); // Full device list for Admin Management UI
+        $allOperators = User::where('role', 'operator')->get();
+        $allUsers = User::all();
         $templates = Template::all();
-        $deviceRequests = $isAdmin 
-            ? DeviceRequest::orderBy('created_at', 'desc')->take(20)->get() 
-            : DeviceRequest::where('user_nip', $userNip)->orderBy('created_at', 'desc')->take(10)->get();
 
         // Bi-directional synchronization between device_id and filter_device so Home and Module 3 never desync
         $selectedDeviceId = $request->query('device_id') ?? $request->query('filter_device') ?? ($devices->first()?->device_id ?? null);
@@ -203,7 +136,7 @@ class DashboardController extends Controller
                     } elseif (isset($currentDevice->current_values[$curPin]) && (float)$currentDevice->current_values[$curPin] > 0.0) {
                         $ampere = (float)$currentDevice->current_values[$curPin];
                     } else {
-                        $ampere = 0.0; // 100% Real: Zero current when no physical AC load is measured
+                        $ampere = 0.0; // Zero current when no physical load is measured
                     }
                 }
                 $watt = round($ampere * 220);
@@ -223,141 +156,147 @@ class DashboardController extends Controller
                 
                 $unitName = "AC {$i}";
                 if ($selectedDeviceId === 'RPI3B_PINDAD_ROOM_1') {
-                    $unitName = ($i === 1 ? 'Panasonic 1 (Lampu Bawah)' : ($i === 2 ? 'Panasonic 2 (Lampu Atas)' : "Panasonic {$i}"));
+                    $unitName = ($i === 1 ? 'Panasonic 1' : ($i === 2 ? 'Panasonic 2' : "Panasonic {$i}"));
                 } else {
                     $streamName = collect($tmplStreams)->firstWhere('pin', $pinKey)['name'] ?? null;
-                    $unitName = $streamName ?: "AC {$i}";
+                    if ($streamName) {
+                        $unitName = $streamName;
+                    }
                 }
 
                 $unitData[$i] = [
                     'number' => $i,
                     'name' => $unitName,
                     'gpio' => $gpioPin,
+                    'gpio_pin' => $gpioPin,
                     'is_on' => $isOn,
                     'ampere' => $ampere,
                     'watt' => $watt,
                     'shift' => $shift,
-                    'log' => $log,
+                    'last_updated' => $log ? Carbon::parse($log->recorded_at)->diffForHumans() : 'Belum ada data',
                 ];
             }
         }
 
-        $latestAc1 = $unitData[1]['log'] ?? null;
-        $latestAc2 = $unitData[2]['log'] ?? null;
-        $shiftAc1 = $unitData[1]['shift'] ?? ($currentDevice ? $this->getActiveShiftText(1, $selectedDeviceId, $userNip) : 'Belum Ada Jadwal');
-        $shiftAc2 = $unitData[2]['shift'] ?? ($currentDevice ? $this->getActiveShiftText(2, $selectedDeviceId, $userNip) : 'Belum Ada Jadwal');
+        // Backward compatibility for dual AC unit views
+        $latestAc1 = $unitData[1] ?? ['is_on' => false, 'ampere' => 0.0, 'watt' => 0, 'shift' => 'Belum Ada Jadwal'];
+        $latestAc2 = $unitData[2] ?? ['is_on' => false, 'ampere' => 0.0, 'watt' => 0, 'shift' => 'Belum Ada Jadwal'];
 
-        // 3. Fetch Recent Telemetry Logs for Charts & Tables scoped to user's devices
-        $userDeviceIds = $devices->pluck('device_id')->toArray();
-        $queryLogs = !empty($userDeviceIds) ? AcLog::whereIn('device_id', $userDeviceIds) : AcLog::whereNull('_id');
-
-        if ($filterDevice && $filterDevice !== 'all') {
-            $queryLogs->where('device_id', $filterDevice);
+        // 3. Telemetry Logs Query Scoped by Selected Device
+        $logsQuery = AcLog::query();
+        if ($filterDevice) {
+            $logsQuery->where('device_id', $filterDevice);
+        } elseif ($devices->isNotEmpty()) {
+            $logsQuery->whereIn('device_id', $devices->pluck('device_id')->toArray());
         }
 
-        $recentLogsAll = !empty($userDeviceIds) ? $queryLogs->latest('recorded_at')->take(50)->get() : collect();
-
-        // Calculate dynamic AC unit capacity and unit log queries for Module 3
-        if ($filterDevice && $filterDevice !== 'all' && $currentDevice) {
-            $logDev = $devices->firstWhere('device_id', $filterDevice) ?? $currentDevice;
-            $logTmpl = $logDev?->template ?? ($logDev?->template_id ? Template::find($logDev->template_id) : null);
-            $logNumAc = $this->getDeviceRelayCapacity($logDev, $logTmpl);
-            $logStreams = $logTmpl->datastreams ?? [];
-        } else {
-            $logNumAc = $devices->isNotEmpty() ? max(1, (int)($devices->max('num_ac') ?? 2)) : 0;
-            $logStreams = [];
+        // Apply Date Range Filter if provided
+        if ($request->filled('start_date')) {
+            $startDate = Carbon::parse($request->input('start_date'))->startOfDay();
+            $logsQuery->where('recorded_at', '>=', $startDate);
+        }
+        if ($request->filled('end_date')) {
+            $endDate = Carbon::parse($request->input('end_date'))->endOfDay();
+            $logsQuery->where('recorded_at', '<=', $endDate);
         }
 
+        $recentLogsAll = (clone $logsQuery)->orderBy('recorded_at', 'desc')->orderBy('_id', 'desc')->orderBy('id', 'desc')->limit(10)->get();
+        $recentLogsAc1 = (clone $logsQuery)->where(function($q) {
+            $q->where('active_ac', 'like', 'AC_1%')->orWhere('active_ac', 'like', 'AC 1%')->orWhere('ac_number', 1);
+        })->orderBy('recorded_at', 'desc')->orderBy('_id', 'desc')->orderBy('id', 'desc')->limit(10)->get();
+        $recentLogsAc2 = (clone $logsQuery)->where(function($q) {
+            $q->where('active_ac', 'like', 'AC_2%')->orWhere('active_ac', 'like', 'AC 2%')->orWhere('ac_number', 2);
+        })->orderBy('recorded_at', 'desc')->orderBy('_id', 'desc')->orderBy('id', 'desc')->limit(10)->get();
+
+        // Multi-Unit Dynamic Logs
         $recentLogsByUnit = [];
         $unitLogNames = [];
-
+        $logNumAc = $numAc ?: 2;
         for ($u = 1; $u <= $logNumAc; $u++) {
-            $uName = "AC {$u}";
-            if ($filterDevice === 'RPI3B_PINDAD_ROOM_1') {
-                $uName = $u === 1 ? 'Panasonic 1' : ($u === 2 ? 'Panasonic 2' : "AC {$u}");
-            } else {
-                $streamName = collect($logStreams)->firstWhere('pin', 'V' . ($u - 1))['name'] ?? null;
-                if ($streamName) {
-                    $uName = $streamName;
-                }
-            }
-            $unitLogNames[$u] = $uName;
-
-            if (!empty($userDeviceIds)) {
-                $uQuery = (clone $queryLogs)->where(function($q) use ($u) {
-                    $q->where('active_ac', 'like', "AC_{$u}%")->orWhere('ac_number', $u);
-                });
-                $recentLogsByUnit[$u] = $uQuery->latest('recorded_at')->take(50)->get();
-            } else {
-                $recentLogsByUnit[$u] = collect();
-            }
+            $recentLogsByUnit[$u] = (clone $logsQuery)->where(function($q) use ($u) {
+                $q->where('active_ac', 'like', "AC_{$u}%")
+                  ->orWhere('active_ac', 'like', "AC {$u}%")
+                  ->orWhere('ac_number', $u);
+            })->orderBy('recorded_at', 'desc')->orderBy('_id', 'desc')->orderBy('id', 'desc')->limit(10)->get();
+            
+            $unitLogNames[$u] = $unitData[$u]['name'] ?? "AC {$u}";
         }
 
-        $recentLogsAc1 = $recentLogsByUnit[1] ?? collect();
-        $recentLogsAc2 = $recentLogsByUnit[2] ?? collect();
+        // 4. Schedules Scoped by selected device
+        $schedQuery = Schedule::query();
+        if ($selectedDeviceId) {
+            $schedQuery->where(function($q) use ($selectedDeviceId) {
+                $q->where('device_id', $selectedDeviceId);
+                if ($selectedDeviceId === 'RPI3B_PINDAD_ROOM_1') {
+                    $q->orWhereNull('device_id');
+                }
+            });
+        }
+        $schedules = $schedQuery->get();
 
-        // 4. Calculate Fleet Real-Time Summary Stats (100% Real Sensor Readings)
+        $shiftAc1 = $this->getActiveShiftText(1, $selectedDeviceId, $userNip);
+        $shiftAc2 = $this->getActiveShiftText(2, $selectedDeviceId, $userNip);
+
+        // 5. Multi-Device Fleet Stats
         $fleetStats = [];
         $totalFleetWatt = 0;
         $totalFleetCurrent = 0;
         $onlineCount = 0;
 
         foreach ($devices as $dev) {
-            $devLast = AcLog::where('device_id', $dev->device_id)->latest('recorded_at')->first();
+            $devTmpl = $dev->template ?? ($dev->template_id ? Template::find($dev->template_id) : null);
+            $devRelayCount = $this->getDeviceRelayCapacity($dev, $devTmpl);
 
+            $lastLog = AcLog::where('device_id', $dev->device_id)->orderBy('recorded_at', 'desc')->orderBy('_id', 'desc')->orderBy('id', 'desc')->first();
             $isDevOnline = false;
-            if ($devLast && $devLast->recorded_at) {
-                $isDevOnline = Carbon::parse($devLast->recorded_at)->diffInSeconds(now()) <= 60;
-            } elseif ($dev->type === 'smart_lighting' || $dev->status === 'online') {
+            if ($lastLog && Carbon::parse($lastLog->recorded_at)->diffInMinutes(now()) <= 3) {
+                $isDevOnline = true;
+            } elseif ($dev->status === 'online') {
                 $isDevOnline = true;
             }
 
-            if ($isDevOnline) {
-                $onlineCount++;
-            }
+            if ($isDevOnline) $onlineCount++;
 
-            $devTmpl = $dev->template ?? ($dev->template_id ? Template::find($dev->template_id) : null);
-            $devNumAc = $this->getDeviceRelayCapacity($dev, $devTmpl);
-            $devCur = 0;
-            for ($k = 1; $k <= $devNumAc; $k++) {
-                $devRelayOn = ($dev->current_values['V' . ($k - 1)] ?? 0) == 1;
-                $devCurPin = (float)($dev->current_values['V' . ($devNumAc + $k - 1)] ?? 0.0);
-                if (!$devRelayOn) {
-                    $devCurPin = 0.0;
+            $devTotalWatt = 0;
+            $devTotalCurrent = 0;
+            $devActiveRelays = 0;
+
+            for ($k = 1; $k <= $devRelayCount; $k++) {
+                $pState = (int)($dev->current_values['V' . ($k - 1)] ?? 0);
+                $pAmp = (float)($dev->current_values['V' . ($devRelayCount + $k - 1)] ?? 0);
+                if ($pState === 1) {
+                    $devActiveRelays++;
+                    $devTotalCurrent += $pAmp;
+                    $devTotalWatt += round($pAmp * 220);
                 }
-                $devCur += $devCurPin;
             }
 
-            $w = round($devCur * 220);
-            $totalFleetWatt += $w;
-            $totalFleetCurrent += $devCur;
+            $totalFleetWatt += $devTotalWatt;
+            $totalFleetCurrent += $devTotalCurrent;
 
-            $fleetStats[$dev->device_id] = [
+            $fleetStats[] = [
+                'device' => $dev,
                 'is_online' => $isDevOnline,
-                'total_watt' => $w,
-                'total_current' => round($devCur, 2),
-                'last_seen' => $devLast ? Carbon::parse($devLast->recorded_at)->diffForHumans() : ($isDevOnline ? 'Online' : 'Standby'),
+                'active_relays' => $devActiveRelays,
+                'total_relays' => $devRelayCount,
+                'total_watt' => $devTotalWatt,
+                'total_current' => round($devTotalCurrent, 2),
+                'last_seen' => $lastLog ? Carbon::parse($lastLog->recorded_at)->diffForHumans() : 'Belum ada data',
             ];
         }
 
-        // 5. Schedules for the user's account & selected device
-        $schedules = Schedule::where(function($q) use ($userNip) {
-                $q->where('user_nip', $userNip)->orWhereNull('user_nip');
-            })
-            ->where(function($q) use ($selectedDeviceId) {
-                if ($selectedDeviceId) {
-                    $q->where('device_id', $selectedDeviceId);
-                }
-            })->orderBy('created_at', 'asc')->orderBy('_id', 'asc')->get();
+        // Authenticated User Details
+        $user = auth()->user() ?? User::where('username', $userNip)->orWhere('nip', $userNip)->first() ?? (object)[
+            'name' => session('user_name', 'Dicky Akbar Syah Putra'),
+            'email' => session('user_nip', 'PINDAD-IOT-2026') . '@pindad.com',
+            'role' => $userRole,
+        ];
 
-        // 6. User Profile
-        $user = auth()->user() ?? User::first();
-
-        // 7. Telegram Alert Settings & Active Anomaly Monitor
+        // Telegram Bot Alert Settings
         $telegramSettings = [
-            'bot_token' => SystemSetting::get('telegram_bot_token', env('TELEGRAM_BOT_TOKEN', '')),
-            'chat_id' => SystemSetting::get('telegram_chat_id', env('TELEGRAM_CHAT_ID', '')),
-            'is_enabled' => (bool)SystemSetting::get('telegram_alert_enabled', true),
+            'bot_token' => SystemSetting::get('telegram_bot_token', ''),
+            'chat_id' => SystemSetting::get('telegram_chat_id', ''),
+            'alert_enabled' => (bool)SystemSetting::get('telegram_alert_enabled', true),
             'cooldown_minutes' => (int)SystemSetting::get('telegram_cooldown_minutes', 15),
         ];
         $activeAnomalies = app(AnomalyDetectorService::class)->getActiveAnomalies();
@@ -365,1225 +304,28 @@ class DashboardController extends Controller
         // Detected Server Host IP for LAN network access & IoT client setup
         $serverLanHost = $this->detectLanHost($request);
 
+        // Device Requests (Tickets) for Admin & Operator
+        if ($userRole === 'admin' || $userNip === 'PINDAD-IOT-2026') {
+            $deviceRequests = DeviceRequest::orderBy('created_at', 'desc')->get();
+            $pendingRequestCount = DeviceRequest::pending()->count();
+            $myDeviceRequests = collect();
+        } else {
+            $deviceRequests = collect();
+            $pendingRequestCount = 0;
+            $myDeviceRequests = DeviceRequest::where('operator_username', $userNip)->orderBy('created_at', 'desc')->get();
+        }
+
+        $twoFactorSetting = TwoFactorSetting::where('user_nip', $userNip)->first();
+
         return view('dashboard', compact(
+            'twoFactorSetting',
             'unitData', 'numAc',
             'latestAc1', 'latestAc2', 'recentLogsAll', 'recentLogsAc1', 'recentLogsAc2', 
             'recentLogsByUnit', 'unitLogNames', 'logNumAc',
-            'schedules', 'shiftAc1', 'shiftAc2', 'devices', 'templates', 'selectedDeviceId', 
-            'currentDevice', 'fleetStats', 'totalFleetWatt', 'totalFleetCurrent', 'onlineCount', 
-            'filterDevice', 'user', 'telegramSettings', 'activeAnomalies', 'serverLanHost',
-            'isAdmin', 'deviceRequests'
+            'schedules', 'shiftAc1', 'shiftAc2', 'devices', 'allFleetDevices', 'allOperators', 'allUsers', 
+            'templates', 'selectedDeviceId', 'currentDevice', 'fleetStats', 'totalFleetWatt', 'totalFleetCurrent', 
+            'onlineCount', 'filterDevice', 'user', 'telegramSettings', 'activeAnomalies', 'serverLanHost', 'deviceRequests', 'pendingRequestCount', 'myDeviceRequests', 'isAdmin'
         ));
-    }
-
-    /**
-     * Store new Device Request Ticket (from Operator Ruangan).
-     */
-    public function storeDeviceRequest(Request $request)
-    {
-        $request->validate([
-            'room_name' => 'required|string|max:100',
-            'location' => 'required|string|max:100',
-            'num_ac' => 'required|integer|min:1|max:8',
-            'description' => 'nullable|string',
-        ]);
-
-        DeviceRequest::create([
-            'user_nip' => session('user_nip', 'operator'),
-            'operator_name' => session('user_name', 'Operator Ruangan'),
-            'room_name' => $request->input('room_name'),
-            'location' => $request->input('location'),
-            'num_ac' => (int)$request->input('num_ac', 2),
-            'description' => $request->input('description', ''),
-            'status' => 'pending',
-        ]);
-
-        return redirect()->back()->with('success', 'Tiket pengajuan penambahan node IoT untuk ruangan "' . $request->input('room_name') . '" berhasil diajukan ke Super Administrator!');
-    }
-
-    /**
-     * Get real-time telemetry data for AJAX polling (JSON format) with Multi-Device support (100% Real Sensor Readings).
-     */
-    public function apiLogs(Request $request)
-    {
-        $deviceId = $request->query('device_id');
-        if (!$deviceId) {
-            $userNip = session('user_nip', 'PINDAD-IOT-2026');
-            $devFirst = Device::where('user_nip', $userNip)->first();
-            $deviceId = $devFirst?->device_id ?? 'RPI3B_PINDAD_ROOM_1';
-        }
-        $dev = Device::where('device_id', $deviceId)->first();
-
-        $latestAc1 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_1%')->orderBy('recorded_at', 'desc')->orderBy('_id', 'desc')->orderBy('id', 'desc')->first();
-        $latestAc2 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_2%')->orderBy('recorded_at', 'desc')->orderBy('_id', 'desc')->orderBy('id', 'desc')->first();
-        $logsAc1 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_1%')->orderBy('recorded_at', 'desc')->orderBy('_id', 'desc')->orderBy('id', 'desc')->take(10)->get()->reverse();
-        $logsAc2 = AcLog::where('device_id', $deviceId)->where('active_ac', 'like', 'AC_2%')->orderBy('recorded_at', 'desc')->orderBy('_id', 'desc')->orderBy('id', 'desc')->take(10)->get()->reverse();
-
-        $chartLabels = [];
-        $chartDataAc1 = [];
-        $chartDataAc2 = [];
-
-        foreach ($logsAc1 as $log) {
-            $chartLabels[] = Carbon::parse($log->recorded_at)->setTimezone('Asia/Jakarta')->format('H:i:s');
-            $chartDataAc1[] = (float) $log->current_ampere;
-        }
-
-        foreach ($logsAc2 as $log) {
-            $chartDataAc2[] = (float) $log->current_ampere;
-        }
-
-        $devLast = AcLog::where('device_id', $deviceId)->orderBy('recorded_at', 'desc')->orderBy('_id', 'desc')->orderBy('id', 'desc')->first();
-        $isLive = false;
-        if ($devLast && $devLast->recorded_at) {
-            $isLive = Carbon::parse($devLast->recorded_at)->diffInSeconds(now()) <= 60;
-        } elseif ($dev && $dev->status === 'online') {
-            $isLive = true;
-        }
-
-        $tmpl = $dev?->template ?? ($dev?->template_id ? Template::find($dev->template_id) : null);
-        $numAc = $this->getDeviceRelayCapacity($dev, $tmpl);
-
-        $units = [];
-        $totalCurrent = 0.0;
-
-        for ($i = 1; $i <= $numAc; $i++) {
-            $uLog = AcLog::where('device_id', $deviceId)
-                ->where(function($q) use ($i) {
-                    $q->where('active_ac', 'like', "AC_{$i}%")
-                      ->orWhere('active_ac', 'like', "AC {$i}%")
-                      ->orWhere('ac_number', $i);
-                })->orderBy('recorded_at', 'desc')->orderBy('_id', 'desc')->orderBy('id', 'desc')->first();
-
-            $vState = (int)($dev?->current_values['V' . ($i - 1)] ?? 0);
-            $uStatus = 'OFF';
-            if ($uLog) {
-                if (!empty($uLog->state)) {
-                    $uStatus = (strtoupper($uLog->state) === 'ON') ? 'ON' : 'OFF';
-                } elseif (str_contains(strtoupper($uLog->active_ac), 'OFF')) {
-                    $uStatus = 'OFF';
-                } elseif (str_contains(strtoupper($uLog->active_ac), 'ON')) {
-                    $uStatus = 'ON';
-                } else {
-                    $uStatus = ($vState === 1) ? 'ON' : 'OFF';
-                }
-            } else {
-                $uStatus = ($vState === 1) ? 'ON' : 'OFF';
-            }
-
-            $curPin = 'V' . ($numAc + $i - 1);
-            $uCurrent = 0.0;
-            if ($uStatus === 'ON') {
-                if ($uLog && (float)$uLog->current_ampere > 0.0) {
-                    $uCurrent = (float)$uLog->current_ampere;
-                } elseif (isset($dev->current_values[$curPin]) && (float)$dev->current_values[$curPin] > 0.0) {
-                    $uCurrent = (float)$dev->current_values[$curPin];
-                }
-            }
-
-            $totalCurrent += $uCurrent;
-            $units[$i] = [
-                'current' => $uCurrent,
-                'status' => $uStatus,
-                'raw_active_ac' => $uLog ? $uLog->active_ac : "AC_{$i}_{$uStatus}",
-                'watt' => round($uCurrent * 220),
-                'shift' => $this->getActiveShiftText($i, $deviceId),
-                'timestamp' => $uLog ? Carbon::parse($uLog->recorded_at)->setTimezone('Asia/Jakarta')->format('d M Y - H:i:s WIB') : '-',
-            ];
-        }
-
-        $ac1 = $units[1] ?? [
-            'current' => 0.0,
-            'status' => 'OFF',
-            'raw_active_ac' => 'AC_1_OFF',
-            'watt' => 0,
-            'shift' => $this->getActiveShiftText(1, $deviceId),
-            'timestamp' => '-',
-        ];
-
-        $ac2 = $units[2] ?? [
-            'current' => 0.0,
-            'status' => 'OFF',
-            'raw_active_ac' => 'AC_2_OFF',
-            'watt' => 0,
-            'shift' => $this->getActiveShiftText(2, $deviceId),
-            'timestamp' => '-',
-        ];
-
-        $totalWatt = round($totalCurrent * 220);
-
-        return response()->json([
-            'status' => 'success',
-            'is_live' => $isLive,
-            'device_id' => $deviceId,
-            'num_ac' => $numAc,
-            'units' => $units,
-            'ac1' => $ac1,
-            'ac2' => $ac2,
-            'summary' => [
-                'total_current' => round($totalCurrent, 4),
-                'total_watt' => $totalWatt,
-            ],
-            'charts' => [
-                'labels' => $chartLabels,
-                'ac1' => $chartDataAc1,
-                'ac2' => $chartDataAc2,
-            ]
-        ]);
-    }
-
-    /**
-     * Handle manual AC control toggle command via MQTT.
-     */
-    public function toggleAc(Request $request)
-    {
-        $request->validate([
-            'ac_number' => 'required|integer|min:1|max:8',
-            'state' => 'required|string|in:ON,OFF',
-            'device_id' => 'nullable|string',
-        ]);
-
-        $acNumber = (int)$request->input('ac_number');
-        $state = strtoupper($request->input('state'));
-        $deviceId = $request->input('device_id', 'RPI3B_PINDAD_ROOM_1');
-
-        // RBAC Check: Operator can only control ACs in assigned rooms
-        if (!$this->isSuperAdmin()) {
-            $assigned = session('assigned_devices', []);
-            $userNip = session('user_nip', 'operator');
-            $isAllowed = in_array('*', $assigned) || in_array($deviceId, $assigned) || Device::where('device_id', $deviceId)->where('user_nip', $userNip)->exists();
-            if (!$isAllowed) {
-                if ($request->ajax() || $request->wantsJson()) {
-                    return response()->json(['success' => false, 'message' => 'Akses ditolak: Anda hanya memiliki hak akses untuk mengontrol AC di ruangan Anda sendiri.'], 403);
-                }
-                return redirect()->back()->with('error', 'Akses ditolak: Anda hanya memiliki hak akses untuk mengontrol AC di ruangan Anda sendiri.');
-            }
-        }
-
-        $payload = [
-            'device_id' => $deviceId,
-            'relay' => $acNumber,
-            'command' => $state,
-            'ac_number' => $acNumber,
-            'state' => $state,
-            'source' => 'manual',
-            'timestamp' => Carbon::now('Asia/Jakarta')->toIso8601String(),
-        ];
-
-        $jsonPayload = json_encode($payload);
-
-        // Publish with strict device routing
-        if ($deviceId === 'RPI3B_PINDAD_ROOM_1') {
-            // Ruang Server 1 legacy script listens to pindad/ac/schedule
-            $this->mqttService->publish("pindad/ac/schedule", $jsonPayload);
-        }
-        
-        // Universal and multi-room fleet topics
-        $this->mqttService->publish("pindad/devices/{$deviceId}/control", $jsonPayload);
-        $this->mqttService->publish("pindad/ac/control", $jsonPayload);
-
-        // 1. Update virtual pin in Device model
-        $dev = Device::where('device_id', $deviceId)->first();
-        if ($dev) {
-            $vals = $dev->current_values ?? [];
-            $vals["V" . ($acNumber - 1)] = ($state === 'ON' ? 1 : 0);
-            
-            $numAc = max(1, (int)($dev->num_ac ?? 2));
-            $curPin = "V" . ($numAc + $acNumber - 1);
-            if ($state === 'OFF') {
-                $vals[$curPin] = 0.0;
-            }
-
-            // Recalculate combined wattage strictly from measured pin values
-            $totalCur = 0.0;
-            for ($k = 1; $k <= $numAc; $k++) {
-                $kRelayOn = ($vals["V" . ($k - 1)] ?? 0) == 1;
-                $kCur = (float)($vals["V" . ($numAc + $k - 1)] ?? 0.0);
-                if (!$kRelayOn) $kCur = 0.0;
-                $totalCur += $kCur;
-            }
-            $vals["V" . ($numAc * 2)] = round($totalCur * 220);
-
-            $dev->current_values = $vals;
-            $dev->save();
-        }
-
-        // 2. Immediately record AcLog so ON/OFF relay switch state persists 100% on page reload (F5) without injecting fake ampere
-        $devNumAc = $dev ? max(1, (int)($dev->num_ac ?? 2)) : 2;
-        $curPin = "V" . ($devNumAc + $acNumber - 1);
-        $measuredCurrent = ($state === 'OFF') ? 0.0 : (float)($vals[$curPin] ?? 0.0);
-
-        AcLog::create([
-            'device_id' => $deviceId,
-            'active_ac' => "AC_{$acNumber}_{$state}",
-            'ac_number' => $acNumber,
-            'state' => $state,
-            'current_ampere' => $measuredCurrent,
-            'recorded_at' => now(),
-        ]);
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'ac_number' => $acNumber,
-                'state' => $state,
-                'device_id' => $deviceId,
-                'message' => "Saklar AC {$acNumber} berhasil diubah ke {$state}!"
-            ]);
-        }
-
-        return redirect()->route('dashboard', ['device_id' => $deviceId])
-            ->with('success', "Perintah manual AC {$acNumber} ({$state}) berhasil dipublikasikan ke {$deviceId}!");
-    }
-
-    /**
-     * Handle generic Datastream toggle (for smart lighting, data center, etc.).
-     */
-    public function toggleStream(Request $request)
-    {
-        $request->validate([
-            'device_id' => 'required|string',
-            'pin' => 'required|string',
-            'value' => 'required',
-        ]);
-
-        $deviceId = $request->input('device_id');
-        $pin = $request->input('pin');
-        $value = (int)$request->input('value');
-
-        $dev = Device::where('device_id', $deviceId)->first();
-        if ($dev) {
-            $vals = $dev->current_values ?? [];
-            $vals[$pin] = $value;
-            $dev->current_values = $vals;
-            $dev->save();
-        }
-
-        // Publish to MQTT
-        $payload = [
-            'device_id' => $deviceId,
-            'pin' => $pin,
-            'value' => $value,
-            'timestamp' => now()->toIso8601String(),
-        ];
-        $this->mqttService->publish("pindad/devices/{$deviceId}/stream", json_encode($payload));
-
-        return redirect()->back()->with('success', "Saklar {$pin} pada perangkat {$dev->name} berhasil diperbarui!");
-    }
-
-    /**
-     * Store new Schedule (Scoped to User Account).
-     */
-    public function storeSchedule(Request $request)
-    {
-        $userNip = session('user_nip', 'PINDAD-IOT-2026');
-
-        $request->validate([
-            'label' => 'required|string|max:100',
-            'target_ac' => 'nullable|string|in:1,2,all',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i',
-            'device_id' => 'nullable|string',
-        ]);
-
-        Schedule::create([
-            'user_nip' => $userNip,
-            'label' => $request->input('label'),
-            'target_ac' => $request->input('target_ac', 'all'),
-            'start_time' => $request->input('start_time') . ':00',
-            'end_time' => $request->input('end_time') . ':00',
-            'is_active' => true,
-            'device_id' => $request->input('device_id'),
-        ]);
-
-        return redirect()->route('dashboard', ['device_id' => $request->input('device_id')])
-            ->with('success', 'Aturan jadwal rotasi berhasil ditambahkan.');
-    }
-
-    /**
-     * Update Schedule.
-     */
-    public function updateSchedule(Request $request, string $id)
-    {
-        $request->validate([
-            'label' => 'required|string|max:100',
-            'target_ac' => 'nullable|string|in:1,2,all',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i',
-        ]);
-
-        $schedule = Schedule::findOrFail($id);
-        $schedule->update([
-            'label' => $request->input('label'),
-            'target_ac' => $request->input('target_ac', 'all'),
-            'start_time' => $request->input('start_time') . ':00',
-            'end_time' => $request->input('end_time') . ':00',
-            'is_active' => $request->has('is_active') ? (bool)$request->input('is_active') : false,
-        ]);
-
-        return redirect()->back()->with('success', 'Jadwal rotasi AC berhasil diperbarui.');
-    }
-
-    /**
-     * Toggle Schedule active state.
-     */
-    public function toggleSchedule(string $id)
-    {
-        $schedule = Schedule::findOrFail($id);
-        $schedule->is_active = !$schedule->is_active;
-        $schedule->save();
-
-        return redirect()->back()->with('success', 'Status jadwal berhasil diubah.');
-    }
-
-    /**
-     * Delete Schedule.
-     */
-    public function deleteSchedule(string $id)
-    {
-        $schedule = Schedule::findOrFail($id);
-        $schedule->delete();
-
-        return redirect()->back()->with('success', 'Jadwal berhasil dihapus.');
-    }
-
-    /**
-     * Store new Device (Scoped to User Account).
-     */
-    public function storeDevice(Request $request)
-    {
-        if (!$this->isSuperAdmin()) {
-            return redirect()->back()->with('error', 'Akses ditolak: Pendaftaran node IoT hanya dapat dilakukan oleh Super Administrator. Silakan ajukan melalui tiket pengajuan perangkat.');
-        }
-
-        $userNip = session('user_nip', 'PINDAD-IOT-2026');
-
-        $request->validate([
-            'name' => 'required|string|max:100',
-            'location' => 'required|string|max:100',
-            'device_id' => 'required|string|max:50|unique:devices,device_id',
-            'template_id' => 'nullable|string',
-            'type' => 'nullable|string',
-            'ip_address' => 'nullable|string|max:50',
-            'hardware_type' => 'nullable|string|max:50',
-            'num_ac' => 'nullable|integer|min:0|max:8',
-            'description' => 'nullable|string',
-        ]);
-
-        $rawId = $request->input('device_id') ?: ('RPI3B_' . Str::slug($request->input('name'), '_'));
-        $cleanId = strtoupper(preg_replace('/[^A-Z0-9_]/', '_', $rawId));
-        $cleanId = trim(preg_replace('/_+/', '_', $cleanId), '_');
-
-        // Check if IP address is already registered to prevent network collision
-        $ip = trim($request->input('ip_address', ''));
-        if (!empty($ip) && $ip !== '192.168.196.x') {
-            $conflictDev = Device::where('ip_address', $ip)->first();
-            if ($conflictDev) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', "Gagal menambahkan node! Alamat IP {$ip} sudah digunakan oleh perangkat '{$conflictDev->name}' ({$conflictDev->device_id}). Silakan gunakan alamat IP yang berbeda!");
-            }
-        }
-
-        $template = Template::find($request->input('template_id'));
-
-        $initialValues = [];
-        if ($template && !empty($template->datastreams)) {
-            foreach ($template->datastreams as $ds) {
-                $pin = $ds['pin'];
-                $def = $ds['default_value'] ?? 0;
-                $initialValues[$pin] = is_numeric($def) ? (float)$def : $def;
-            }
-        }
-        if (empty($initialValues)) {
-            $initialValues = ['V0' => 0, 'V1' => 0, 'V2' => 0.0, 'V3' => 0.0, 'V4' => 0];
-        }
-
-        $numAc = $template ? $this->getDeviceRelayCapacity(null, $template) : max(1, (int)$request->input('num_ac', 2));
-
-        Device::create([
-            'user_nip' => $userNip,
-            'device_id' => $cleanId,
-            'template_id' => $request->input('template_id'),
-            'name' => $request->input('name'),
-            'type' => $request->input('type') ?? ($template ? ($template->name === 'Smart Industrial Lighting' ? 'smart_lighting' : 'ac_monitoring') : 'general_iot'),
-            'icon' => $template->icon ?? '⚡',
-            'location' => $request->input('location'),
-            'ip_address' => $request->input('ip_address', '192.168.196.x'),
-            'hardware_type' => $template->hardware_type ?? $request->input('hardware_type', 'Raspberry Pi 3B+'),
-            'status' => 'standby',
-            'auth_token' => Str::random(32),
-            'num_ac' => $numAc,
-            'description' => $request->input('description', ''),
-            'current_values' => $initialValues,
-        ]);
-
-        return redirect()->route('dashboard', ['device_id' => $cleanId])->with('success', "Node perangkat {$request->input('name')} ({$cleanId}) berhasil didaftarkan!");
-    }
-
-    /**
-     * Update Device.
-     */
-    public function updateDevice(Request $request, string $id)
-    {
-        if (!$this->isSuperAdmin()) {
-            return redirect()->back()->with('error', 'Akses ditolak: Modifikasi informasi perangkat hanya dapat dilakukan oleh Super Administrator.');
-        }
-
-        $request->validate([
-            'name' => 'required|string|max:100',
-            'location' => 'required|string|max:100',
-            'template_id' => 'nullable|string',
-            'ip_address' => 'nullable|string|max:50',
-            'hardware_type' => 'nullable|string|max:50',
-            'num_ac' => 'nullable|integer|min:0|max:8',
-            'description' => 'nullable|string',
-        ]);
-
-        $device = Device::findOrFail($id);
-        $template = Template::find($request->input('template_id'));
-
-        $updateData = $request->only('name', 'location', 'template_id', 'hardware_type', 'description');
-        if ($template) {
-            $updateData['icon'] = $template->icon ?? $device->icon;
-            $updateData['hardware_type'] = $template->hardware_type ?? $device->hardware_type;
-            $updateData['num_ac'] = $this->getDeviceRelayCapacity(null, $template);
-        } elseif ($request->has('num_ac')) {
-            $updateData['num_ac'] = max(1, (int)$request->input('num_ac'));
-        }
-
-        $device->update($updateData);
-
-        return redirect()->route('dashboard', ['device_id' => $device->device_id])->with('success', "Informasi node {$device->name} berhasil diperbarui!");
-    }
-
-    /**
-     * Delete Device.
-     */
-    public function deleteDevice(string $id)
-    {
-        if (!$this->isSuperAdmin()) {
-            return redirect()->back()->with('error', 'Akses ditolak: Penghapusan perangkat hanya dapat dilakukan oleh Super Administrator.');
-        }
-
-        $device = Device::findOrFail($id);
-        $name = $device->name;
-        $device->delete();
-
-        return redirect()->route('dashboard')->with('success', "Perangkat {$name} berhasil dihapus dari sistem.");
-    }
-
-    /**
-     * Master Fleet Emergency Control (Nyalakan / Matikan Semua Device Milik Akun).
-     */
-    public function masterControl(Request $request)
-    {
-        if (!$this->isSuperAdmin()) {
-            $msg = 'Akses ditolak: Fitur Master Switch hanya dapat diakses oleh Super Administrator.';
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => $msg], 403);
-            }
-            return redirect()->back()->with('error', $msg);
-        }
-
-        $command = strtoupper($request->input('command', 'OFF'));
-        $devices = Device::all();
-        $isStateOn = ($command === 'ON');
-
-        foreach ($devices as $dev) {
-            $curr = $dev->current_values ?? [];
-            $numAc = $dev->num_ac ?? 2;
-
-            // 1. Update each AC state in Device model
-            for ($i = 0; $i < $numAc; $i++) {
-                $curr["V{$i}"] = $isStateOn ? 1 : 0;
-            }
-            $dev->current_values = $curr;
-            $dev->save();
-
-            // 2. Publish individual relay commands for high compatibility
-            for ($acNum = 1; $acNum <= $numAc; $acNum++) {
-                $payloadRelay = [
-                    'device_id' => $dev->device_id,
-                    'relay'     => $acNum,
-                    'ac_number' => $acNum,
-                    'command'   => $command,
-                    'source'    => 'manual',
-                    'timestamp' => now()->toIso8601String(),
-                ];
-                $jsonRelay = json_encode($payloadRelay);
-                $this->mqttService->publish('pindad/ac/schedule', $jsonRelay);
-                $this->mqttService->publish('pindad/ac/control', $jsonRelay);
-                $this->mqttService->publish("pindad/devices/{$dev->device_id}/control", $jsonRelay);
-                $this->mqttService->publish("pindad/devices/{$dev->device_id}/schedule", $jsonRelay);
-            }
-
-            // 3. Also send Master command payload
-            $payloadMaster = [
-                'device_id' => $dev->device_id,
-                'command'   => "MASTER_{$command}",
-                'relay'     => 'all',
-                'state'     => $command,
-                'source'    => 'manual',
-                'timestamp' => now()->toIso8601String(),
-            ];
-            $jsonMaster = json_encode($payloadMaster);
-            $this->mqttService->publish('pindad/ac/schedule', $jsonMaster);
-            $this->mqttService->publish('pindad/ac/control', $jsonMaster);
-            $this->mqttService->publish("pindad/devices/{$dev->device_id}/control", $jsonMaster);
-
-            // 4. Create log record (100% Real Sensor: 0.0 A when without load)
-            AcLog::create([
-                'device_id'      => $dev->device_id,
-                'ac_number'      => 1,
-                'relay_state'    => $isStateOn ? 1 : 0,
-                'current_ampere' => 0.0,
-                'watt'           => 0.0,
-                'source'         => 'master_control',
-                'recorded_at'    => now(),
-            ]);
-        }
-
-        $label = $isStateOn ? 'DINYALAKAN (ON)' : 'DIMATIKAN (OFF)';
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'command' => $command,
-                'message' => "Seluruh unit perangkat di semua ruangan berhasil {$label}!"
-            ]);
-        }
-
-        return redirect()->back()->with('success', "Seluruh unit perangkat di semua ruangan berhasil {$label}!");
-    }
-
-    /**
-     * Developer Zone: Store Template.
-     */
-    public function storeTemplate(Request $request)
-    {
-        if (!$this->isSuperAdmin()) {
-            return redirect()->back()->with('error', 'Akses ditolak: Fitur Developer Zone hanya dapat diakses oleh Super Administrator.');
-        }
-
-        $userNip = session('user_nip', 'PINDAD-IOT-2026');
-
-        $request->validate([
-            'name' => 'required|string|max:100',
-            'hardware_type' => 'required|string|max:100',
-            'connection_type' => 'required|string|max:100',
-            'icon' => 'nullable|string|max:10',
-            'description' => 'nullable|string',
-        ]);
-
-        $tmpl = Template::create([
-            'user_nip' => $userNip,
-            'name' => $request->input('name'),
-            'hardware_type' => $request->input('hardware_type'),
-            'connection_type' => $request->input('connection_type'),
-            'icon' => $request->input('icon', '⚡'),
-            'description' => $request->input('description', ''),
-            'datastreams' => [], // Kosongan secara default agar user bebas menambahkan Datastream sendiri
-        ]);
-
-        return redirect()->back()
-            ->with('success', "Template {$request->input('name')} berhasil dibuat (kosongan)! Silakan tambahkan Datastream sesuai kebutuhan.")
-            ->with('selected_template_id', (string)$tmpl->id);
-    }
-
-    /**
-     * Developer Zone: Update Template.
-     */
-    public function updateTemplate(Request $request, string $id)
-    {
-        if (!$this->isSuperAdmin()) {
-            return redirect()->back()->with('error', 'Akses ditolak: Fitur Developer Zone hanya dapat diakses oleh Super Administrator.');
-        }
-        $request->validate([
-            'name' => 'required|string|max:100',
-            'hardware_type' => 'required|string|max:100',
-            'connection_type' => 'required|string|max:100',
-            'icon' => 'nullable|string|max:10',
-            'description' => 'nullable|string',
-        ]);
-
-        $template = Template::findOrFail($id);
-        $template->update($request->only('name', 'hardware_type', 'connection_type', 'icon', 'description'));
-
-        return redirect()->back()
-            ->with('success', "Template {$template->name} berhasil diperbarui!")
-            ->with('selected_template_id', (string)$template->id);
-    }
-
-    /**
-     * Developer Zone: Delete Template.
-     */
-    public function deleteTemplate(string $id)
-    {
-        if (!$this->isSuperAdmin()) {
-            return redirect()->back()->with('error', 'Akses ditolak: Fitur Developer Zone hanya dapat diakses oleh Super Administrator.');
-        }
-        $template = Template::findOrFail($id);
-        $name = $template->name;
-        $template->delete();
-
-        return redirect()->back()->with('success', "Template {$name} berhasil dihapus.");
-    }
-
-    /**
-     * Developer Zone: Add Datastream to Template.
-     */
-    public function addDatastream(Request $request, string $id)
-    {
-        if (!$this->isSuperAdmin()) {
-            return redirect()->back()->with('error', 'Akses ditolak: Fitur Developer Zone hanya dapat diakses oleh Super Administrator.');
-        }
-        $request->validate([
-            'pin' => 'required|string|max:10',
-            'name' => 'required|string|max:100',
-            'type' => 'required|string|in:Integer,Double,String,Enum',
-            'min' => 'nullable|numeric',
-            'max' => 'nullable|numeric',
-            'default_value' => 'nullable|string|max:50',
-            'unit' => 'nullable|string|max:20',
-            'desc' => 'nullable|string|max:200',
-        ]);
-
-        $template = Template::findOrFail($id);
-        $streams = $template->datastreams ?? [];
-
-        // Check if pin exists
-        foreach ($streams as $s) {
-            if ($s['pin'] === strtoupper($request->input('pin'))) {
-                return redirect()->back()
-                    ->with('error', "Pin {$request->input('pin')} sudah terdaftar pada template ini!")
-                    ->with('selected_template_id', (string)$template->id);
-            }
-        }
-
-        $streams[] = [
-            'pin'           => strtoupper($request->input('pin')),
-            'name'          => $request->input('name'),
-            'type'          => $request->input('type'),
-            'min'           => $request->input('min', 0),
-            'max'           => $request->input('max', 100),
-            'default_value' => $request->input('default_value', '0'),
-            'unit'          => $request->input('unit', ''),
-            'desc'          => $request->input('desc', ''),
-        ];
-
-        $template->datastreams = $streams;
-        $template->save();
-
-        return redirect()->back()
-            ->with('success', "Datastream {$request->input('pin')} ({$request->input('name')}) berhasil ditambahkan ke template {$template->name}!")
-            ->with('selected_template_id', (string)$template->id);
-    }
-
-    /**
-     * Developer Zone: Delete Datastream from Template.
-     */
-    public function deleteDatastream(string $id, string $pin)
-    {
-        if (!$this->isSuperAdmin()) {
-            return redirect()->back()->with('error', 'Akses ditolak: Fitur Developer Zone hanya dapat diakses oleh Super Administrator.');
-        }
-        $template = Template::findOrFail($id);
-        $streams = collect($template->datastreams ?? [])->reject(function ($s) use ($pin) {
-            return $s['pin'] === $pin;
-        })->values()->all();
-
-        $template->datastreams = $streams;
-        $template->save();
-
-        return redirect()->back()
-            ->with('success', "Datastream {$pin} berhasil dihapus dari template {$template->name}.")
-            ->with('selected_template_id', (string)$template->id);
-    }
-
-    /**
-     * Developer Zone: Export Template as JSON file.
-     */
-    public function exportTemplate(string $id)
-    {
-        $template = Template::findOrFail($id);
-
-        $exportData = [
-            'pindad_iot_version' => '1.0',
-            'exported_at'        => now('Asia/Jakarta')->toDateTimeString(),
-            'name'               => $template->name,
-            'hardware_type'      => $template->hardware_type,
-            'connection_type'    => $template->connection_type,
-            'icon'               => $template->icon ?? '⚡',
-            'description'        => $template->description ?? '',
-            'datastreams'        => $template->datastreams ?? [],
-        ];
-
-        $json = json_encode($exportData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $fileName = 'pindad_template_' . Str::slug($template->name, '_') . '.json';
-
-        return response($json, 200, [
-            'Content-Type'        => 'application/json',
-            'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
-        ]);
-    }
-
-    /**
-     * Developer Zone: Import Template from JSON file or JSON string.
-     */
-    public function importTemplate(Request $request)
-    {
-        if (!$this->isSuperAdmin()) {
-            return redirect()->back()->with('error', 'Akses ditolak: Fitur Developer Zone hanya dapat diakses oleh Super Administrator.');
-        }
-        $jsonContent = null;
-
-        if ($request->hasFile('template_file')) {
-            $file = $request->file('template_file');
-            $jsonContent = file_get_contents($file->getRealPath());
-        } elseif ($request->filled('template_json')) {
-            $jsonContent = $request->input('template_json');
-        }
-
-        if (!$jsonContent) {
-            return redirect()->back()->with('error', 'Silakan unggah file JSON atau tempel teks JSON template.');
-        }
-
-        try {
-            $data = json_decode($jsonContent, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Format file JSON tidak valid: ' . $e->getMessage());
-        }
-
-        if (empty($data['name'])) {
-            return redirect()->back()->with('error', 'File JSON tidak memiliki nama template yang valid.');
-        }
-
-        // Clean & validate datastreams
-        $datastreams = [];
-        if (!empty($data['datastreams']) && is_array($data['datastreams'])) {
-            foreach ($data['datastreams'] as $ds) {
-                if (!empty($ds['pin']) && !empty($ds['name'])) {
-                    $datastreams[] = [
-                        'pin'           => strtoupper(trim($ds['pin'])),
-                        'name'          => trim($ds['name']),
-                        'type'          => $ds['type'] ?? 'Integer',
-                        'min'           => $ds['min'] ?? 0,
-                        'max'           => $ds['max'] ?? 100,
-                        'default_value' => (string)($ds['default_value'] ?? '0'),
-                        'unit'          => $ds['unit'] ?? '',
-                        'desc'          => $ds['desc'] ?? '',
-                    ];
-                }
-            }
-        }
-
-        // Create new imported template
-        $template = Template::create([
-            'name'            => $data['name'],
-            'hardware_type'   => $data['hardware_type'] ?? 'Raspberry Pi 3B+',
-            'connection_type' => $data['connection_type'] ?? 'WiFi / Ethernet (MQTT)',
-            'icon'            => $data['icon'] ?? '⚡',
-            'description'     => $data['description'] ?? 'Blueprint diimpor dari file JSON',
-            'datastreams'     => $datastreams,
-        ]);
-
-        return redirect()->back()
-            ->with('success', "Template {$template->name} berhasil diimpor dengan " . count($datastreams) . " Datastream!")
-            ->with('selected_template_id', (string)$template->id);
-    }
-
-    /**
-     * Developer Zone: Create Standard Preset Template (1, 2, 4, 8 Channel Relay).
-     */
-    public function createPresetTemplate(Request $request)
-    {
-        if (!$this->isSuperAdmin()) {
-            return redirect()->back()->with('error', 'Akses ditolak: Fitur Developer Zone hanya dapat diakses oleh Super Administrator.');
-        }
-        $preset = $request->input('preset_type', 'relay_2ch');
-
-        $presetsConfig = [
-            'relay_1ch' => [
-                'name'            => 'Module Relay 1 Channel',
-                'hardware_type'   => 'Raspberry Pi 3B+',
-                'connection_type' => 'WiFi / Ethernet (MQTT)',
-                'icon'            => '⚡',
-                'description'     => 'Blueprint kontrol 1 unit AC / Beban Tunggal dengan pembacaan sensor arus ACS712.',
-                'datastreams'     => [
-                    ['pin' => 'V0', 'name' => 'AC 1', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                    ['pin' => 'V1', 'name' => 'Arus AC1', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0', 'unit' => 'A', 'desc' => ''],
-                    ['pin' => 'V2', 'name' => 'Total Arus', 'type' => 'Double', 'min' => 0, 'max' => 5000, 'default_value' => '0', 'unit' => 'W', 'desc' => ''],
-                    ['pin' => 'V3', 'name' => 'Turbo Cooling Priority', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                ],
-            ],
-            'relay_2ch' => [
-                'name'            => 'Module Relay 2 Channel',
-                'hardware_type'   => 'Raspberry Pi 3B+',
-                'connection_type' => 'WiFi / Ethernet (MQTT)',
-                'icon'            => '⚡',
-                'description'     => 'Blueprint standar dual AC Ruang Server dengan rotasi shift 12 jam DS3231 dan fail-safe recovery.',
-                'datastreams'     => [
-                    ['pin' => 'V0', 'name' => 'AC 1', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                    ['pin' => 'V1', 'name' => 'AC 2', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                    ['pin' => 'V2', 'name' => 'Arus AC1', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0', 'unit' => 'A', 'desc' => ''],
-                    ['pin' => 'V3', 'name' => 'Arus AC2', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0', 'unit' => 'A', 'desc' => ''],
-                    ['pin' => 'V4', 'name' => 'Total Arus', 'type' => 'Double', 'min' => 0, 'max' => 10000, 'default_value' => '0', 'unit' => 'W', 'desc' => ''],
-                    ['pin' => 'V5', 'name' => 'Turbo Cooling Priority', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                ],
-            ],
-            'relay_4ch' => [
-                'name'            => 'Module Relay 4 Channel',
-                'hardware_type'   => 'Raspberry Pi 3B+',
-                'connection_type' => 'WiFi / Ethernet (MQTT)',
-                'icon'            => '⚡',
-                'description'     => 'Blueprint industri 4 unit AC / Ruang Data Center dengan monitoring beban 4 kanal.',
-                'datastreams'     => [
-                    ['pin' => 'V0', 'name' => 'AC 1', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                    ['pin' => 'V1', 'name' => 'AC 2', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                    ['pin' => 'V2', 'name' => 'AC 3', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                    ['pin' => 'V3', 'name' => 'AC 4', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                    ['pin' => 'V4', 'name' => 'Arus AC1', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0', 'unit' => 'A', 'desc' => ''],
-                    ['pin' => 'V5', 'name' => 'Arus AC2', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0', 'unit' => 'A', 'desc' => ''],
-                    ['pin' => 'V6', 'name' => 'Arus AC3', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0', 'unit' => 'A', 'desc' => ''],
-                    ['pin' => 'V7', 'name' => 'Arus AC4', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0', 'unit' => 'A', 'desc' => ''],
-                    ['pin' => 'V8', 'name' => 'Total Arus', 'type' => 'Double', 'min' => 0, 'max' => 20000, 'default_value' => '0', 'unit' => 'W', 'desc' => ''],
-                    ['pin' => 'V9', 'name' => 'Turbo Cooling Priority', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                ],
-            ],
-            'relay_8ch' => [
-                'name'            => 'Module Relay 8 Channel',
-                'hardware_type'   => 'Raspberry Pi 3B+',
-                'connection_type' => 'WiFi / Ethernet (MQTT)',
-                'icon'            => '⚡',
-                'description'     => 'Blueprint kapasitas penuh 8 unit pendingin pabrik / chiller dengan telemetri multi-ADC.',
-                'datastreams'     => [
-                    ['pin' => 'V0', 'name' => 'AC 1', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                    ['pin' => 'V1', 'name' => 'AC 2', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                    ['pin' => 'V2', 'name' => 'AC 3', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                    ['pin' => 'V3', 'name' => 'AC 4', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                    ['pin' => 'V4', 'name' => 'AC 5', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                    ['pin' => 'V5', 'name' => 'AC 6', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                    ['pin' => 'V6', 'name' => 'AC 7', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                    ['pin' => 'V7', 'name' => 'AC 8', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                    ['pin' => 'V8', 'name' => 'Arus AC1', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0', 'unit' => 'A', 'desc' => ''],
-                    ['pin' => 'V9', 'name' => 'Arus AC2', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0', 'unit' => 'A', 'desc' => ''],
-                    ['pin' => 'V10', 'name' => 'Arus AC3', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0', 'unit' => 'A', 'desc' => ''],
-                    ['pin' => 'V11', 'name' => 'Arus AC4', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0', 'unit' => 'A', 'desc' => ''],
-                    ['pin' => 'V12', 'name' => 'Arus AC5', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0', 'unit' => 'A', 'desc' => ''],
-                    ['pin' => 'V13', 'name' => 'Arus AC6', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0', 'unit' => 'A', 'desc' => ''],
-                    ['pin' => 'V14', 'name' => 'Arus AC7', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0', 'unit' => 'A', 'desc' => ''],
-                    ['pin' => 'V15', 'name' => 'Arus AC8', 'type' => 'Double', 'min' => 0, 'max' => 30, 'default_value' => '0', 'unit' => 'A', 'desc' => ''],
-                    ['pin' => 'V16', 'name' => 'Total Arus', 'type' => 'Double', 'min' => 0, 'max' => 50000, 'default_value' => '0', 'unit' => 'W', 'desc' => ''],
-                    ['pin' => 'V17', 'name' => 'Turbo Cooling Priority', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                ],
-            ],
-            'corridor_lighting' => [
-                'name'            => 'Smart Corridor Lighting (ESP32 / RPi)',
-                'hardware_type'   => 'Raspberry Pi 3B+ / ESP32',
-                'connection_type' => 'WiFi (MQTT)',
-                'icon'            => '💡',
-                'description'     => 'Blueprint otomasi 4 zona pencahayaan lorong & gedung PT PINDAD.',
-                'datastreams'     => [
-                    ['pin' => 'V0', 'name' => 'Lampu Zona A (Utara)', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                    ['pin' => 'V1', 'name' => 'Lampu Zona B (Selatan)', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                    ['pin' => 'V2', 'name' => 'Lampu Zona C (Timur)', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                    ['pin' => 'V3', 'name' => 'Lampu Zona D (Barat)', 'type' => 'Integer', 'min' => 0, 'max' => 1, 'default_value' => '0', 'unit' => '', 'desc' => ''],
-                ],
-            ],
-        ];
-
-        $cfg = $presetsConfig[$preset] ?? $presetsConfig['relay_2ch'];
-
-        $template = Template::create([
-            'name'            => $cfg['name'],
-            'hardware_type'   => $cfg['hardware_type'],
-            'connection_type' => $cfg['connection_type'],
-            'icon'            => $cfg['icon'],
-            'description'     => $cfg['description'],
-            'datastreams'     => $cfg['datastreams'],
-        ]);
-
-        return redirect()->back()
-            ->with('success', "Preset {$template->name} berhasil dibuat dengan " . count($cfg['datastreams']) . " Datastreams!")
-            ->with('selected_template_id', (string)$template->id);
-    }
-
-    /**
-     * Update Profile Operator.
-     */
-    public function updateProfile(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:100',
-            'email' => 'required|email|max:100',
-        ]);
-
-        $user = auth()->user() ?? User::first();
-        if ($user) {
-            $user->name = $request->input('name');
-            $user->email = $request->input('email');
-            $user->save();
-        }
-
-        return redirect()->back()->with('success', 'Profil operator PT PINDAD berhasil diperbarui.');
-    }
-
-    /**
-     * Update Password Operator.
-     */
-    public function updatePassword(Request $request)
-    {
-        $request->validate([
-            'current_password' => 'required',
-            'new_password' => 'required|min:6|confirmed',
-        ]);
-
-        $user = auth()->user() ?? User::first();
-        if ($user && Hash::check($request->input('current_password'), $user->password)) {
-            $user->password = Hash::make($request->input('new_password'));
-            $user->save();
-            return redirect()->back()->with('success', 'Kata sandi akun berhasil diubah.');
-        }
-
-        return redirect()->back()->with('error', 'Kata sandi saat ini tidak cocok!');
-    }
-
-    /**
-     * Export telemetry logs to CSV with device filter (Scoped per User Account).
-     */
-    public function exportCsv(Request $request)
-    {
-        $userNip = session('user_nip', 'PINDAD-IOT-2026');
-        $userDeviceIds = Device::where('user_nip', $userNip)->pluck('device_id')->toArray();
-        $deviceId = $request->query('device_id', 'all');
-        $query = AcLog::query();
-        
-        if ($deviceId && $deviceId !== 'all') {
-            if (in_array($deviceId, $userDeviceIds) || empty($userDeviceIds)) {
-                $query->where('device_id', $deviceId);
-            } else {
-                $query->whereNull('_id');
-            }
-            $fileName = "telemetri_pindad_{$deviceId}_" . date('Ymd_His') . ".csv";
-        } else {
-            $query->whereIn('device_id', $userDeviceIds);
-            $fileName = "telemetri_pindad_fleet_" . date('Ymd_His') . ".csv";
-        }
-
-        $logs = !empty($userDeviceIds) || $deviceId !== 'all' ? $query->latest('recorded_at')->take(500)->get() : collect();
-
-        $headers = [
-            "Content-type" => "text/csv; charset=UTF-8",
-            "Content-Disposition" => "attachment; filename={$fileName}",
-            "Pragma" => "no-cache",
-            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
-            "Expires" => "0"
-        ];
-
-        $columns = ['ID', 'Device ID', 'Target AC', 'Arus (Ampere)', 'Estimasi Daya (Watt)', 'Waktu Pencatatan (WIB)'];
-
-        $callback = function () use ($logs, $columns) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, $columns);
-
-            foreach ($logs as $log) {
-                $amp = (float) $log->current_ampere;
-                $watt = round($amp * 220, 2);
-                $time = Carbon::parse($log->recorded_at)->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-
-                fputcsv($file, [
-                    $log->_id ?? $log->id,
-                    $log->device_id ?? '-',
-                    $log->active_ac,
-                    $amp,
-                    $watt,
-                    $time,
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
-    }
-
-    /**
-     * Clear / Delete telemetry logs (scoped per device or user's fleet).
-     */
-    public function clearLogs(Request $request)
-    {
-        if (!$this->isSuperAdmin()) {
-            $msg = 'Akses ditolak: Pembersihan log telemetri database hanya dapat dilakukan oleh Super Administrator.';
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => $msg], 403);
-            }
-            return redirect()->back()->with('error', $msg);
-        }
-
-        $userNip = session('user_nip', 'PINDAD-IOT-2026');
-        $userDeviceIds = Device::where('user_nip', $userNip)->pluck('device_id')->toArray();
-        $deviceId = $request->input('device_id', 'all');
-
-        if ($deviceId === 'all' || empty($deviceId)) {
-            if (!empty($userDeviceIds)) {
-                AcLog::whereIn('device_id', $userDeviceIds)->delete();
-            }
-            $msg = "Seluruh log telemetri armada akun Anda berhasil dibersihkan!";
-        } else {
-            AcLog::where('device_id', $deviceId)->delete();
-            $msg = "Seluruh log telemetri untuk perangkat {$deviceId} berhasil dibersihkan!";
-        }
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => $msg,
-            ]);
-        }
-
-        return redirect()->back()->with('success', $msg);
-    }
-
-    /**
-     * Download IoT Scripts and Configs for Raspberry Pi Nodes (With Auto LAN Broker IP Binding).
-     */
-    public function downloadScript(Request $request, string $type)
-    {
-        // Auto-detect Server LAN IP for Raspberry Pi connection
-        $detectedHost = $this->detectLanHost($request);
-        $brokerHost = $request->query('broker_host') ?: $detectedHost;
-        $brokerPort = (int)$request->query('broker_port', 1883);
-
-        // 1. Download tailored standalone Python script for a specific device (No JSON required!)
-        if ($type === 'device' || $request->has('device_id')) {
-            $deviceId = $request->query('device_id', $type);
-            $dev = Device::where('device_id', $deviceId)->first();
-            $roomName = $dev->name ?? $deviceId;
-            $location = $dev->location ?? 'PT PINDAD (PERSERO)';
-            $numAc = $dev->num_ac ?? 2;
-
-            $baseCode = file_get_contents(base_path('scripts/pindad_universal_node.py'));
-            
-            // Standard Industrial Raspberry Pi pinout & ADS1115 ADC mapping for 1 to 8 AC units
-            $tmpl = $dev?->template ?? ($dev?->template_id ? Template::find($dev->template_id) : null);
-            $tmplStreams = $tmpl->datastreams ?? [];
-
-            $standardPins = [
-                1 => ['gpio' => 17, 'adc' => 0],
-                2 => ['gpio' => 27, 'adc' => 1],
-                3 => ['gpio' => 22, 'adc' => 2],
-                4 => ['gpio' => 23, 'adc' => 3],
-                5 => ['gpio' => 24, 'adc' => 0],
-                6 => ['gpio' => 25, 'adc' => 1],
-                7 => ['gpio' => 5,  'adc' => 2],
-                8 => ['gpio' => 6,  'adc' => 3],
-            ];
-
-            $relays = [];
-            $maxChannels = max(1, min(8, (int)$numAc));
-            for ($i = 1; $i <= $maxChannels; $i++) {
-                $pinInfo = $standardPins[$i] ?? ['gpio' => 17 + $i, 'adc' => ($i - 1) % 4];
-                $streamName = collect($tmplStreams)->firstWhere('pin', 'V' . ($i - 1))['name'] ?? null;
-                $uName = $streamName ?: "AC {$i}";
-                if ($deviceId === 'RPI3B_PINDAD_ROOM_1') {
-                    $uName = ($i === 1 ? 'Panasonic 1 (Lampu Bawah)' : ($i === 2 ? 'Panasonic 2 (Lampu Atas)' : "Panasonic {$i}"));
-                }
-                $relays[] = [
-                    'ac_number' => $i,
-                    'gpio_pin' => $pinInfo['gpio'],
-                    'name' => $uName,
-                    'adc_channel' => $pinInfo['adc'],
-                ];
-            }
-
-            $activeSchedules = Schedule::where('is_active', true)
-                ->where(function($q) use ($deviceId) {
-                    $q->where('device_id', $deviceId);
-                    if ($deviceId === 'RPI3B_PINDAD_ROOM_1') {
-                        $q->orWhereNull('device_id');
-                    }
-                })
-                ->get()
-                ->map(function($s) {
-                    return [
-                        'id' => (string)($s->_id ?? $s->id),
-                        'label' => $s->label,
-                        'start_time' => Carbon::parse($s->start_time)->format('H:i'),
-                        'end_time' => Carbon::parse($s->end_time)->format('H:i'),
-                        'target_ac' => $s->target_ac ?? 'all',
-                        'is_active' => (bool)$s->is_active,
-                    ];
-                })
-                ->values()
-                ->toArray();
-
-            $customConfig = [
-                'device_id' => $deviceId,
-                'room_name' => $roomName,
-                'location' => $location,
-                'mqtt_broker_host' => $brokerHost,
-                'mqtt_broker_port' => $brokerPort,
-                'dashboard_http_url' => "http://" . $this->detectLanHost($request) . ":" . ($request->getPort() ?: 8000),
-                'sophos_auth' => ['enabled' => true, 'user' => 'pin-00020', 'pass' => '5uiFS4eE', 'url' => 'https://sophostrn.pindad.com:8090/login.xml'],
-                'telegram' => [
-                    'enabled' => (bool)SystemSetting::get('telegram_alert_enabled', true),
-                    'bot_token' => SystemSetting::get('telegram_bot_token', ''),
-                    'chat_id' => SystemSetting::get('telegram_chat_id', ''),
-                    'cooldown_minutes' => (int)SystemSetting::get('telegram_cooldown_minutes', 15),
-                ],
-                'relays' => $relays,
-                'calibration_gain_factor' => 1.0,
-                'hardware_watchdog_enabled' => true,
-                'schedules' => $activeSchedules,
-                'turbo_cooling_seconds' => 0,
-                'telemetry_interval_seconds' => 15,
-            ];
-
-            $jsonConfigStr = json_encode($customConfig, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-            $pyConfigStr = str_replace([': true', ': false', ': null'], [': True', ': False', ': None'], $jsonConfigStr);
-            $indentedPyConfig = preg_replace('/^/m', '    ', $pyConfigStr);
-            $replacement = "    default_config = " . ltrim($indentedPyConfig);
-            
-            $pattern = '/    default_config\s*=\s*\{.*?\n    \}/s';
-            $tailoredCode = preg_replace($pattern, $replacement, $baseCode);
-
-            $fileName = "pindad_node_" . strtolower(preg_replace('/[^a-zA-Z0-9_]/', '_', $deviceId)) . ".py";
-
-            return response($tailoredCode, 200, [
-                'Content-Type' => 'text/x-python',
-                'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
-            ]);
-        }
-
-        if ($type === 'universal_node' || $type === 'node') {
-            $path = base_path('scripts/pindad_universal_node.py');
-            return response()->download($path, 'pindad_universal_node.py', [
-                'Content-Type' => 'text/x-python',
-            ]);
-        }
-
-        if ($type === 'config' || $type === 'node_config') {
-            $path = base_path('scripts/node_config.json');
-            return response()->download($path, 'node_config.json', [
-                'Content-Type' => 'application/json',
-            ]);
-        }
-
-        if ($type === 'setup' || $type === 'sh') {
-            $path = base_path('scripts/setup_raspberry_pi.sh');
-            return response()->download($path, 'setup_raspberry_pi.sh', [
-                'Content-Type' => 'text/x-sh',
-            ]);
-        }
-
-        if ($type === 'wizard') {
-            $path = base_path('scripts/pindad_setup_wizard.py');
-            return response()->download($path, 'pindad_setup_wizard.py', [
-                'Content-Type' => 'text/x-python',
-            ]);
-        }
-
-        return response()->json(['error' => 'Invalid script type requested'], 404);
     }
 
     /**
@@ -1615,195 +357,34 @@ class DashboardController extends Controller
     }
 
     /**
-     * Save Telegram Alert Settings.
+     * Format shift description string for a given AC unit.
      */
-    public function saveTelegramSettings(Request $request)
+    protected function getActiveShiftText(int $unitNumber, ?string $deviceId = null, ?string $userNip = null): string
     {
-        if (!$this->isSuperAdmin()) {
-            return redirect()->back()->with('error', 'Akses ditolak: Konfigurasi Bot Telegram hanya dapat dikelola oleh Super Administrator.');
-        }
-        $request->validate([
-            'telegram_bot_token' => 'nullable|string',
-            'telegram_chat_id' => 'nullable|string',
-            'telegram_cooldown_minutes' => 'nullable|integer|min:1|max:1440',
-        ]);
-
-        SystemSetting::set('telegram_bot_token', $request->input('telegram_bot_token', ''));
-        SystemSetting::set('telegram_chat_id', $request->input('telegram_chat_id', ''));
-        SystemSetting::set('telegram_alert_enabled', $request->has('telegram_alert_enabled') ? true : false);
-        SystemSetting::set('telegram_cooldown_minutes', (int)$request->input('telegram_cooldown_minutes', 15));
-
-        return redirect()->back()->with('success', 'Konfigurasi Notifikasi Bot Telegram berhasil disimpan!');
-    }
-
-    /**
-     * Send instant test message to Telegram.
-     */
-    public function testTelegramNotification(Request $request, TelegramService $telegramService)
-    {
-        if (!$this->isSuperAdmin()) {
-            $res = ['success' => false, 'message' => 'Akses ditolak: Pengujian Bot Telegram hanya dapat dilakukan oleh Super Administrator.'];
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json($res, 403);
-            }
-            return redirect()->back()->with('error', $res['message']);
-        }
-        $botToken = $request->input('telegram_bot_token');
-        $chatId = $request->input('telegram_chat_id');
-
-        $res = $telegramService->sendTestMessage($botToken, $chatId);
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json($res);
-        }
-
-        if ($res['success']) {
-            return redirect()->back()->with('success', $res['message']);
-        }
-
-        return redirect()->back()->with('error', $res['message']);
-    }
-
-    /**
-     * Ingest Real-Time Telemetry from Raspberry Pi Nodes (Dual-Sync HTTP REST + MQTT).
-     */
-    public function receiveTelemetry(Request $request)
-    {
-        $data = $request->all();
-        if (empty($data)) {
-            $raw = $request->getContent();
-            $data = json_decode($raw, true) ?? [];
-        }
-
-        $deviceId = $data['device_id'] ?? $request->input('device_id');
         if (!$deviceId) {
-            return response()->json(['error' => 'Missing device_id'], 400);
+            return 'Belum Ada Jadwal';
         }
 
-        $activeAc = $data['active_ac'] ?? $request->input('active_ac', '');
-        $uNum = 1;
-        $uState = 'ON';
+        $query = Schedule::where('device_id', $deviceId)
+            ->where('is_active', true)
+            ->where(function ($q) use ($unitNumber) {
+                $q->where('target_ac', $unitNumber)
+                  ->orWhere('target_ac', "AC_{$unitNumber}")
+                  ->orWhere('target_ac', 'ALL')
+                  ->orWhere('target_ac', 'all');
+            });
 
-        if (isset($data['state']) && in_array(strtoupper($data['state']), ['ON', 'OFF'])) {
-            $uState = strtoupper($data['state']);
-            if (isset($data['ac_number']) || isset($data['relay'])) {
-                $uNum = (int)($data['ac_number'] ?? $data['relay']);
-            } elseif (!empty($activeAc) && preg_match('/(?:AC|IN)[_\s]?(\d+)/i', $activeAc, $matches)) {
-                $uNum = (int)$matches[1];
-            }
-        } elseif (!empty($activeAc) && preg_match('/(?:AC|IN)[_\s]?(\d+)(?:[_\s]+([A-Za-z]+))?/i', $activeAc, $matches)) {
-            $uNum = (int)$matches[1];
-            $uState = isset($matches[2]) ? strtoupper($matches[2]) : (str_contains(strtoupper($activeAc), 'OFF') ? 'OFF' : 'ON');
-        } elseif (isset($data['relay']) || isset($data['ac_number'])) {
-            $uNum = (int)($data['relay'] ?? $data['ac_number']);
-            $uState = strtoupper($data['command'] ?? $data['state'] ?? 'ON');
-        } elseif (!empty($activeAc) && str_contains(strtoupper($activeAc), 'OFF')) {
-            $uState = 'OFF';
+        if ($userNip) {
+            $query->where('user_nip', $userNip);
         }
 
-        $normalizedActiveAc = "AC_{$uNum}_{$uState}";
-        $currentAmpere = (float)($data['current_ampere'] ?? $request->input('current_ampere', 0.0));
-        $recordedAt = isset($data['recorded_at']) ? Carbon::parse($data['recorded_at']) : now();
+        $schedules = $query->get();
 
-        // 1. Insert into AcLog
-        $log = AcLog::create([
-            'device_id'      => $deviceId,
-            'active_ac'      => $normalizedActiveAc,
-            'ac_number'      => $uNum,
-            'state'          => $uState,
-            'current_ampere' => $currentAmpere,
-            'recorded_at'    => $recordedAt,
-        ]);
-
-        // 2. Sync with Device current_values in MongoDB
-        $dev = Device::where('device_id', $deviceId)->first();
-        if ($dev) {
-            $vals = $dev->current_values ?? [];
-            $numAc = max(1, (int)($dev->num_ac ?? 2));
-            $vals["V" . ($uNum - 1)] = ($uState === 'ON') ? 1 : 0;
-            $curPin = "V" . ($numAc + $uNum - 1);
-            $vals[$curPin] = ($uState === 'OFF') ? 0.0 : $currentAmpere;
-
-            // Recalculate combined wattage
-            $totalCur = 0.0;
-            for ($k = 1; $k <= $numAc; $k++) {
-                $kRelayOn = ($vals["V" . ($k - 1)] ?? 0) == 1;
-                $kCur = (float)($vals["V" . ($numAc + $k - 1)] ?? 0.0);
-                if (!$kRelayOn) $kCur = 0.0;
-                $totalCur += $kCur;
-            }
-            $vals["V" . ($numAc * 2)] = round($totalCur * 220);
-
-            $dev->status = 'online';
-            $dev->current_values = $vals;
-            $dev->save();
+        if ($schedules->isEmpty()) {
+            return 'Belum Ada Jadwal';
         }
 
-        // 3. Real-time Anomaly Detection & Emergency Telegram Alert
-        try {
-            app(AnomalyDetectorService::class)->evaluateTelemetry(
-                $deviceId,
-                $uNum,
-                $uState,
-                $currentAmpere,
-                $recordedAt
-            );
-        } catch (\Exception $e) {}
-
-        // 4. Fetch Active Schedules for Hardware RTC & Web Dual-Sync on Node
-        $activeSchedules = Schedule::where('is_active', true)
-            ->where(function($q) use ($deviceId) {
-                $q->where('device_id', $deviceId);
-                if ($deviceId === 'RPI3B_PINDAD_ROOM_1') {
-                    $q->orWhereNull('device_id');
-                }
-            })
-            ->get()
-            ->map(function($s) {
-                return [
-                    'id' => (string)($s->_id ?? $s->id),
-                    'label' => $s->label,
-                    'start_time' => Carbon::parse($s->start_time)->format('H:i'),
-                    'end_time' => Carbon::parse($s->end_time)->format('H:i'),
-                    'target_ac' => $s->target_ac ?? 'all',
-                    'is_active' => (bool)$s->is_active,
-                ];
-            })
-            ->values()
-            ->toArray();
-
-        $telegramConfig = [
-            'enabled' => (bool)SystemSetting::get('telegram_alert_enabled', true),
-            'bot_token' => SystemSetting::get('telegram_bot_token', ''),
-            'chat_id' => SystemSetting::get('telegram_chat_id', ''),
-            'cooldown_minutes' => (int)SystemSetting::get('telegram_cooldown_minutes', 15),
-        ];
-
-        return response()->json([
-            'success'   => true,
-            'device_id' => $deviceId,
-            'unit'      => $uNum,
-            'state'     => $uState,
-            'ampere'    => $currentAmpere,
-            'watt'      => round($currentAmpere * 220),
-            'status'    => 'online',
-            'schedules' => $activeSchedules,
-            'telegram'  => $telegramConfig,
-        ]);
-    }
-
-    /**
-     * Tampilkan Halaman Buku Panduan & SOP Teknis SIKOMAT (Print / Unduh PDF)
-     */
-    public function manualPdf()
-    {
-        $user = auth()->user() ?? (object)[
-            'name' => 'Dicky Akbar Syah Putra',
-            'email' => 'dicky.akbar@pindad.com'
-        ];
-        $devices = Device::all();
-        $templates = Template::all();
-        
-        return view('panduan-pdf', compact('user', 'devices', 'templates'));
+        $first = $schedules->first();
+        return "{$first->label} ({$first->start_time} - {$first->end_time})";
     }
 }

@@ -1,12 +1,54 @@
 @php
-    $isAdmin = session('user_role_type') === 'admin' || session('user_role') === 'Super Administrator' || session('user_nip') === 'admin' || session('user_nip') === 'PINDAD-IOT-2026';
+    $isSuperAdmin = (session('user_role') === 'admin' || session('user_nip') === 'PINDAD-IOT-2026');
+    $isOperator = !$isSuperAdmin;
 @endphp
 <!-- ================= MODUL 3: LOG TELEMETRI & AUDIT SENSOR (DENGAN FILTER PERANGKAT & EXPORT CSV) ================= -->
 <div class="space-y-6 pb-20" x-data="{ 
     selectedLogDevice: '{{ $filterDevice ?? 'all' }}',
+    openRetention: false,
     logTab: 'all',
-    modalConfirmClearLogs: false
-}">
+    modalConfirmClearLogs: false,
+    retentionDays: 30,
+    loadingPrune: false,
+    stats: {
+        total_raw_logs: {{ \App\Models\AcLog::count() }},
+        total_hourly_summaries: {{ \App\Models\AcHourlySummary::count() }},
+        oldest_log_date: '{{ \App\Models\AcLog::orderBy('recorded_at', 'asc')->first()?->recorded_at?->format('d M Y') ?? '-' }}',
+        newest_log_date: '{{ \App\Models\AcLog::orderBy('recorded_at', 'desc')->first()?->recorded_at?->format('d M Y') ?? '-' }}',
+        total_storage_est_mb: {{ round((\App\Models\AcLog::count() * 250 + \App\Models\AcHourlySummary::count() * 150) / 1024 / 1024, 2) }}
+    },
+    async runPrune() {
+        if (!confirm('Jalankan Auto-Pruning & Agregasi? Data log mentah yang berumur lebih dari ' + this.retentionDays + ' hari akan diringkas ke rata-rata per jam dan log mentah lama akan dihapus untuk membebaskan ruang MongoDB.')) return;
+        this.loadingPrune = true;
+        try {
+            const res = await fetch('{{ route('logs.prune') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ days: this.retentionDays, device_id: this.selectedLogDevice })
+            });
+            const data = await res.json();
+            alert(data.message || 'Pruning selesai.');
+            this.fetchStats();
+        } catch(e) {
+            alert('Gagal mengeksekusi pruning: ' + e.message);
+        } finally {
+            this.loadingPrune = false;
+        }
+    },
+    async fetchStats() {
+        try {
+            const res = await fetch('{{ route('logs.stats') }}');
+            const data = await res.json();
+            if (data.success && data.stats) {
+                this.stats = data.stats;
+            }
+        } catch(e) {}
+    }
+}" x-init="fetchStats()">
     
     <!-- 1. PAGE HEADER & ACTIONS (DOWNLOAD CSV & CLEAR LOGS) -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#8E1616]/20 pb-4">
@@ -32,8 +74,8 @@
                 <span>Unduh CSV</span>
             </a>
 
-            @if($isAdmin)
-            <!-- CLEAR LOGS BUTTON (WITH MODAL CONFIRMATION) -->
+            @if($isSuperAdmin)
+            <!-- CLEAR LOGS BUTTON (SUPER ADMIN ONLY) -->
             <button @click="modalConfirmClearLogs = true"
                     type="button"
                     class="inline-flex items-center justify-center space-x-2 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border border-rose-200 text-xs font-black uppercase tracking-wider py-3.5 px-5 rounded-[22px] transition flex-1 sm:flex-initial shrink-0 cursor-pointer active:scale-95 text-center shadow-2xs">
@@ -43,6 +85,115 @@
             @endif
         </div>
     </div>
+
+    
+@if($isSuperAdmin)
+    <!-- ================= ENTERPRISE DATA RETENTION & HOURLY AGGREGATION ACCORDION ================= -->
+    <div class="bg-white rounded-[32px] border border-[#8E1616]/20 shadow-xs overflow-hidden transition-all duration-300">
+        <button @click="openRetention = !openRetention" 
+                type="button" 
+                class="w-full p-4 sm:p-6 text-left flex items-center justify-between hover:bg-slate-50 transition cursor-pointer">
+            <div class="flex items-center space-x-3 sm:space-x-4 min-w-0">
+                <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-rose-100 text-[#8E1616] flex items-center justify-center font-black text-lg sm:text-xl shrink-0">
+                    🧹
+                </div>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-sm sm:text-base font-black text-[#1D1616] leading-tight truncate">Retensi Data & Pruning Log</h3>
+                        <span class="bg-emerald-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 tracking-wider">Otomatis</span>
+                    </div>
+                    <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5 truncate sm:whitespace-normal">
+                        Ringkasan per jam & pembersihan log mentah database
+                    </p>
+                </div>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-[#EEEEEE] flex items-center justify-center text-slate-600 font-bold text-sm transition-transform duration-300 shrink-0 ml-2"
+                 :class="openRetention ? 'rotate-90 bg-[#8E1616] text-white' : ''">
+                ➔
+            </div>
+        </button>
+
+        <!-- ACCORDION CONTENT: STATS & CONTROLS -->
+        <div x-show="openRetention" 
+             x-cloak 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-2"
+             class="px-4 sm:px-6 pb-6 pt-4 border-t border-[#8E1616]/10 space-y-4 bg-slate-50/70">
+            
+            <!-- 4 METRIC STATS TILES -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div class="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs">
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Total Log Mentah (15s)</span>
+                    <span class="text-base sm:text-lg font-black text-[#1D1616] font-mono mt-0.5 block" x-text="Number(stats.total_raw_logs || 0).toLocaleString('id-ID')">
+                        {{ number_format(\App\Models\AcLog::count(), 0, ',', '.') }}
+                    </span>
+                    <span class="text-[10px] font-semibold text-slate-400">baris telemetri</span>
+                </div>
+
+                <div class="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs">
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Ringkasan Per Jam</span>
+                    <span class="text-base sm:text-lg font-black text-emerald-600 font-mono mt-0.5 block" x-text="Number(stats.total_hourly_summaries || 0).toLocaleString('id-ID')">
+                        {{ number_format(\App\Models\AcHourlySummary::count(), 0, ',', '.') }}
+                    </span>
+                    <span class="text-[10px] font-semibold text-slate-400">hourly summary buckets</span>
+                </div>
+
+                <div class="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs">
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Rentang Log Mentah</span>
+                    <span class="text-xs font-black text-[#1D1616] font-mono mt-1 block truncate" x-text="stats.oldest_log_date || '-'">
+                        -
+                    </span>
+                    <span class="text-[10px] font-semibold text-slate-400">data paling awal</span>
+                </div>
+
+                <div class="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs">
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Estimasi Storage</span>
+                    <span class="text-base sm:text-lg font-black text-[#8E1616] font-mono mt-0.5 block">
+                        <span x-text="stats.total_storage_est_mb || '0.00'">0.00</span> <span class="text-xs">MB</span>
+                    </span>
+                    <span class="text-[10px] font-semibold text-slate-400">MongoDB footprint</span>
+                </div>
+            </div>
+
+            <!-- ACTION BAR -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+                <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                    <label class="text-[11px] font-bold text-slate-600 shrink-0">Batas Retensi:</label>
+                    <select x-model="retentionDays" 
+                            class="bg-white border border-slate-200 text-xs font-bold text-[#1D1616] rounded-xl px-3 py-2 focus:ring-2 focus:ring-[#8E1616] focus:outline-none cursor-pointer">
+                        <option value="7">7 Hari (1 Minggu)</option>
+                        <option value="14">14 Hari (2 Minggu)</option>
+                        <option value="30">30 Hari (1 Bulan - Rekomendasi)</option>
+                        <option value="60">60 Hari (2 Bulan)</option>
+                        <option value="90">90 Hari (3 Bulan)</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <button @click="fetchStats()"
+                            type="button"
+                            class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-bold text-xs uppercase tracking-wider cursor-pointer transition shadow-2xs">
+                        🔄 Refresh
+                    </button>
+
+                    <button @click="runPrune()"
+                            type="button"
+                            :disabled="loadingPrune"
+                            class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider shadow-md shadow-emerald-600/20 cursor-pointer active:scale-95 transition flex items-center gap-2">
+                        <span x-show="!loadingPrune">⚡</span>
+                        <span x-show="loadingPrune" class="inline-block animate-spin">⏳</span>
+                        <span x-text="loadingPrune ? 'Memproses...' : 'Jalankan Auto-Prune & Ringkas'"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+@endif
 
     <!-- 2. FILTER BAR (DUAL CUSTOM DROPDOWNS ALA DEVZONE V-PIN) -->
     <div class="bg-white rounded-[28px] sm:rounded-[36px] p-5 sm:p-6 shadow-sm border border-[#8E1616]/20 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
@@ -336,30 +487,7 @@
         @endfor
     </div>
 
-    <!-- 4. RETENTION & PRUNING INFO CARD -->
-    <div class="bg-white rounded-[28px] sm:rounded-[36px] p-5 sm:p-6 shadow-sm border border-[#8E1616]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div class="flex items-center gap-3.5">
-            <div class="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center font-black text-xl shrink-0">
-                ⚙️
-            </div>
-            <div>
-                <div class="flex items-center gap-2">
-                    <h4 class="font-black text-sm text-[#1D1616]">Retensi Data & Pruning Log</h4>
-                    <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
-                        Otomatis
-                    </span>
-                </div>
-                <p class="text-xs text-slate-500 font-semibold mt-0.5">
-                    Ringkasan per jam & pembersihan log mentah database secara berkala setiap pukul 02:00 WIB.
-                </p>
-            </div>
-        </div>
-        <div class="text-[11px] font-mono font-bold text-slate-500 bg-slate-50 border border-slate-200 px-3.5 py-2 rounded-xl shrink-0">
-            <span>⏰ Jadwal: <code>02:00 WIB</code></span>
-        </div>
-    </div>
-
-    @if($isAdmin)
+@if($isSuperAdmin)
     <!-- ================= MODAL KONFIRMASI BERSIHKAN LOG ================= -->
     <div x-show="modalConfirmClearLogs" 
          x-cloak 
@@ -371,7 +499,7 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0">
         
-        <div @click.away="modalConfirmClearLogs = false" 
+        <div @click.away="modalConfirmClearLogs = false"
              class="bg-white rounded-[32px] max-w-md w-full p-6 sm:p-7 shadow-2xl border border-rose-100 space-y-5"
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 scale-95"
@@ -417,4 +545,5 @@
         </div>
     </div>
     @endif
+
 </div>

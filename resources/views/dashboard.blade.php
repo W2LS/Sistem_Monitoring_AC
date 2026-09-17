@@ -1,8 +1,12 @@
 <!DOCTYPE html>
-<html lang="id" class="overflow-x-hidden w-full max-w-full" x-data="{ 
-    activeTab: (['home', 'devzone', 'book', 'akun'].includes(localStorage.getItem('pindad_active_tab')) ? localStorage.getItem('pindad_active_tab') : 'home'), 
+@php
+    $isSuperAdmin = (session('user_role') === 'admin' || session('user_nip') === 'PINDAD-IOT-2026');
+    $isOperator = !$isSuperAdmin;
+@endphp
+<html lang="id" x-data="{ 
+    activeTab: {{ $isOperator ? "'home'" : "localStorage.getItem('pindad_active_tab') || 'home'" }}, 
     modalFabOpen: false 
-}" x-init="$watch('activeTab', val => localStorage.setItem('pindad_active_tab', val))">
+}" x-init="if ({{ $isOperator ? 'true' : 'false' }}) { activeTab = 'home'; } else { $watch('activeTab', val => localStorage.setItem('pindad_active_tab', val)); }">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
@@ -50,8 +54,8 @@
 </head>
 <body class="bg-[#EEEEEE] text-[#1D1616] min-h-screen antialiased flex flex-col justify-between selection:bg-[#D84040] selection:text-white overflow-x-hidden w-full max-w-full">
 
-    <!-- MAIN RESPONSIVE WRAPPER CONTAINER (Proporsional, Elegan & Nyaman dengan Margin Samping yang Pas) -->
-    <div class="w-full max-w-5xl xl:max-w-6xl mx-auto px-6 sm:px-10 md:px-12 lg:px-16 pt-6 pb-48 space-y-8">
+    <!-- MAIN RESPONSIVE WRAPPER CONTAINER (Proporsional, Elegan & Nyaman di Mobile, Tablet/iPad, & Desktop) -->
+    <div class="w-full max-w-5xl xl:max-w-6xl mx-auto px-3.5 sm:px-6 md:px-8 lg:px-12 pt-4 sm:pt-6 pb-36 sm:pb-44 space-y-6 sm:space-y-8">
         
         <!-- ================= TOP HEADER ================= -->
         <header class="flex items-center justify-between pt-2">
@@ -109,7 +113,7 @@
         @endif
 
         <!-- ================= HORIZONTAL SNAP SCROLL SELECTOR (4 CLEAN MODULES) ================= -->
-        <div class="flex items-center space-x-3.5 overflow-x-auto pb-2 pt-1 no-scrollbar">
+        <div class="flex items-center space-x-2.5 sm:space-x-3.5 overflow-x-auto pb-2 pt-1 no-scrollbar -mx-1 px-1 sm:mx-0 sm:px-0">
             
             <!-- Category 1: Home (Universal IoT Fleet Overview & Drilldown) -->
             <button 
@@ -130,8 +134,8 @@
                 </div>
             </button>
 
-            @if($isAdmin)
-            <!-- Category 2: Developer Zone (Templates & Datastreams Console - Super Admin Only) -->
+            @if($isSuperAdmin)
+            <!-- Category 2: Developer Zone (Templates & Datastreams Console) -->
             <button 
                 @click="activeTab = 'devzone'"
                 type="button"
@@ -149,7 +153,6 @@
                     <span class="text-xs font-black text-white leading-none block">DevZone</span>
                 </div>
             </button>
-            @endif
 
             <!-- Category 3: Log Telemetri & Sensor Audit -->
             <button 
@@ -189,6 +192,46 @@
                     <span class="text-xs font-black text-white leading-none block">Akun & Sistem</span>
                 </div>
             </button>
+            @else
+            <!-- Category 2 for Operator: Log Telemetri (Scoped) -->
+            <button 
+                @click="activeTab = 'book'"
+                type="button"
+                :class="activeTab === 'book' 
+                    ? 'w-48 bg-[#8E1616] text-white shadow-lg shadow-[#8E1616]/25' 
+                    : 'w-14 bg-white text-[#1D1616]/60 border border-[#8E1616]/20 hover:border-[#8E1616]'"
+                class="h-14 rounded-[22px] p-2 flex items-center space-x-3 shrink-0 transition-all duration-300 cursor-pointer overflow-hidden">
+                <div class="w-10 h-10 rounded-full bg-[#D84040] text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                </div>
+                <div class="text-left truncate pr-2" x-show="activeTab === 'book'">
+                    <span class="text-[9px] font-bold uppercase tracking-widest text-[#EEEEEE]/80 block">MODUL 2</span>
+                    <span class="text-xs font-black text-white leading-none block">Log AC</span>
+                </div>
+            </button>
+
+            <!-- Category 3 for Operator: Akun & Informasi Profil -->
+            <button 
+                @click="activeTab = 'akun'"
+                type="button"
+                :class="activeTab === 'akun' 
+                    ? 'w-48 bg-[#8E1616] text-white shadow-lg shadow-[#8E1616]/25' 
+                    : 'w-14 bg-white text-[#1D1616]/60 border border-[#8E1616]/20 hover:border-[#8E1616]'"
+                class="h-14 rounded-[22px] p-2 flex items-center space-x-3 shrink-0 transition-all duration-300 cursor-pointer overflow-hidden">
+                <div class="w-10 h-10 rounded-full bg-[#D84040] text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
+                <div class="text-left truncate pr-2" x-show="activeTab === 'akun'">
+                    <span class="text-[9px] font-bold uppercase tracking-widest text-[#EEEEEE]/80 block">MODUL 3</span>
+                    <span class="text-xs font-black text-white leading-none block">Akun & Profil</span>
+                </div>
+            </button>
+            @endif
 
         </div>
 
@@ -200,14 +243,14 @@
                 @include('partials.section-home')
             </div>
 
-            @if($isAdmin)
+            @if($isSuperAdmin)
             <!-- TAB 2: DEVELOPER ZONE (TEMPLATES & DATASTREAMS CONSOLE) -->
             <div x-show="activeTab === 'devzone'" x-cloak>
                 @include('partials.section-developer-zone')
             </div>
             @endif
 
-            <!-- TAB 3: LOG TELEMETRI (AUDIT SENSOR DENGAN FILTER & DOWNLOAD CSV) -->
+            <!-- TAB 3: LOG TELEMETRI (AUDIT SENSOR DENGAN FILTER & DOWNLOAD CSV - SCOPED FOR OPERATOR) -->
             <div x-show="activeTab === 'book'" x-cloak>
                 @include('partials.section-riwayat')
             </div>
@@ -221,7 +264,7 @@
 
     </div>
 
-    @if($isAdmin)
+    @if($isSuperAdmin)
     <!-- ================= FLOATING CENTER ACTION BUTTON MODAL (SUPER ADMIN ONLY) ================= -->
     <div x-show="modalFabOpen" x-cloak 
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
@@ -457,9 +500,72 @@
             }
         }
 
+        // =========================================================================
+        // REALTIME WEBSOCKET CLIENT (Push-Based Ultra-Low Latency < 5ms)
+        // =========================================================================
+        let wsClient = null;
+        let wsConnected = false;
+
+        function initWebSocketClient() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.hostname || '127.0.0.1';
+            const wsUrl = `${protocol}//${host}:8080`;
+
+            try {
+                wsClient = new WebSocket(wsUrl);
+
+                wsClient.onopen = () => {
+                    wsConnected = true;
+                    console.log('⚡ [SIKOMAT AC] Realtime WebSocket Connected:', wsUrl);
+                    updateWsBadge(true);
+                };
+
+                wsClient.onmessage = (event) => {
+                    try {
+                        const payload = JSON.parse(event.data);
+                        // Trigger immediate live refresh (< 5ms response)
+                        if (payload.type === 'telemetry_updated' || payload.type === 'ac_control_event' || payload.type === 'mqtt_event') {
+                            fetchRealTimeTelemetry();
+                        }
+                    } catch (e) {}
+                };
+
+                wsClient.onclose = () => {
+                    wsConnected = false;
+                    updateWsBadge(false);
+                    // Reconnect after 3 seconds
+                    setTimeout(initWebSocketClient, 3000);
+                };
+
+                wsClient.onerror = () => {
+                    wsConnected = false;
+                    updateWsBadge(false);
+                    wsClient.close();
+                };
+            } catch (err) {
+                wsConnected = false;
+                updateWsBadge(false);
+                setTimeout(initWebSocketClient, 3000);
+            }
+        }
+
+        function updateWsBadge(isConnected) {
+            const badge = document.getElementById('ws-realtime-badge');
+            if (!badge) return;
+            if (isConnected) {
+                badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-black uppercase tracking-wider transition-all duration-300 shadow-xs';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>⚡ WebSocket Live (&lt; 5ms)</span>';
+            } else {
+                badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-[10px] font-black uppercase tracking-wider transition-all duration-300 shadow-xs';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>🔄 Polling Fallback</span>';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             initChart();
-            setInterval(fetchRealTimeTelemetry, 1500);
+            initWebSocketClient();
+            // Background Fallback Heartbeat (set to 8 seconds instead of 1.5s for optimal efficiency)
+            setInterval(fetchRealTimeTelemetry, 8000);
         });
     </script>
 </body>

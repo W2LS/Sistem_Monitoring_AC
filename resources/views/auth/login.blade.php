@@ -143,10 +143,38 @@
                             <input type="text" class="form-control py-2 fs-7 rounded-3" name="nip" id="nip" value="{{ old('nip') }}" placeholder="Masukkan NIP" required autofocus>
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-3" style="position: relative;">
                             <label for="password" class="form-label fs-7 font-semibold text-secondary mb-1">Kata Sandi</label>
-                            <input type="password" class="form-control py-2 fs-7 rounded-3" name="password" id="password" value="" placeholder="••••••••" required>
+                            <div class="input-group">
+                                <input type="password" class="form-control py-2 fs-7 rounded-3" name="password" id="password" value="" placeholder="••••••••" required style="border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important;">
+                                <button class="btn btn-outline-secondary px-3" type="button" id="toggleLoginPassword" style="border-top-right-radius: 0.5rem !important; border-bottom-right-radius: 0.5rem !important; border-color: #dee2e6;" title="Lihat/Sembunyikan Sandi">
+                                    <svg id="eyeIcon" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
+                        <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const toggleBtn = document.getElementById('toggleLoginPassword');
+                            const passInput = document.getElementById('password');
+                            const eyeIcon = document.getElementById('eyeIcon');
+                            if (toggleBtn && passInput && eyeIcon) {
+                                toggleBtn.addEventListener('click', function() {
+                                    if (passInput.type === 'password') {
+                                        passInput.type = 'text';
+                                        eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />';
+                                        toggleBtn.classList.add('text-danger');
+                                    } else {
+                                        passInput.type = 'password';
+                                        eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
+                                        toggleBtn.classList.remove('text-danger');
+                                    }
+                                });
+                            }
+                        });
+                        </script>
 
                         <div class="form-check mb-4">
                             <input class="form-check-input" type="checkbox" value="1" name="remember" id="remember" checked>
