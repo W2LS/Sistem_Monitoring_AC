@@ -56,7 +56,7 @@ echo.
 echo [2/3] Multi-Engine Endpoints SIKOMAT AC:
 echo   - Web Dashboard (Localhost) : http://127.0.0.1:8000
 echo   - Web Dashboard (LAN Client): http://%PRIMARY_IP%:8000
-echo   - MQTT Ingest & Downlink    : tcp://%PRIMARY_IP%:1883
+echo   - MQTT Ingest ^& Downlink    : tcp://%PRIMARY_IP%:1883
 echo   - HTTP Telemetry Ingest     : http://%PRIMARY_IP%:8000/api/telemetry
 echo.
 echo [3/3] Menjalankan Multi-Engine Web Server (Host: 0.0.0.0, Port: 8000)...
