@@ -61,14 +61,29 @@
                      class="h-10 sm:h-12 md:h-14 w-auto object-contain select-none">
             </div>
 
-            <!-- Right Profile Avatar with Red Notification Badge -->
-            <div @click="activeTab = 'akun'" class="relative cursor-pointer group shrink-0" title="Buka Informasi Sistem & Akun">
-                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-tr from-[#1D1616] via-[#8E1616] to-[#D84040] text-white flex items-center justify-center font-black text-lg sm:text-xl border-2 border-white shadow-md transition-transform group-hover:scale-105">
-                    ⚙️
+            <!-- Right Profile Avatar with Red Notification Badge & Quick Logout -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="hidden sm:flex flex-col text-right">
+                    <span class="text-xs font-black text-[#1D1616]">{{ session('user_name', 'Dicky Akbar Syah Putra') }}</span>
+                    <span class="text-[10px] font-bold {{ $isAdmin ? 'text-emerald-700' : 'text-sky-700' }}">● {{ $isAdmin ? 'Super Administrator' : 'Operator Ruangan' }}</span>
                 </div>
-                <span class="absolute -bottom-0.5 -right-0.5 w-4 h-4 sm:w-4.5 sm:h-4.5 bg-[#D84040] border-2 border-[#EEEEEE] rounded-full flex items-center justify-center">
-                    <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full animate-ping"></span>
-                </span>
+
+                <div @click="activeTab = 'akun'" class="relative cursor-pointer group shrink-0" title="Buka Informasi Sistem & Akun">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-tr from-[#1D1616] via-[#8E1616] to-[#D84040] text-white flex items-center justify-center font-black text-base sm:text-lg border-2 border-white shadow-md transition-transform group-hover:scale-105">
+                        ⚙️
+                    </div>
+                    <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-[#D84040] border-2 border-[#EEEEEE] rounded-full flex items-center justify-center">
+                        <span class="w-1.5 h-1.5 bg-white rounded-full animate-ping"></span>
+                    </span>
+                </div>
+
+                <form action="{{ route('logout') }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" title="Keluar / Ganti Akun" class="px-2.5 py-2 sm:px-3 sm:py-2 rounded-xl bg-white hover:bg-rose-50 text-[#8E1616] border border-[#8E1616]/20 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-xs">
+                        <span>🚪</span>
+                        <span class="hidden sm:inline">Logout</span>
+                    </button>
+                </form>
             </div>
         </header>
 

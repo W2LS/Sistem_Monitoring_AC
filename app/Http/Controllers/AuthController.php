@@ -36,7 +36,7 @@ class AuthController extends Controller
         // Matriks Akun Valid SIKOMAT PT PINDAD (Super Admin vs Operator Ruangan)
         $validAccounts = [
             'admin' => [
-                'password' => 'admin123',
+                'passwords' => ['PINDAD-IOT-2026', 'admin123', 'pindad123', 'admin'],
                 'name' => 'Administrator Server',
                 'division' => 'Divisi Mutu & Teknologi Informasi',
                 'role' => 'Super Administrator',
@@ -44,7 +44,7 @@ class AuthController extends Controller
                 'assigned_devices' => ['*']
             ],
             'PINDAD-IOT-2026' => [
-                'password' => 'pindad123',
+                'passwords' => ['PINDAD-IOT-2026', 'pindad123', 'admin123', 'admin'],
                 'name' => 'Dicky Akbar Syah Putra',
                 'division' => 'Divisi Mutu & Teknologi Informasi',
                 'role' => 'Super Administrator',
@@ -52,7 +52,7 @@ class AuthController extends Controller
                 'assigned_devices' => ['*']
             ],
             'operator' => [
-                'password' => 'pindad123',
+                'passwords' => ['OP-MUTU-01', 'pindad123', 'operator123', 'operator'],
                 'name' => 'Dicky Akbar Syah Putra',
                 'division' => 'Divisi Mutu & TI - Ruang Server',
                 'role' => 'Operator Ruangan',
@@ -60,7 +60,7 @@ class AuthController extends Controller
                 'assigned_devices' => ['RPI3B_PINDAD_ROOM_1', 'RPI3B_SERVER_TELEPON']
             ],
             'OP-MUTU-01' => [
-                'password' => 'pindad123',
+                'passwords' => ['OP-MUTU-01', 'pindad123', 'operator123', 'operator'],
                 'name' => 'Operator Divisi Mutu',
                 'division' => 'Divisi Mutu & Inspeksi Fasilitas',
                 'role' => 'Operator Ruangan',
@@ -69,21 +69,23 @@ class AuthController extends Controller
             ],
         ];
 
-        if (array_key_exists($nipInput, $validAccounts) && $validAccounts[$nipInput]['password'] === $passwordInput) {
+        if (array_key_exists($nipInput, $validAccounts)) {
             $user = $validAccounts[$nipInput];
+            $allowedPasswords = (array)($user['passwords'] ?? []);
+            if (in_array($passwordInput, $allowedPasswords, true)) {
+                session([
+                    'logged_in' => true,
+                    'user_nip' => $nipInput,
+                    'user_name' => $user['name'],
+                    'user_division' => $user['division'],
+                    'user_role' => $user['role'],
+                    'user_role_type' => $user['role_type'],
+                    'assigned_devices' => $user['assigned_devices'],
+                    'login_time' => now()->format('d M Y, H:i:s WIB')
+                ]);
 
-            session([
-                'logged_in' => true,
-                'user_nip' => $nipInput,
-                'user_name' => $user['name'],
-                'user_division' => $user['division'],
-                'user_role' => $user['role'],
-                'user_role_type' => $user['role_type'],
-                'assigned_devices' => $user['assigned_devices'],
-                'login_time' => now()->format('d M Y, H:i:s WIB')
-            ]);
-
-            return redirect()->route('dashboard')->with('success', 'Selamat datang kembali, ' . $user['name'] . ' (' . $user['role'] . ')!');
+                return redirect()->route('dashboard')->with('success', 'Selamat datang kembali, ' . $user['name'] . ' (' . $user['role'] . ')!');
+            }
         }
 
         return back()->withInput()->withErrors([
