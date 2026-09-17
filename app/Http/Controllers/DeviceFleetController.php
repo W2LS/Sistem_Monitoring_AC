@@ -71,30 +71,6 @@ class DeviceFleetController extends Controller
             'updated_at' => Carbon::now('Asia/Jakarta')
         ]);
 
-        // Buat jadwal default shift shifting jika 2 AC
-        if ($numAc >= 2) {
-            Schedule::create([
-                'user_nip' => $userNip,
-                'device_id' => $device->device_id,
-                'ac_number' => 1,
-                'target_units' => [1],
-                'start_time' => '07:00',
-                'end_time' => '19:00',
-                'is_active' => true,
-                'description' => 'Shift Pagi - Siang Unit AC 1'
-            ]);
-            Schedule::create([
-                'user_nip' => $userNip,
-                'device_id' => $device->device_id,
-                'ac_number' => 2,
-                'target_units' => [2],
-                'start_time' => '19:00',
-                'end_time' => '07:00',
-                'is_active' => true,
-                'description' => 'Shift Malam - Pagi Unit AC 2'
-            ]);
-        }
-
         return redirect()->route('dashboard', ['device_id' => $device->device_id])
             ->with('success', "Perangkat {$device->name} ({$device->device_id}) berhasil didaftarkan ke armada!");
     }

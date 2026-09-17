@@ -134,6 +134,7 @@ class AcControlController extends Controller
         } catch (\Throwable $e) {}
 
         return response()->json([
+            'success' => true,
             'status' => 'success',
             'message' => "Unit AC {$acNumber} berhasil diatur ke posisi {$state}.",
             'device_id' => $deviceId,

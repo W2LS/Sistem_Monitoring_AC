@@ -586,13 +586,15 @@ function homeFleetComponent() {
                              })
                          });
                          let json = await res.json();
-                         if (json.success) {
-                             this[key] = (json.state === 'ON');
+                         if (json.success || json.status === 'success') {
+                             const isStateOn = (json.state === 'ON' || json.int_state === 1);
+                             this[key] = isStateOn;
                              if (typeof fetchRealTimeTelemetry === 'function') {
                                  fetchRealTimeTelemetry();
                              }
                          } else {
                              this[key] = currentState;
+                             alert(json.message || 'Gagal mengubah status relay.');
                          }
                      } catch (e) {
                          console.error('Toggle error:', e);

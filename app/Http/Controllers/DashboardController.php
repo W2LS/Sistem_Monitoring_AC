@@ -113,19 +113,15 @@ class DashboardController extends Controller
                           ->orWhere('ac_number', $i);
                     })->orderBy('recorded_at', 'desc')->orderBy('_id', 'desc')->orderBy('id', 'desc')->first();
                 
-                $isOn = false;
-                if ($log) {
+                $isOn = ($vState === 1);
+                if ($log && Carbon::parse($log->recorded_at)->diffInMinutes(now()) <= 3) {
                     if (!empty($log->state)) {
                         $isOn = (strtoupper($log->state) === 'ON');
                     } elseif (str_contains(strtoupper($log->active_ac), 'OFF')) {
                         $isOn = false;
                     } elseif (str_contains(strtoupper($log->active_ac), 'ON')) {
                         $isOn = true;
-                    } else {
-                        $isOn = ($vState === 1);
                     }
-                } else {
-                    $isOn = ($vState === 1);
                 }
 
                 $curPin = 'V' . ($numAc + $i - 1);
