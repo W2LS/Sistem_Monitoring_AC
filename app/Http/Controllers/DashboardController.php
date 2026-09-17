@@ -8,6 +8,7 @@ use App\Models\Schedule;
 use App\Models\Device;
 use App\Models\Template;
 use App\Models\User;
+use App\Models\DeviceRequest;
 use App\Models\SystemSetting;
 use App\Services\MqttService;
 use App\Services\TelegramService;
@@ -23,6 +24,17 @@ class DashboardController extends Controller
     public function __construct(MqttService $mqttService)
     {
         $this->mqttService = $mqttService;
+    }
+
+    /**
+     * Check if current session belongs to Super Administrator.
+     */
+    protected function isSuperAdmin(): bool
+    {
+        $role = session('user_role', '');
+        $roleType = session('user_role_type', '');
+        $nip = session('user_nip', '');
+        return ($role === 'Super Administrator' || $roleType === 'admin' || $nip === 'admin' || $nip === 'PINDAD-IOT-2026');
     }
 
     /**
@@ -109,25 +121,36 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $userNip = session('user_nip', 'PINDAD-IOT-2026');
+        $isAdmin = $this->isSuperAdmin();
 
-        // 1. Fetch Devices & Templates strictly for the authenticated user account
-        $devices = Device::where('user_nip', $userNip)->get();
-        if ($userNip === 'PINDAD-IOT-2026') {
-            // Claim legacy devices and schedules for the default administrator account if any
-            $legacyDevices = Device::whereNull('user_nip')->get();
-            foreach ($legacyDevices as $ld) {
-                $ld->user_nip = $userNip;
-                $ld->save();
+        // 1. Fetch Devices & Templates strictly according to RBAC Matrix
+        if ($isAdmin) {
+            $devices = Device::all();
+            if ($devices->isEmpty()) {
+                // Ensure default device exists
+                $devices = Device::where('device_id', 'RPI3B_PINDAD_ROOM_1')->get();
             }
-            $legacySchedules = Schedule::whereNull('user_nip')->get();
-            foreach ($legacySchedules as $ls) {
-                $ls->user_nip = $userNip;
-                $ls->save();
+        } else {
+            $assigned = session('assigned_devices', []);
+            $devices = Device::where(function($q) use ($userNip, $assigned) {
+                $q->where('user_nip', $userNip);
+                if (!empty($assigned) && !in_array('*', $assigned)) {
+                    $q->orWhereIn('device_id', $assigned);
+                }
+            })->get();
+
+            if ($devices->isEmpty()) {
+                $devices = Device::where('device_id', 'RPI3B_PINDAD_ROOM_1')->get();
+                if ($devices->isEmpty()) {
+                    $devices = Device::take(1)->get();
+                }
             }
-            $devices = Device::where('user_nip', $userNip)->get();
         }
 
         $templates = Template::all();
+        $deviceRequests = $isAdmin 
+            ? DeviceRequest::orderBy('created_at', 'desc')->take(20)->get() 
+            : DeviceRequest::where('user_nip', $userNip)->orderBy('created_at', 'desc')->take(10)->get();
 
         // Bi-directional synchronization between device_id and filter_device so Home and Module 3 never desync
         $selectedDeviceId = $request->query('device_id') ?? $request->query('filter_device') ?? ($devices->first()?->device_id ?? null);
@@ -348,8 +371,34 @@ class DashboardController extends Controller
             'recentLogsByUnit', 'unitLogNames', 'logNumAc',
             'schedules', 'shiftAc1', 'shiftAc2', 'devices', 'templates', 'selectedDeviceId', 
             'currentDevice', 'fleetStats', 'totalFleetWatt', 'totalFleetCurrent', 'onlineCount', 
-            'filterDevice', 'user', 'telegramSettings', 'activeAnomalies', 'serverLanHost'
+            'filterDevice', 'user', 'telegramSettings', 'activeAnomalies', 'serverLanHost',
+            'isAdmin', 'deviceRequests'
         ));
+    }
+
+    /**
+     * Store new Device Request Ticket (from Operator Ruangan).
+     */
+    public function storeDeviceRequest(Request $request)
+    {
+        $request->validate([
+            'room_name' => 'required|string|max:100',
+            'location' => 'required|string|max:100',
+            'num_ac' => 'required|integer|min:1|max:8',
+            'description' => 'nullable|string',
+        ]);
+
+        DeviceRequest::create([
+            'user_nip' => session('user_nip', 'operator'),
+            'operator_name' => session('user_name', 'Operator Ruangan'),
+            'room_name' => $request->input('room_name'),
+            'location' => $request->input('location'),
+            'num_ac' => (int)$request->input('num_ac', 2),
+            'description' => $request->input('description', ''),
+            'status' => 'pending',
+        ]);
+
+        return redirect()->back()->with('success', 'Tiket pengajuan penambahan node IoT untuk ruangan "' . $request->input('room_name') . '" berhasil diajukan ke Super Administrator!');
     }
 
     /**
@@ -496,6 +545,19 @@ class DashboardController extends Controller
         $acNumber = (int)$request->input('ac_number');
         $state = strtoupper($request->input('state'));
         $deviceId = $request->input('device_id', 'RPI3B_PINDAD_ROOM_1');
+
+        // RBAC Check: Operator can only control ACs in assigned rooms
+        if (!$this->isSuperAdmin()) {
+            $assigned = session('assigned_devices', []);
+            $userNip = session('user_nip', 'operator');
+            $isAllowed = in_array('*', $assigned) || in_array($deviceId, $assigned) || Device::where('device_id', $deviceId)->where('user_nip', $userNip)->exists();
+            if (!$isAllowed) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Akses ditolak: Anda hanya memiliki hak akses untuk mengontrol AC di ruangan Anda sendiri.'], 403);
+                }
+                return redirect()->back()->with('error', 'Akses ditolak: Anda hanya memiliki hak akses untuk mengontrol AC di ruangan Anda sendiri.');
+            }
+        }
 
         $payload = [
             'device_id' => $deviceId,
@@ -689,6 +751,10 @@ class DashboardController extends Controller
      */
     public function storeDevice(Request $request)
     {
+        if (!$this->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'Akses ditolak: Pendaftaran node IoT hanya dapat dilakukan oleh Super Administrator. Silakan ajukan melalui tiket pengajuan perangkat.');
+        }
+
         $userNip = session('user_nip', 'PINDAD-IOT-2026');
 
         $request->validate([
@@ -759,6 +825,10 @@ class DashboardController extends Controller
      */
     public function updateDevice(Request $request, string $id)
     {
+        if (!$this->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'Akses ditolak: Modifikasi informasi perangkat hanya dapat dilakukan oleh Super Administrator.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:100',
             'location' => 'required|string|max:100',
@@ -791,6 +861,10 @@ class DashboardController extends Controller
      */
     public function deleteDevice(string $id)
     {
+        if (!$this->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'Akses ditolak: Penghapusan perangkat hanya dapat dilakukan oleh Super Administrator.');
+        }
+
         $device = Device::findOrFail($id);
         $name = $device->name;
         $device->delete();
@@ -803,9 +877,16 @@ class DashboardController extends Controller
      */
     public function masterControl(Request $request)
     {
-        $userNip = session('user_nip', 'PINDAD-IOT-2026');
+        if (!$this->isSuperAdmin()) {
+            $msg = 'Akses ditolak: Fitur Master Switch hanya dapat diakses oleh Super Administrator.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 403);
+            }
+            return redirect()->back()->with('error', $msg);
+        }
+
         $command = strtoupper($request->input('command', 'OFF'));
-        $devices = Device::where('user_nip', $userNip)->get();
+        $devices = Device::all();
         $isStateOn = ($command === 'ON');
 
         foreach ($devices as $dev) {
@@ -880,6 +961,10 @@ class DashboardController extends Controller
      */
     public function storeTemplate(Request $request)
     {
+        if (!$this->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'Akses ditolak: Fitur Developer Zone hanya dapat diakses oleh Super Administrator.');
+        }
+
         $userNip = session('user_nip', 'PINDAD-IOT-2026');
 
         $request->validate([
@@ -910,6 +995,9 @@ class DashboardController extends Controller
      */
     public function updateTemplate(Request $request, string $id)
     {
+        if (!$this->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'Akses ditolak: Fitur Developer Zone hanya dapat diakses oleh Super Administrator.');
+        }
         $request->validate([
             'name' => 'required|string|max:100',
             'hardware_type' => 'required|string|max:100',
@@ -931,6 +1019,9 @@ class DashboardController extends Controller
      */
     public function deleteTemplate(string $id)
     {
+        if (!$this->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'Akses ditolak: Fitur Developer Zone hanya dapat diakses oleh Super Administrator.');
+        }
         $template = Template::findOrFail($id);
         $name = $template->name;
         $template->delete();
@@ -943,6 +1034,9 @@ class DashboardController extends Controller
      */
     public function addDatastream(Request $request, string $id)
     {
+        if (!$this->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'Akses ditolak: Fitur Developer Zone hanya dapat diakses oleh Super Administrator.');
+        }
         $request->validate([
             'pin' => 'required|string|max:10',
             'name' => 'required|string|max:100',
@@ -990,6 +1084,9 @@ class DashboardController extends Controller
      */
     public function deleteDatastream(string $id, string $pin)
     {
+        if (!$this->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'Akses ditolak: Fitur Developer Zone hanya dapat diakses oleh Super Administrator.');
+        }
         $template = Template::findOrFail($id);
         $streams = collect($template->datastreams ?? [])->reject(function ($s) use ($pin) {
             return $s['pin'] === $pin;
@@ -1035,6 +1132,9 @@ class DashboardController extends Controller
      */
     public function importTemplate(Request $request)
     {
+        if (!$this->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'Akses ditolak: Fitur Developer Zone hanya dapat diakses oleh Super Administrator.');
+        }
         $jsonContent = null;
 
         if ($request->hasFile('template_file')) {
@@ -1097,6 +1197,9 @@ class DashboardController extends Controller
      */
     public function createPresetTemplate(Request $request)
     {
+        if (!$this->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'Akses ditolak: Fitur Developer Zone hanya dapat diakses oleh Super Administrator.');
+        }
         $preset = $request->input('preset_type', 'relay_2ch');
 
         $presetsConfig = [
@@ -1309,6 +1412,14 @@ class DashboardController extends Controller
      */
     public function clearLogs(Request $request)
     {
+        if (!$this->isSuperAdmin()) {
+            $msg = 'Akses ditolak: Pembersihan log telemetri database hanya dapat dilakukan oleh Super Administrator.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 403);
+            }
+            return redirect()->back()->with('error', $msg);
+        }
+
         $userNip = session('user_nip', 'PINDAD-IOT-2026');
         $userDeviceIds = Device::where('user_nip', $userNip)->pluck('device_id')->toArray();
         $deviceId = $request->input('device_id', 'all');
@@ -1421,6 +1532,8 @@ class DashboardController extends Controller
                     'cooldown_minutes' => (int)SystemSetting::get('telegram_cooldown_minutes', 15),
                 ],
                 'relays' => $relays,
+                'calibration_gain_factor' => 1.0,
+                'hardware_watchdog_enabled' => true,
                 'schedules' => $activeSchedules,
                 'turbo_cooling_seconds' => 0,
                 'telemetry_interval_seconds' => 15,
@@ -1506,6 +1619,9 @@ class DashboardController extends Controller
      */
     public function saveTelegramSettings(Request $request)
     {
+        if (!$this->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'Akses ditolak: Konfigurasi Bot Telegram hanya dapat dikelola oleh Super Administrator.');
+        }
         $request->validate([
             'telegram_bot_token' => 'nullable|string',
             'telegram_chat_id' => 'nullable|string',
@@ -1525,6 +1641,13 @@ class DashboardController extends Controller
      */
     public function testTelegramNotification(Request $request, TelegramService $telegramService)
     {
+        if (!$this->isSuperAdmin()) {
+            $res = ['success' => false, 'message' => 'Akses ditolak: Pengujian Bot Telegram hanya dapat dilakukan oleh Super Administrator.'];
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json($res, 403);
+            }
+            return redirect()->back()->with('error', $res['message']);
+        }
         $botToken = $request->input('telegram_bot_token');
         $chatId = $request->input('telegram_chat_id');
 

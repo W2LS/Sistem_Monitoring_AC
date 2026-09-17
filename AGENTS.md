@@ -3,7 +3,7 @@
 > **Platform:** SIKOMAT (Sistem Kontrol & Monitoring Suhu AC Otomatis)  
 > **Instansi:** PT PINDAD (PERSERO) — Divisi Mutu & Teknologi Informasi  
 > **Operator / Lead Developer:** Dicky Akbar Syah Putra  
-> **Versi Terkini:** v2.5.0 (Official SIKOMAT & PDF Manual Book Edition)  
+> **Versi Terkini:** v2.6.0 (PINDAD Industrial IoT Edition)  
 > **Tujuan Dokumen:** Referensi teknis, peta arsitektur, spesifikasi protokol, dan panduan kerja untuk AI Agents serta pengembang lanjutan.
 
 ---
@@ -13,6 +13,7 @@
 **SIKOMAT** adalah platform Industrial IoT (*Internet of Things*) terpadu yang dibangun untuk mengotomasi pergantian rotasi (*shift shifting*) 12 jam pada pendingin ruangan (AC), memantau beban arus listrik (*Ampere*), mengestimasi konsumsi daya (*Watt*), mengukur suhu ruangan, serta mendeteksi anomali kegagalan kompresor/kelistrikan secara *real-time* di seluruh fasilitas strategis **PT PINDAD (PERSERO)** (seperti Ruang Server Telepon, Ruang Server TI, Ruang Panel Listrik, dan Laboratorium Mutu).
 
 Platform ini menerapkan arsitektur **Enterprise Multi-Tenancy & Edge Computing**:
+* **Role-Based Access Control (RBAC):** Super Admin (`admin` / `PINDAD-IOT-2026`) memegang kendali global armada, DevZone, Telegram Alert, dan manajemen perangkat. Operator Ruangan (`operator` / `OP-MUTU-01`) memiliki akses terbatas ke ruangan tugasnya, dapat mengajukan penambahan perangkat baru melalui tiket `DeviceRequest`, tanpa akses DevZone/Master Control.
 * **1 Template Cetak Biru Hardware (*Blueprint*)** dapat digunakan oleh **banyak perangkat ruangan (*Multi-Device Fleet*)** secara terisolasi.
 * Dilengkapi dengan sistem pengaman darurat (*fail-safe*), isolasi anomali arus 0A, alarm bot Telegram, generator skrip otomatis (.py), buku SOP teknis cetak PDF A4, dan launcher lintas-platform (*Windows/Linux/macOS/Raspberry Pi*).
 

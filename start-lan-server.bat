@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-title SIKOMAT AC - Server Laravel LAN Launcher (PT PINDAD)
+title SIKOMAT AC - Multi-Engine LAN Server (PT PINDAD)
 color 0A
 
 :: Pastikan direktori kerja selalu berada di folder lokasi script ini
@@ -8,8 +8,8 @@ cd /d "%~dp0"
 
 cls
 echo ===============================================================================
-echo     SISTEM KONTROL DAN MONITORING SUHU AC OTOMATIS (SIKOMAT)
-echo     PT PINDAD (PERSERO) - DIVISI MUTU ^& TI
+echo     SISTEM KONTROL DAN MONITORING SUHU AC OTOMATIS (SIKOMAT) v2.6.0
+echo     PT PINDAD (PERSERO) - DIVISI MUTU ^& TEKNOLOGI INFORMASI
 echo ===============================================================================
 echo.
 
@@ -53,12 +53,13 @@ for /f "usebackq tokens=1,2 delims=#" %%a in (`powershell -NoProfile -Command "$
 if not defined PRIMARY_IP set "PRIMARY_IP=127.0.0.1"
 echo -------------------------------------------------------------------------------
 echo.
-echo [2/3] Alamat Akses Web Dashboard SIKOMAT:
-echo   - Komputer Ini (Localhost) : http://127.0.0.1:8000
-echo   - Komputer / Laptop Lain   : http://%PRIMARY_IP%:8000
-echo   - Node Raspberry Pi        : http://%PRIMARY_IP%:8000
+echo [2/3] Multi-Engine Endpoints SIKOMAT AC:
+echo   - Web Dashboard (Localhost) : http://127.0.0.1:8000
+echo   - Web Dashboard (LAN Client): http://%PRIMARY_IP%:8000
+echo   - MQTT Ingest & Downlink    : tcp://%PRIMARY_IP%:1883
+echo   - HTTP Telemetry Ingest     : http://%PRIMARY_IP%:8000/api/telemetry
 echo.
-echo [3/3] Menjalankan Server Laravel (Host: 0.0.0.0, Port: 8000)...
+echo [3/3] Menjalankan Multi-Engine Web Server (Host: 0.0.0.0, Port: 8000)...
 echo Tekan CTRL + C untuk menghentikan server.
 echo ===============================================================================
 echo.

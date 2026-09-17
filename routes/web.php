@@ -30,6 +30,7 @@ Route::middleware('auth.session')->group(function () {
     Route::put('/devices/{id}', [DashboardController::class, 'updateDevice'])->name('devices.update');
     Route::delete('/devices/{id}', [DashboardController::class, 'deleteDevice'])->name('devices.destroy');
     Route::post('/devices/master-control', [DashboardController::class, 'masterControl'])->name('devices.masterControl');
+    Route::post('/device-requests', [DashboardController::class, 'storeDeviceRequest'])->name('device-requests.store');
 
     // CRUD Developer Zone (Templates & Datastreams Console)
     Route::post('/templates', [DashboardController::class, 'storeTemplate'])->name('templates.store');

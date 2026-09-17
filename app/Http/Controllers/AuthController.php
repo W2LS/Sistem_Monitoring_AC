@@ -18,7 +18,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Memproses percobaan login operator.
+     * Memproses percobaan login operator / admin.
      */
     public function login(Request $request)
     {
@@ -33,25 +33,39 @@ class AuthController extends Controller
         $nipInput = trim($request->input('nip'));
         $passwordInput = trim($request->input('password'));
 
-        // Kredensial Valid (Mendukung NIP resmi & username operator)
+        // Matriks Akun Valid SIKOMAT PT PINDAD (Super Admin vs Operator Ruangan)
         $validAccounts = [
+            'admin' => [
+                'password' => 'admin123',
+                'name' => 'Administrator Server',
+                'division' => 'Divisi Mutu & Teknologi Informasi',
+                'role' => 'Super Administrator',
+                'role_type' => 'admin',
+                'assigned_devices' => ['*']
+            ],
             'PINDAD-IOT-2026' => [
                 'password' => 'pindad123',
                 'name' => 'Dicky Akbar Syah Putra',
-                'division' => 'Divisi Sistem Informasi & Fasilitas',
-                'role' => 'Operator System Control'
+                'division' => 'Divisi Mutu & Teknologi Informasi',
+                'role' => 'Super Administrator',
+                'role_type' => 'admin',
+                'assigned_devices' => ['*']
             ],
             'operator' => [
                 'password' => 'pindad123',
                 'name' => 'Dicky Akbar Syah Putra',
-                'division' => 'Divisi Sistem Informasi & Fasilitas',
-                'role' => 'Operator System Control'
+                'division' => 'Divisi Mutu & TI - Ruang Server',
+                'role' => 'Operator Ruangan',
+                'role_type' => 'operator',
+                'assigned_devices' => ['RPI3B_PINDAD_ROOM_1', 'RPI3B_SERVER_TELEPON']
             ],
-            'admin' => [
-                'password' => 'admin123',
-                'name' => 'Administrator Server',
-                'division' => 'Divisi Sistem Informasi',
-                'role' => 'Super Administrator'
+            'OP-MUTU-01' => [
+                'password' => 'pindad123',
+                'name' => 'Operator Divisi Mutu',
+                'division' => 'Divisi Mutu & Inspeksi Fasilitas',
+                'role' => 'Operator Ruangan',
+                'role_type' => 'operator',
+                'assigned_devices' => ['RPI3B_PINDAD_ROOM_1']
             ],
         ];
 
@@ -64,10 +78,12 @@ class AuthController extends Controller
                 'user_name' => $user['name'],
                 'user_division' => $user['division'],
                 'user_role' => $user['role'],
+                'user_role_type' => $user['role_type'],
+                'assigned_devices' => $user['assigned_devices'],
                 'login_time' => now()->format('d M Y, H:i:s WIB')
             ]);
 
-            return redirect()->route('dashboard')->with('success', 'Selamat datang kembali, ' . $user['name'] . '!');
+            return redirect()->route('dashboard')->with('success', 'Selamat datang kembali, ' . $user['name'] . ' (' . $user['role'] . ')!');
         }
 
         return back()->withInput()->withErrors([
@@ -76,11 +92,11 @@ class AuthController extends Controller
     }
 
     /**
-     * Mengakhiri sesi login operator.
+     * Mengakhiri sesi login.
      */
     public function logout(Request $request)
     {
-        $request->session()->forget(['logged_in', 'user_nip', 'user_name', 'user_division', 'user_role', 'login_time']);
+        $request->session()->forget(['logged_in', 'user_nip', 'user_name', 'user_division', 'user_role', 'user_role_type', 'assigned_devices', 'login_time']);
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

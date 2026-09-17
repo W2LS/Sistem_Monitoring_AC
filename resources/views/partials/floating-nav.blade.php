@@ -1,7 +1,17 @@
-<!-- FLOATING BOTTOM NAVIGATION BAR (4 MODUL PINDAD IOT SUITE) -->
+@php
+    $isAdminRole = $isAdmin ?? false;
+    if (!isset($isAdminRole)) {
+        $role = session('user_role', '');
+        $roleType = session('user_role_type', '');
+        $nip = session('user_nip', '');
+        $isAdminRole = ($role === 'Super Administrator' || $roleType === 'admin' || $nip === 'admin' || $nip === 'PINDAD-IOT-2026');
+    }
+@endphp
+
+<!-- FLOATING BOTTOM NAVIGATION BAR (SIKOMAT PINDAD IOT SUITE) -->
 <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md">
     
-    <div class="bg-[#1D1616] h-16 rounded-[32px] px-4 flex items-center justify-between shadow-[0_20px_50px_-12px_rgba(29,22,22,0.5)] border border-[#8E1616]/30 relative">
+    <div class="bg-[#1D1616] h-16 rounded-[32px] px-5 flex items-center justify-between shadow-[0_20px_50px_-12px_rgba(29,22,22,0.5)] border border-[#8E1616]/30 relative">
         
         <!-- 1. HOME ICON (UNIVERSAL IOT FLEET OVERVIEW & DRILLDOWN) -->
         <button 
@@ -15,7 +25,8 @@
             <span class="text-[9px] font-black uppercase tracking-wider mt-0.5" :class="activeTab === 'home' ? 'text-[#D84040]' : 'text-[#EEEEEE]/50'">Home</span>
         </button>
 
-        <!-- 2. DEVELOPER ZONE (TEMPLATES & DATASTREAMS ENGINE) -->
+        @if($isAdminRole)
+        <!-- 2. DEVELOPER ZONE (SUPER ADMIN ONLY) -->
         <button 
             @click="activeTab = 'devzone'" 
             type="button"
@@ -27,18 +38,19 @@
             <span class="text-[9px] font-black uppercase tracking-wider mt-0.5" :class="activeTab === 'devzone' ? 'text-[#D84040]' : 'text-[#EEEEEE]/50'">DevZone</span>
         </button>
 
-        <!-- 3. CENTER ACTION BUTTON (FAB) CUTOUT: QUICK ACTION MODAL -->
+        <!-- 3. CENTER ACTION BUTTON (FAB) CUTOUT: QUICK ACTION MASTER SWITCH (SUPER ADMIN ONLY) -->
         <div class="relative -top-6 flex items-center justify-center">
             <button 
                 @click="modalFabOpen = true" 
                 type="button"
-                title="Aksi Pintar & Kontrol Cepat"
+                title="Aksi Pintar & Master Switch Armada"
                 class="w-14 h-14 rounded-full bg-[#D84040] text-white flex items-center justify-center border-4 border-[#EEEEEE] shadow-[0_12px_28px_rgba(216,64,64,0.45)] hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer group">
                 <svg class="w-7 h-7 transform group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
             </button>
         </div>
+        @endif
 
         <!-- 4. LOG TELEMETRI & SENSOR AUDIT -->
         <button 

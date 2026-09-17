@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="id" x-data="{ 
-    activeTab: localStorage.getItem('pindad_active_tab') || 'home', 
+<html lang="id" class="overflow-x-hidden w-full max-w-full" x-data="{ 
+    activeTab: (['home', 'devzone', 'book', 'akun'].includes(localStorage.getItem('pindad_active_tab')) ? localStorage.getItem('pindad_active_tab') : 'home'), 
     modalFabOpen: false 
 }" x-init="$watch('activeTab', val => localStorage.setItem('pindad_active_tab', val))">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <title>PINDAD IoT Engine • Platform Monitoring & Kontrol Perangkat</title>
     
     <!-- Google Fonts: Inter -->
@@ -48,7 +48,7 @@
         }
     </style>
 </head>
-<body class="bg-[#EEEEEE] text-[#1D1616] min-h-screen antialiased flex flex-col justify-between selection:bg-[#D84040] selection:text-white">
+<body class="bg-[#EEEEEE] text-[#1D1616] min-h-screen antialiased flex flex-col justify-between selection:bg-[#D84040] selection:text-white overflow-x-hidden w-full max-w-full">
 
     <!-- MAIN RESPONSIVE WRAPPER CONTAINER (Proporsional, Elegan & Nyaman dengan Margin Samping yang Pas) -->
     <div class="w-full max-w-5xl xl:max-w-6xl mx-auto px-6 sm:px-10 md:px-12 lg:px-16 pt-6 pb-48 space-y-8">
@@ -115,7 +115,8 @@
                 </div>
             </button>
 
-            <!-- Category 2: Developer Zone (Templates & Datastreams Console) -->
+            @if($isAdmin)
+            <!-- Category 2: Developer Zone (Templates & Datastreams Console - Super Admin Only) -->
             <button 
                 @click="activeTab = 'devzone'"
                 type="button"
@@ -133,6 +134,7 @@
                     <span class="text-xs font-black text-white leading-none block">DevZone</span>
                 </div>
             </button>
+            @endif
 
             <!-- Category 3: Log Telemetri & Sensor Audit -->
             <button 
@@ -183,10 +185,12 @@
                 @include('partials.section-home')
             </div>
 
+            @if($isAdmin)
             <!-- TAB 2: DEVELOPER ZONE (TEMPLATES & DATASTREAMS CONSOLE) -->
             <div x-show="activeTab === 'devzone'" x-cloak>
                 @include('partials.section-developer-zone')
             </div>
+            @endif
 
             <!-- TAB 3: LOG TELEMETRI (AUDIT SENSOR DENGAN FILTER & DOWNLOAD CSV) -->
             <div x-show="activeTab === 'book'" x-cloak>
@@ -202,7 +206,8 @@
 
     </div>
 
-    <!-- ================= FLOATING CENTER ACTION BUTTON MODAL ================= -->
+    @if($isAdmin)
+    <!-- ================= FLOATING CENTER ACTION BUTTON MODAL (SUPER ADMIN ONLY) ================= -->
     <div x-show="modalFabOpen" x-cloak 
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
          @keydown.escape.window="modalFabOpen = false">
@@ -259,6 +264,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     <!-- ================= FLOATING NAVIGATION BAR ================= -->
     @include('partials.floating-nav')

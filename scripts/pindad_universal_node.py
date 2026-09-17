@@ -1,25 +1,27 @@
 #!/usr/bin/env python3
 """
 =============================================================================
-PINDAD IOT ENGINE - UNIVERSAL MULTI-NODE CONTROLLER CLIENT
+PINDAD IOT ENGINE - UNIVERSAL MULTI-NODE CONTROLLER CLIENT (v2.6.0)
 PT PINDAD (PERSERO) - DIVISI MUTU & TI
 =============================================================================
 File: pindad_universal_node.py
 Fungsi: Client modular untuk setiap Raspberry Pi di seluruh ruangan server.
-Konfigurasi: Dibaca otomatis dari node_config.json
+Fitur: 100% Real Telemetri (True-RMS 120ms Dynamic DC Offset, No Deadband),
+       ADS1115 ADC + ACS712 Current Sensor, RTC DS3231, Relai Dual-Mode,
+       MQTT & HTTP Dual-Sync, Auto-Start Installer, Single Instance Lock.
 =============================================================================
 """
 
 import sys
 import time
 import math
-import random
 import json
 import os
 import threading
 import ssl
 import urllib.request
 import urllib.parse
+from collections import deque
 import paho.mqtt.client as mqtt
 
 # Hardware imports with simulation fallback for testing
@@ -33,7 +35,7 @@ try:
     HAS_HARDWARE = True
 except ImportError:
     HAS_HARDWARE = False
-    print("⚠️ [NOTE] Berjalan di mode simulasi (RPi.GPIO / Adafruit library tidak ditemukan).")
+    print("⚠️ [NOTE] Hardware RPi.GPIO / Adafruit library tidak terdeteksi. Berjalan dalam mode standby aman (0.0000 A).")
 
 # ================= 1. BACA FILE KONFIGURASI NODE & CLI ARGS =================
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "node_config.json")
@@ -42,12 +44,15 @@ def load_config():
     default_config = {
         "device_id": "RPI3B_PINDAD_ROOM_1",
         "room_name": "Ruang Server Utama",
+        "location": "Gedung Divisi Mutu & TI",
         "mqtt_broker_host": "127.0.0.1",
         "mqtt_broker_port": 1883,
+        "calibration_gain_factor": 1.0,
+        "hardware_watchdog_enabled": True,
         "sophos_auth": {"enabled": False},
         "relays": [
-            {"ac_number": 1, "gpio_pin": 17, "name": "AC 1", "adc_channel": 0},
-            {"ac_number": 2, "gpio_pin": 27, "name": "AC 2", "adc_channel": 1}
+            {"ac_number": 1, "gpio_pin": 17, "name": "Panasonic 1 (Lampu Bawah)", "adc_channel": 0},
+            {"ac_number": 2, "gpio_pin": 27, "name": "Panasonic 2 (Lampu Atas)", "adc_channel": 1}
         ],
         "schedules": [],
         "turbo_cooling_seconds": 0,
@@ -79,6 +84,7 @@ RELAYS = config["relays"]
 active_schedules = config.get("schedules", [])
 TURBO_COOLING_SEC = config.get("turbo_cooling_seconds", 0)
 INTERVAL_SEC = config.get("telemetry_interval_seconds", 15)
+CALIBRATION_FACTOR = float(config.get("calibration_gain_factor", 1.0))
 
 # ================= AUTO-START INSTALLER FEATURE (--install / --autostart) =================
 def setup_autostart():
@@ -146,6 +152,7 @@ print(f"🚀 [INIT] Memulai Node Controller: {DEVICE_ID} ({config.get('room_name
 # Track states
 relay_states = {r["ac_number"]: True for r in RELAYS}
 is_turbo_cooling_active = (TURBO_COOLING_SEC > 0)
+current_history = {r["ac_number"]: deque(maxlen=3) for r in RELAYS}
 
 # ================= 2. SOPHOS FIREWALL AUTH RESILIENCE =================
 def login_sophos():
@@ -203,6 +210,7 @@ if HAS_HARDWARE:
         ads2 = None
 
         try:
+            # ADS1115 Alamat I2C Standar: 0x48 (Pin ADDR terhubung ke GND)
             ads1 = ADS.ADS1115(i2c, address=0x48)
             ads1.gain = 1
             ads1.data_rate = 860
@@ -210,11 +218,12 @@ if HAS_HARDWARE:
             print(f"⚠️ [ADS1115 #1 (0x48) ERROR] {e}")
 
         try:
+            # Secondary ADC (Opsional untuk Relay 5 s/d 8)
             ads2 = ADS.ADS1115(i2c, address=0x49)
             ads2.gain = 1
             ads2.data_rate = 860
         except Exception:
-            pass # Secondary ADC opsional jika menggunakan relay > 4 channel
+            pass
 
         for r in RELAYS:
             ac_num = r["ac_number"]
@@ -422,42 +431,57 @@ def on_local_message(client, userdata, msg):
 local_client.on_connect = on_local_connect
 local_client.on_message = on_local_message
 
-# ================= 4. SENSOR ARUS ACS712 & ADS1115 =================
-SENSITIVITAS_ACS712 = 0.185 # V/A (185 mV/A untuk ACS712-05B, 100 mV/A untuk ACS712-20A)
+# ================= 4. SENSOR ARUS ACS712 & ADS1115 (100% REAL TRUE-RMS) =================
+# Sensitivitas ACS712: 185 mV/A (05B), 100 mV/A (20A), 66 mV/A (30A)
+SENSITIVITAS_ACS712 = 0.185 # V/A
 
 def read_current_ampere(ac_num):
+    """
+    100% Real Telemetri Sensor Arus ACS712 True-RMS Sampling (120ms / 6 Siklus AC 50Hz).
+    Dilengkapi Dynamic Quiescent DC Offset Tracking dan 3-Sample Moving Average.
+    Tanpa Dummy Fallback & Tanpa Deadband Suppression.
+    """
     is_on = relay_states.get(ac_num, False)
     if not is_on:
+        current_history[ac_num].clear()
         return 0.0000
 
     chan = adc_channels.get(ac_num)
-    arus_fisik_riil = 0.0
-    if chan is not None and HAS_HARDWARE:
-        voltage_min = 5.0
-        voltage_max = 0.0
-        start_time = time.time()
-        
-        while (time.time() - start_time) < 0.15:
-            try:
-                v = chan.voltage
-                if v > voltage_max: voltage_max = v
-                if v < voltage_min: voltage_min = v
-            except Exception:
-                pass
-                
-        v_peak_to_peak = max(0.0, voltage_max - voltage_min)
-        v_rms = (v_peak_to_peak / 2.0) * 0.707
-        arus_fisik_riil = v_rms / SENSITIVITAS_ACS712
+    if chan is None or not HAS_HARDWARE:
+        return 0.0000
 
-    # Hanya laporkan arus riil terukur dari sensor fisik ACS712 & ADS1115
-    # (Jika saklar ON tapi kabel beban AC belum dialiri listrik / < 0.05 A, laporkan 0.0000 A)
-    if arus_fisik_riil >= 0.05:
-        return round(arus_fisik_riil, 4)
-    
-    return 0.0000
+    samples = []
+    sample_window_sec = 0.12 # 120ms mencakup 6 siklus penuh 50Hz
+    start_time = time.time()
+
+    while (time.time() - start_time) < sample_window_sec:
+        try:
+            samples.append(chan.voltage)
+        except Exception as e:
+            pass
+
+    if len(samples) < 10:
+        return 0.0000
+
+    # 1. Dynamic Quiescent DC Offset Tracking (Titik tengah Vcc/2 riil)
+    v_dc_offset = sum(samples) / len(samples)
+
+    # 2. Perhitungan True-RMS Tegangan AC
+    sum_sq = sum((v - v_dc_offset) ** 2 for v in samples)
+    v_rms = math.sqrt(sum_sq / len(samples))
+
+    # 3. Konversi ke Ampere & Terapkan Faktor Kalibrasi
+    raw_current = (v_rms / SENSITIVITAS_ACS712) * CALIBRATION_FACTOR
+
+    # 4. Moving Average 3-Sampel Responsif
+    history = current_history.setdefault(ac_num, deque(maxlen=3))
+    history.append(raw_current)
+    avg_current = sum(history) / len(history)
+
+    # 100% Real Telemetri: Tampilkan apa adanya dengan ketelitian 4 desimal tanpa deadband suppression
+    return round(max(0.0, avg_current), 4)
 
 last_telegram_alert = {}
-relay_turned_on_time = {r["ac_number"]: time.time() for r in RELAYS}
 
 def send_direct_telegram_alert(ac_num, unit_name, current_amp, failure_type="GAGAL_HIDUP"):
     tele = config.get("telegram", {})
@@ -506,7 +530,7 @@ def send_direct_telegram_alert(ac_num, unit_name, current_amp, failure_type="GAG
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
-        with urllib.request.urlopen(req, context=ctx, timeout=5) as resp:
+        with urllib.request.urlopen(req, context=ctx, timeout=3.5) as resp:
             print(f"📲 [TELEGRAM DIRECT] Berhasil mengirim pesan darurat anomali langsung dari Raspberry Pi!")
     except Exception as e:
         pass
@@ -619,8 +643,8 @@ def telemetry_loop():
                 # 2. Dual-Sync HTTP REST langsung ke Web Dashboard
                 send_http_telemetry(payload)
 
-                # 3. Direct Edge Anomaly Alert (Tetap Mengirim Peringatan ke Telegram Walaupun Komputer Dashboard Dimatikan)
-                if is_on and current_amp < 0.05 and not is_turbo_cooling_active:
+                # 3. Direct Edge Anomaly Alert
+                if is_on and current_amp <= 0.0000 and not is_turbo_cooling_active:
                     send_direct_telegram_alert(ac_num, r.get('name', f'AC {ac_num}'), current_amp, 'GAGAL_HIDUP')
 
                 # 4. Tampilkan log pembacaan sensor ke terminal

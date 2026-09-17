@@ -1,3 +1,6 @@
+@php
+    $isAdmin = session('user_role_type') === 'admin' || session('user_role') === 'Super Administrator' || session('user_nip') === 'admin' || session('user_nip') === 'PINDAD-IOT-2026';
+@endphp
 <!-- ================= MODUL 3: LOG TELEMETRI & AUDIT SENSOR (DENGAN FILTER PERANGKAT & EXPORT CSV) ================= -->
 <div class="space-y-6 pb-20" x-data="{ 
     selectedLogDevice: '{{ $filterDevice ?? 'all' }}',
@@ -29,6 +32,7 @@
                 <span>Unduh CSV</span>
             </a>
 
+            @if($isAdmin)
             <!-- CLEAR LOGS BUTTON (WITH MODAL CONFIRMATION) -->
             <button @click="modalConfirmClearLogs = true"
                     type="button"
@@ -36,6 +40,7 @@
                 <span>🗑️</span>
                 <span>Bersihkan Log</span>
             </button>
+            @endif
         </div>
     </div>
 
@@ -331,6 +336,30 @@
         @endfor
     </div>
 
+    <!-- 4. RETENTION & PRUNING INFO CARD -->
+    <div class="bg-white rounded-[28px] sm:rounded-[36px] p-5 sm:p-6 shadow-sm border border-[#8E1616]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+            <div class="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center font-black text-xl shrink-0">
+                ⚙️
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h4 class="font-black text-sm text-[#1D1616]">Retensi Data & Pruning Log</h4>
+                    <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        Otomatis
+                    </span>
+                </div>
+                <p class="text-xs text-slate-500 font-semibold mt-0.5">
+                    Ringkasan per jam & pembersihan log mentah database secara berkala setiap pukul 02:00 WIB.
+                </p>
+            </div>
+        </div>
+        <div class="text-[11px] font-mono font-bold text-slate-500 bg-slate-50 border border-slate-200 px-3.5 py-2 rounded-xl shrink-0">
+            <span>⏰ Jadwal: <code>02:00 WIB</code></span>
+        </div>
+    </div>
+
+    @if($isAdmin)
     <!-- ================= MODAL KONFIRMASI BERSIHKAN LOG ================= -->
     <div x-show="modalConfirmClearLogs" 
          x-cloak 
@@ -342,7 +371,7 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0">
         
-        <div @click.away="modalConfirmClearLogs = false"
+        <div @click.away="modalConfirmClearLogs = false" 
              class="bg-white rounded-[32px] max-w-md w-full p-6 sm:p-7 shadow-2xl border border-rose-100 space-y-5"
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 scale-95"
@@ -387,4 +416,5 @@
             </form>
         </div>
     </div>
+    @endif
 </div>

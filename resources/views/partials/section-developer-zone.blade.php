@@ -210,8 +210,8 @@
                         <span class="text-xs text-slate-400 font-mono">PINDAD V-Pin Standard</span>
                     </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-xs">
+                    <div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+                        <table class="w-full min-w-[620px] text-left border-collapse text-xs">
                             <thead>
                                 <tr class="border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-400">
                                     <th class="py-2.5 px-3">Virtual Pin</th>
@@ -227,31 +227,31 @@
                                 @forelse($tmpl->datastreams ?? [] as $ds)
                                 <tr class="hover:bg-slate-50 transition">
                                     <td class="py-3 px-3">
-                                        <span class="font-mono font-black text-xs px-2.5 py-1 rounded-lg bg-[#1D1616] text-white">
+                                        <span class="font-mono font-black text-xs px-2.5 py-1 rounded-lg bg-[#1D1616] text-white whitespace-nowrap">
                                             {{ $ds['pin'] }}
                                         </span>
                                     </td>
-                                    <td class="py-3 px-3 font-bold text-[#1D1616]">
+                                    <td class="py-3 px-3 font-bold text-[#1D1616] min-w-[190px]">
                                         {{ $ds['name'] }}
                                         @if(!empty($ds['desc']) && $ds['desc'] !== '-')
-                                            <div class="text-[10px] text-slate-400 font-normal">{{ $ds['desc'] }}</div>
+                                             <div class="text-[10px] text-slate-400 font-normal">{{ $ds['desc'] }}</div>
                                         @endif
                                     </td>
                                     <td class="py-3 px-3">
-                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase {{ $ds['type'] === 'Integer' ? 'bg-blue-50 text-blue-700' : ($ds['type'] === 'Double' ? 'bg-emerald-50 text-emerald-700' : 'bg-purple-50 text-purple-700') }}">
+                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase whitespace-nowrap {{ $ds['type'] === 'Integer' ? 'bg-blue-50 text-blue-700' : ($ds['type'] === 'Double' ? 'bg-emerald-50 text-emerald-700' : 'bg-purple-50 text-purple-700') }}">
                                             {{ $ds['type'] }}
                                         </span>
                                     </td>
-                                    <td class="py-3 px-3 font-mono font-semibold text-slate-600">
-                                        {{ $ds['min'] ?? 0 }} - {{ $ds['max'] ?? 1 }}
+                                    <td class="py-3 px-3 font-mono font-semibold text-slate-600 whitespace-nowrap">
+                                        {{ $ds['min'] ?? 0 }} – {{ $ds['max'] ?? 1 }}
                                     </td>
-                                    <td class="py-3 px-3 font-mono font-bold text-slate-700">
+                                    <td class="py-3 px-3 font-mono font-bold text-slate-700 whitespace-nowrap">
                                         <span class="bg-slate-100 px-2 py-0.5 rounded text-xs border border-slate-200">{{ $ds['default_value'] ?? ($ds['min'] ?? 0) }}</span>
                                     </td>
-                                    <td class="py-3 px-3 font-bold text-slate-700">
+                                    <td class="py-3 px-3 font-bold text-slate-700 whitespace-nowrap">
                                         {{ !empty($ds['unit']) ? $ds['unit'] : '-' }}
                                     </td>
-                                    <td class="py-3 px-3 text-right">
+                                    <td class="py-3 px-3 text-right whitespace-nowrap">
                                         <form action="{{ route('templates.deleteDatastream', ['id' => $tmpl->id, 'pin' => $ds['pin']]) }}" method="POST" onsubmit="return confirm('Hapus Datastream {{ $ds['pin'] }}?')">
                                             @csrf
                                             @method('DELETE')

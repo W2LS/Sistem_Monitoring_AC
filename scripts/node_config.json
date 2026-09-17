@@ -24,6 +24,8 @@
       "adc_channel": 1
     }
   ],
+  "calibration_gain_factor": 1.0,
+  "hardware_watchdog_enabled": true,
   "turbo_cooling_seconds": 300,
   "telemetry_interval_seconds": 15
 }

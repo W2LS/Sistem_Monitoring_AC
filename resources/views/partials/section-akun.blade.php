@@ -1,3 +1,8 @@
+@php
+    $isAdmin = session('user_role_type') === 'admin' || session('user_role') === 'Super Administrator' || session('user_nip') === 'admin' || session('user_nip') === 'PINDAD-IOT-2026';
+    $roleLabel = $isAdmin ? 'Super Administrator' : 'Operator Ruangan';
+    $roleColor = $isAdmin ? 'text-emerald-600' : 'text-sky-600';
+@endphp
 <script>
 function accountSectionComponent() {
     return {
@@ -96,6 +101,7 @@ function accountSectionComponent() {
     <!-- 2. ACCORDIONS SECTION -->
     <div class="space-y-4">
 
+        @if($isAdmin)
         <!-- ITEM 0: TUTORIAL & PANDUAN LENGKAP PENGGUNAAN PLATFORM (SOP END-TO-END) -->
         <div class="bg-white rounded-[32px] border border-[#8E1616]/20 shadow-xs overflow-hidden transition-all duration-300">
             <button @click="openItem = openItem === 'tutorial' ? null : 'tutorial'" 
@@ -407,6 +413,7 @@ function accountSectionComponent() {
 
             </div>
         </div>
+        @endif
 
         <!-- ITEM 1: INFORMASI AKUN & PROFIL OPERATOR -->
         <div class="bg-white rounded-[32px] border border-[#8E1616]/20 shadow-xs overflow-hidden transition-all duration-300">
@@ -433,26 +440,26 @@ function accountSectionComponent() {
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs pt-2">
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Nama Lengkap</span>
-                        <span class="font-black text-[#1D1616] text-sm block mt-0.5">{{ $user->name ?? 'Dicky Akbar Syah Putra' }}</span>
+                        <span class="font-black text-[#1D1616] text-sm block mt-0.5">{{ session('user_name', $user->name ?? 'Dicky Akbar Syah Putra') }}</span>
                     </div>
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Email Operator</span>
-                        <span class="font-mono font-bold text-slate-700 text-xs block mt-0.5">{{ $user->email ?? 'dicky.akbar@pindad.com' }}</span>
+                        <span class="font-mono font-bold text-slate-700 text-xs block mt-0.5">{{ session('user_email', $user->email ?? 'dicky.akbar@pindad.com') }}</span>
                     </div>
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
-                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Divisi</span>
-                        <span class="font-bold text-[#1D1616] block mt-0.5">Mutu & TI / Fasilitas Gedung</span>
+                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Divisi / ID NIP</span>
+                        <span class="font-bold text-[#1D1616] block mt-0.5">Mutu & TI (<code>{{ session('user_nip', 'PINDAD-IOT-2026') }}</code>)</span>
                     </div>
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Peran Sistem</span>
-                        <span class="font-bold text-emerald-600 block mt-0.5">● Super Administrator</span>
+                        <span class="font-bold {{ $roleColor }} block mt-0.5">● {{ $roleLabel }}</span>
                     </div>
                 </div>
 
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div class="flex items-center gap-3">
                         <button @click="modalPassword = true" 
-                                type="button"
+                                type="button" 
                                 class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider transition cursor-pointer">
                             🔒 Ubah Kata Sandi
                         </button>
@@ -496,7 +503,7 @@ function accountSectionComponent() {
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs pt-2">
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Versi Dashboard</span>
-                        <span class="font-black text-[#1D1616] text-sm block mt-0.5">v2.5.0 (PINDAD Enterprise Edition)</span>
+                        <span class="font-black text-[#1D1616] text-sm block mt-0.5">v2.6.0 (PINDAD Industrial IoT Edition)</span>
                     </div>
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Database Mesin</span>
@@ -511,8 +518,8 @@ function accountSectionComponent() {
                         <span class="font-bold text-[#1D1616] block mt-0.5">Native MQTT & HTTP Dual-Sync</span>
                     </div>
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
-                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Firewall Integration</span>
-                        <span class="font-bold text-[#1D1616] block mt-0.5">Sophos Captive Portal Auto-Auth</span>
+                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Deteksi Anomali</span>
+                        <span class="font-bold text-[#1D1616] block mt-0.5">Arus 0A Fail-Safe & Auto-Shift</span>
                     </div>
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Instansi Pemilik</span>
@@ -533,7 +540,7 @@ function accountSectionComponent() {
                     </div>
                     <div class="min-w-0">
                         <h3 class="text-sm sm:text-base font-black text-[#1D1616] leading-snug">Spesifikasi Hardware & Pinout</h3>
-                        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5 truncate sm:whitespace-normal">Daftar komponen sensor arus ACS712, RTC DS3231, dan modul relay</p>
+                        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5 truncate sm:whitespace-normal">Daftar komponen sensor arus ACS712, RTC DS3231, ADS1115, dan modul relay</p>
                     </div>
                 </div>
                 <div class="w-8 h-8 rounded-full bg-[#EEEEEE] flex items-center justify-center text-slate-600 font-bold text-sm transition-transform duration-300 shrink-0 ml-2"
@@ -547,26 +554,94 @@ function accountSectionComponent() {
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-2">
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Kontroler Utama</span>
-                        <span class="font-black text-[#1D1616] text-sm block mt-0.5">Raspberry Pi 3 Model B+</span>
+                        <span class="font-black text-[#1D1616] text-sm block mt-0.5">Raspberry Pi 3 Model B+ / 4B</span>
                         <p class="text-[11px] text-slate-500 mt-1">Quad Core 1.4GHz Broadcom BCM2837B0, 1GB LPDDR2 SDRAM.</p>
                     </div>
 
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
-                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Sensor Arus Listrik</span>
-                        <span class="font-black text-[#1D1616] text-sm block mt-0.5">Allegro ACS712 Hall-Effect (05B / 20A / 30A)</span>
-                        <p class="text-[11px] text-slate-500 mt-1">Sensitivitas 185 mV/A / 100 mV/A, pembacaan ADC ADS1115 I2C 16-Bit presisi tinggi.</p>
+                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Sensor Arus Listrik & ADC</span>
+                        <span class="font-black text-[#1D1616] text-sm block mt-0.5">ACS712 (30A) + ADC ADS1115 16-Bit (0x48)</span>
+                        <p class="text-[11px] text-slate-500 mt-1">Pin ADDR ke GND (0x48), catu daya 5V VDD, sampling True-RMS 120ms (6 cycles 50Hz).</p>
                     </div>
 
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Hardware Clock (RTC)</span>
-                        <span class="font-black text-[#1D1616] text-sm block mt-0.5">Maxim DS3231 High-Precision RTC</span>
+                        <span class="font-black text-[#1D1616] text-sm block mt-0.5">Maxim DS3231 High-Precision RTC (0x68)</span>
                         <p class="text-[11px] text-slate-500 mt-1">Baterai CR2032 terintegrasi untuk menjamin akurasi jadwal saat offline.</p>
                     </div>
 
                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E1616] block">Modul Saklar Relai</span>
-                        <span class="font-black text-[#1D1616] text-sm block mt-0.5">Dual/Multi-Channel 5V Relay Optocoupler</span>
-                        <p class="text-[11px] text-slate-500 mt-1">GPIO 17 (Relay AC 1 / Lampu Bawah), GPIO 27 (Relay AC 2 / Lampu Atas).</p>
+                        <span class="font-black text-[#1D1616] text-sm block mt-0.5">Dual/Multi-Channel 5V Relay Active LOW</span>
+                        <p class="text-[11px] text-slate-500 mt-1">GPIO 17 (Pin 11 - Relai 1 / Unit 1), GPIO 27 (Pin 13 - Relai 2 / Unit 2).</p>
+                    </div>
+                </div>
+
+                <!-- HARDWARE PINOUT MAPPING TABLE -->
+                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black uppercase text-[#1D1616] tracking-wider flex items-center gap-1.5">
+                            <span>🔌</span>
+                            <span>Tabel Pemetaan Pinout Fisik Hardware</span>
+                        </span>
+                        <span class="text-[9.5px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">Terverifikasi Standar PT PINDAD</span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-200 text-[10px] font-black uppercase text-slate-400">
+                                    <th class="py-2 px-3">Komponen / Modul</th>
+                                    <th class="py-2 px-3">Pin Modul</th>
+                                    <th class="py-2 px-3">Pin Raspberry Pi 3B+</th>
+                                    <th class="py-2 px-3">Keterangan / Alamat I2C</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 font-mono">
+                                <tr>
+                                    <td class="py-2 px-3 font-bold font-sans">ADS1115 (ADC 16-Bit)</td>
+                                    <td class="py-2 px-3">VDD / GND</td>
+                                    <td class="py-2 px-3">Pin 2 (5V) / Pin 6 (GND)</td>
+                                    <td class="py-2 px-3 font-sans text-slate-600">Catu daya 5V ADC</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 px-3 font-bold font-sans">ADS1115 (I2C Bus)</td>
+                                    <td class="py-2 px-3">SDA / SCL / ADDR</td>
+                                    <td class="py-2 px-3">Pin 3 (GPIO 2) / Pin 5 (GPIO 3) / Pin 9 (GND)</td>
+                                    <td class="py-2 px-3 font-sans text-emerald-700 font-bold">Alamat I2C: 0x48 (ADDR locked ke GND)</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 px-3 font-bold font-sans">DS3231 (RTC Clock)</td>
+                                    <td class="py-2 px-3">VCC / GND / SDA / SCL</td>
+                                    <td class="py-2 px-3">Pin 1 (3.3V) / Pin 9 (GND) / Pin 3 / Pin 5</td>
+                                    <td class="py-2 px-3 font-sans text-slate-600">Alamat I2C: 0x68 (Paralel Bus I2C)</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 px-3 font-bold font-sans">ACS712 Sensor Arus 1</td>
+                                    <td class="py-2 px-3">VCC / GND / OUT</td>
+                                    <td class="py-2 px-3">Pin 4 (5V) / Pin 14 (GND) / ADS1115 A0</td>
+                                    <td class="py-2 px-3 font-sans text-slate-600">Arus Unit AC 1 (True-RMS 120ms)</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 px-3 font-bold font-sans">ACS712 Sensor Arus 2</td>
+                                    <td class="py-2 px-3">VCC / GND / OUT</td>
+                                    <td class="py-2 px-3">Pin 4 (5V) / Pin 14 (GND) / ADS1115 A1</td>
+                                    <td class="py-2 px-3 font-sans text-slate-600">Arus Unit AC 2 (True-RMS 120ms)</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 px-3 font-bold font-sans">Modul Relai 5V (IN 1)</td>
+                                    <td class="py-2 px-3">IN 1 (Relai AC 1)</td>
+                                    <td class="py-2 px-3">Pin 11 (BCM GPIO 17)</td>
+                                    <td class="py-2 px-3 font-sans text-slate-600">Active LOW (0=ON, 1=OFF)</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 px-3 font-bold font-sans">Modul Relai 5V (IN 2)</td>
+                                    <td class="py-2 px-3">IN 2 (Relai AC 2)</td>
+                                    <td class="py-2 px-3">Pin 13 (BCM GPIO 27)</td>
+                                    <td class="py-2 px-3 font-sans text-slate-600">Active LOW (0=ON, 1=OFF)</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -580,13 +655,13 @@ function accountSectionComponent() {
                         <span class="text-[9.5px] font-bold text-[#8E1616] bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100">Lab Prototype</span>
                     </div>
                     <div class="rounded-xl overflow-hidden bg-slate-50 border border-slate-100 p-2 flex items-center justify-center">
-                        <img src="/images/ADAPTOR.png" 
+                        <img src="/images/WIRING_AC.png" 
                              alt="Foto Prototype Hardware SIKOMAT PT PINDAD" 
-                             class="max-h-64 w-auto object-contain rounded-lg shadow-xs"
-                             onerror="this.src='/ADAPTOR.png';">
+                             class="max-h-80 w-auto object-contain rounded-lg shadow-xs"
+                             onerror="this.src='/WIRING_AC.png';">
                     </div>
                     <p class="text-[10.5px] text-slate-500 leading-tight">
-                        Dokumentasi wiring fisik unit kontroler: Rangkaian catu daya adaptor 5V 3A, sensor arus ACS712, modul ADC ADS1115 I2C, RTC DS3231, dan saklar relay beban AC.
+                        Dokumentasi wiring fisik unit kontroler: Rangkaian catu daya adaptor 5V 3A, sensor arus ACS712, modul ADC ADS1115 I2C (ADDR locked ke GND), RTC DS3231, dan saklar relay beban AC.
                     </p>
                 </div>
             </div>

@@ -103,7 +103,7 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
                 <div>
                     <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block">No. Dokumen</span>
-                    <span class="font-mono font-bold text-slate-800 text-[11px] block mt-0.5">SOP/TI-PINDAD/AC/2026/V2.5</span>
+                    <span class="font-mono font-bold text-slate-800 text-[11px] block mt-0.5">SOP/TI-PINDAD/AC/2026/V2.6</span>
                 </div>
                 <div>
                     <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Klasifikasi</span>
@@ -111,7 +111,7 @@
                 </div>
                 <div>
                     <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Versi Engine</span>
-                    <span class="font-bold text-[#8E1616] text-[11px] block mt-0.5">v2.5.0 (PINDAD Enterprise Architecture)</span>
+                    <span class="font-bold text-[#8E1616] text-[11px] block mt-0.5">v2.6.0 (PINDAD Industrial IoT Edition)</span>
                 </div>
                 <div>
                     <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Penyusun / Operator</span>
@@ -271,12 +271,12 @@
                 <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">3.1 Daftar Komponen Perangkat Keras</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
                     <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                        <span class="font-bold text-slate-900 block">1. Raspberry Pi 3 Model B+</span>
+                        <span class="font-bold text-slate-900 block">1. Raspberry Pi 3 Model B+ / 4B</span>
                         <span class="text-slate-500 text-[11px]">Kontroler komputasi utama + MicroSD 16GB/32GB + PSU 5V 3A</span>
                     </div>
                     <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
                         <span class="font-bold text-slate-900 block">2. Modul ADC ADS1115 (16-Bit I2C)</span>
-                        <span class="text-slate-500 text-[11px]">Mengubah sinyal analog sensor arus ACS712 menjadi data digital</span>
+                        <span class="text-slate-500 text-[11px]">Mengubah sinyal analog sensor arus ACS712 menjadi data digital (Alamat I2C: 0x48)</span>
                     </div>
                     <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
                         <span class="font-bold text-slate-900 block">3. Sensor Arus Listrik ACS712 (30A)</span>
@@ -312,15 +312,20 @@
                         </thead>
                         <tbody class="divide-y divide-slate-200 text-slate-700 bg-white">
                             <tr class="bg-slate-50/50">
-                                <td class="p-2.5 font-bold" rowspan="4">ADS1115 (ADC 16-Bit I2C)</td>
+                                <td class="p-2.5 font-bold" rowspan="5">ADS1115 (ADC 16-Bit I2C)</td>
                                 <td class="p-2.5 font-mono">VDD</td>
-                                <td class="p-2.5 font-mono font-bold text-rose-700">Pin 1 (3.3V DC)</td>
-                                <td class="p-2.5 text-slate-500">Daya positif modul ADC</td>
+                                <td class="p-2.5 font-mono font-bold text-rose-700">Pin 2 / 4 (5V DC)</td>
+                                <td class="p-2.5 text-slate-500">Catu daya 5V ADC (match input ACS712 5V & anti latch-up)</td>
                             </tr>
                             <tr class="bg-slate-50/50">
                                 <td class="p-2.5 font-mono">GND</td>
                                 <td class="p-2.5 font-mono font-bold text-slate-800">Pin 6 (GND)</td>
                                 <td class="p-2.5 text-slate-500">Ground bersama (Common Ground)</td>
+                            </tr>
+                            <tr class="bg-slate-50/50">
+                                <td class="p-2.5 font-mono">ADDR</td>
+                                <td class="p-2.5 font-mono font-bold text-emerald-700">Pin 9 / Pin 6 (GND)</td>
+                                <td class="p-2.5 text-emerald-700 font-bold">Kunci Alamat I2C ke 0x48</td>
                             </tr>
                             <tr class="bg-slate-50/50">
                                 <td class="p-2.5 font-mono">SDA</td>
@@ -335,7 +340,7 @@
                             <tr>
                                 <td class="p-2.5 font-bold" rowspan="4">DS3231 (RTC Clock I2C)</td>
                                 <td class="p-2.5 font-mono">VCC</td>
-                                <td class="p-2.5 font-mono font-bold text-rose-700">Pin 17 (3.3V DC)</td>
+                                <td class="p-2.5 font-mono font-bold text-rose-700">Pin 1 (3.3V DC)</td>
                                 <td class="p-2.5 text-slate-500">Daya modul RTC</td>
                             </tr>
                             <tr>
@@ -346,12 +351,12 @@
                             <tr>
                                 <td class="p-2.5 font-mono">SDA</td>
                                 <td class="p-2.5 font-mono font-bold text-amber-600">Pin 3 (GPIO 2 / SDA)</td>
-                                <td class="p-2.5 text-slate-500">I2C SDA Paralel dengan ADS1115</td>
+                                <td class="p-2.5 text-slate-500">I2C SDA Paralel dengan ADS1115 (Alamat 0x68)</td>
                             </tr>
                             <tr>
                                 <td class="p-2.5 font-mono">SCL</td>
                                 <td class="p-2.5 font-mono font-bold text-amber-600">Pin 5 (GPIO 3 / SCL)</td>
-                                <td class="p-2.5 text-slate-500">I2C SCL Paralel dengan ADS1115</td>
+                                <td class="p-2.5 text-slate-500">I2C SCL Paralel dengan ADS1115 (Alamat 0x68)</td>
                             </tr>
                             <tr class="bg-slate-50/50">
                                 <td class="p-2.5 font-bold" rowspan="3">Sensor ACS712 (30A)</td>
@@ -501,11 +506,13 @@
 
                 <!-- KOTAK GAMBAR PROTOTYPE -->
                 @php
-                    $adaptorImgSrc = '/images/ADAPTOR.png';
-                    if (file_exists(public_path('images/ADAPTOR.png'))) {
-                        $adaptorImgSrc = 'data:image/png;base64,' . base64_encode(file_get_contents(public_path('images/ADAPTOR.png')));
-                    } elseif (file_exists(base_path('Gambar Prototype/ADAPTOR.png'))) {
-                        $adaptorImgSrc = 'data:image/png;base64,' . base64_encode(file_get_contents(base_path('Gambar Prototype/ADAPTOR.png')));
+                    $adaptorImgSrc = '/images/WIRING_AC.png';
+                    if (file_exists(public_path('images/WIRING_AC.png'))) {
+                        $adaptorImgSrc = 'data:image/png;base64,' . base64_encode(file_get_contents(public_path('images/WIRING_AC.png')));
+                    } elseif (file_exists(public_path('WIRING_AC.png'))) {
+                        $adaptorImgSrc = 'data:image/png;base64,' . base64_encode(file_get_contents(public_path('WIRING_AC.png')));
+                    } elseif (file_exists(base_path('Gambar Prototype/WIRING_AC.png'))) {
+                        $adaptorImgSrc = 'data:image/png;base64,' . base64_encode(file_get_contents(base_path('Gambar Prototype/WIRING_AC.png')));
                     }
                 @endphp
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
@@ -526,7 +533,7 @@
                         </div>
                         <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
                             <span class="font-bold text-[#8E1616] block uppercase text-[10px]">3. Komunikasi I2C ADC & RTC</span>
-                            <span class="text-slate-500 text-[10.5px]">Jalur data I2C SDA (Pin 3) & SCL (Pin 5) menghubungkan ADC ADS1115 dan RTC DS3231.</span>
+                            <span class="text-slate-500 text-[10.5px]">Jalur data I2C SDA (Pin 3) & SCL (Pin 5) menghubungkan ADC ADS1115 (ADDR ke GND) dan RTC DS3231.</span>
                         </div>
                     </div>
                 </div>
