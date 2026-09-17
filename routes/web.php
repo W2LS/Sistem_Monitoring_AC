@@ -73,10 +73,6 @@ Route::middleware('auth.session')->group(function () {
     Route::post('/profile/telegram', [ProfileSettingsController::class, 'saveTelegramSettings'])->name('settings.telegram');
     Route::post('/profile/telegram/save', [ProfileSettingsController::class, 'saveTelegramSettings'])->name('profile.telegram');
     Route::post('/profile/telegram/test', [ProfileSettingsController::class, 'testTelegramNotification'])->name('settings.telegram.test');
-    Route::get('/download-script/{type}', [ProfileSettingsController::class, 'downloadScript'])->name('scripts.download');
-    Route::get('/scripts/download/{type}', [ProfileSettingsController::class, 'downloadScript'])->name('profile.downloadScript');
-    Route::get('/panduan-pdf', [ProfileSettingsController::class, 'manualPdf'])->name('panduan.pdf');
-    Route::get('/profile/panduan-pdf', [ProfileSettingsController::class, 'manualPdf'])->name('profile.manualPdf');
 
     // H. Fitur Keamanan 2FA TOTP (AuthController / Profile 2FA)
     Route::get('/profile/2fa/setup', [AuthController::class, 'setup2fa'])->name('profile.2fa.setup');
@@ -99,8 +95,13 @@ Route::middleware('auth.session')->group(function () {
 });
 
 // ==========================================
-// 3. API TELEMETRI PUBLIK / IoT CLIENT
+// 3. API TELEMETRI & UNDUH SKRIP IoT PUBLIK
 // ==========================================
+Route::get('/download-script/{type}', [ProfileSettingsController::class, 'downloadScript'])->name('scripts.download');
+Route::get('/scripts/download/{type}', [ProfileSettingsController::class, 'downloadScript'])->name('profile.downloadScript');
+Route::get('/panduan-pdf', [ProfileSettingsController::class, 'manualPdf'])->name('panduan.pdf');
+Route::get('/profile/panduan-pdf', [ProfileSettingsController::class, 'manualPdf'])->name('profile.manualPdf');
+
 Route::get('/api/logs', [TelemetryLogController::class, 'getLiveLogs'])->name('api.logs');
 Route::get('/api/live-status', [TelemetryLogController::class, 'getLiveLogs'])->name('api.liveStatus');
 Route::post('/api/telemetry', [TelemetryLogController::class, 'receiveTelemetry'])->name('api.telemetry');
