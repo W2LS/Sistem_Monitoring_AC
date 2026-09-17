@@ -213,8 +213,7 @@ function accountSectionComponent() {
         },
         
         copyAccCmd() {
-            const host = '{{ $serverLanHost ?? '192.168.196.98' }}';
-            const cmd = 'sudo pkill -9 -f python3 2>/dev/null; sudo rm -f /home/alex/pindad_*.py /home/alex/node.log 2>/dev/null; curl -sSL "http://' + host + ':8000/scripts/download/device?device_id=RPI3B_SERVER_TELEPON&broker_host=127.0.0.1" -o /home/alex/pindad_node_rpi3b_server_telepon.py && (crontab -l 2>/dev/null | grep -v "pindad"; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &") | crontab - && nohup python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &';
+            const cmd = 'sudo pkill -9 -f python3 2>/dev/null; sudo rm -f /home/alex/pindad_*.py /home/alex/node.log /home/alex/node_config.json 2>/dev/null; curl -sSL "http://' + host + ':8000/scripts/download/device?device_id=RPI3B_SERVER_TELEPON&broker_host=' + host + '" -o /home/alex/pindad_node_rpi3b_server_telepon.py && (crontab -l 2>/dev/null | grep -v "pindad"; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &") | crontab - && nohup python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &';
             
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(cmd).then(() => {
@@ -400,7 +399,7 @@ function accountSectionComponent() {
                     </div>
                     
                     <div class="bg-black/60 rounded-xl p-3 sm:p-3.5 border border-white/10 font-mono text-xs text-emerald-400 break-all select-all leading-relaxed">
-                        sudo pkill -9 -f python3 2>/dev/null; sudo rm -f /home/alex/pindad_*.py /home/alex/node.log 2>/dev/null; curl -sSL "http://{{ $serverLanHost ?? '192.168.196.98' }}:8000/scripts/download/device?device_id=RPI3B_SERVER_TELEPON&broker_host=127.0.0.1" -o /home/alex/pindad_node_rpi3b_server_telepon.py && (crontab -l 2>/dev/null | grep -v 'pindad'; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &") | crontab - && nohup python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &
+                        sudo pkill -9 -f python3 2>/dev/null; sudo rm -f /home/alex/pindad_*.py /home/alex/node.log /home/alex/node_config.json 2>/dev/null; curl -sSL "http://{{ $serverLanHost ?? '192.168.196.98' }}:8000/scripts/download/device?device_id=RPI3B_SERVER_TELEPON&broker_host={{ $serverLanHost ?? '192.168.196.98' }}" -o /home/alex/pindad_node_rpi3b_server_telepon.py && (crontab -l 2>/dev/null | grep -v 'pindad'; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &") | crontab - && nohup python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &
                     </div>
 
                     <div class="bg-amber-400/10 rounded-xl p-3 border border-amber-400/20 text-xs text-amber-200/90 space-y-1.5 leading-relaxed">

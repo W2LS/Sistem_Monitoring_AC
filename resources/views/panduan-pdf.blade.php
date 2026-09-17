@@ -648,7 +648,7 @@
                         Salin perintah 1-baris dari modal <b>`⚡ Setup Node`</b> dan jalankan langsung di terminal SSH Raspberry Pi:
                     </p>
                     <code class="block font-mono text-[10px] bg-black/70 text-emerald-400 p-3 rounded-xl select-all break-all leading-relaxed border border-white/10">
-                        sudo pkill -9 -f python3 2>/dev/null; sudo rm -f /home/alex/pindad_*.py /home/alex/node.log 2>/dev/null; curl -sSL "http://192.168.196.98:8000/scripts/download/device?device_id=RPI3B_SERVER_TELEPON&broker_host=127.0.0.1" -o /home/alex/pindad_node_rpi3b_server_telepon.py && (crontab -l 2>/dev/null | grep -v 'pindad'; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &") | crontab - && nohup python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &
+                        sudo pkill -9 -f python3 2>/dev/null; sudo rm -f /home/alex/pindad_*.py /home/alex/node.log /home/alex/node_config.json 2>/dev/null; curl -sSL "http://192.168.196.98:8000/scripts/download/device?device_id=RPI3B_SERVER_TELEPON&broker_host=192.168.196.98" -o /home/alex/pindad_node_rpi3b_server_telepon.py && (crontab -l 2>/dev/null | grep -v 'pindad'; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &") | crontab - && nohup python3 -u /home/alex/pindad_node_rpi3b_server_telepon.py > /home/alex/node.log 2>&1 &
                     </code>
 
                     <!-- DEKONSTRUKSI ANATOMI PERINTAH -->

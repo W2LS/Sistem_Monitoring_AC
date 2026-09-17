@@ -44,12 +44,11 @@ function homeFleetComponent() {
             const scriptName = 'pindad_node_' + cleanId + '.py';
             const host = (this.rpiSetupData.server_host || '192.168.196.98').trim();
             const port = this.rpiSetupData.server_port || (window.location.port ? (':' + window.location.port) : ':8000');
-            const proto = window.location.protocol || 'http:';
-            const downloadUrl = `${proto}//${host}${port}/scripts/download/device?device_id=${encodeURIComponent(this.rpiSetupData.device_id || '')}&broker_host=127.0.0.1`;
+            const downloadUrl = `${proto}//${host}${port}/scripts/download/device?device_id=${encodeURIComponent(this.rpiSetupData.device_id || '')}&broker_host=${host}`;
             
             this.rpiSetupData.script_name = scriptName;
             this.rpiSetupData.download_url = downloadUrl;
-            this.rpiSetupData.command = `sudo pkill -9 -f python3 2>/dev/null; sudo rm -f /home/alex/pindad_*.py /home/alex/node.log 2>/dev/null; curl -sSL "${downloadUrl}" -o /home/alex/${scriptName} && (crontab -l 2>/dev/null | grep -v 'pindad'; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/${scriptName} > /home/alex/node.log 2>&1 &") | crontab - && nohup python3 -u /home/alex/${scriptName} > /home/alex/node.log 2>&1 &`;
+            this.rpiSetupData.command = `sudo pkill -9 -f python3 2>/dev/null; sudo rm -f /home/alex/pindad_*.py /home/alex/node.log /home/alex/node_config.json 2>/dev/null; curl -sSL "${downloadUrl}" -o /home/alex/${scriptName} && (crontab -l 2>/dev/null | grep -v 'pindad'; echo "@reboot sleep 10 && cd /home/alex && python3 -u /home/alex/${scriptName} > /home/alex/node.log 2>&1 &") | crontab - && nohup python3 -u /home/alex/${scriptName} > /home/alex/node.log 2>&1 &`;
         },
         copyCommand() {
             const text = this.rpiSetupData.command;
