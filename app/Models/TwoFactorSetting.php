@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
 
 class TwoFactorSetting extends Model
 {
-    protected $table = 'two_factor_settings';
+    protected $connection = 'mongodb';
+    protected $collection = 'two_factor_settings';
 
     protected $fillable = [
         'user_nip',
