@@ -667,11 +667,31 @@ def telemetry_loop():
 
 # ================= 10. ENTRYPOINT =================
 if __name__ == "__main__":
-    try:
-        local_client.connect_async(BROKER_HOST, BROKER_PORT, keepalive=60)
-        local_client.loop_start()
-    except Exception as e:
-        print(f" [MQTT ASYNC CONNECT ERROR] {e}. Melanjutkan via HTTP Dual-Sync...")
+    broker_candidates = []
+    if BROKER_HOST:
+        broker_candidates.append(BROKER_HOST)
+    if "127.0.0.1" not in broker_candidates:
+        broker_candidates.append("127.0.0.1")
+    if "localhost" not in broker_candidates:
+        broker_candidates.append("localhost")
+
+    mqtt_connected = False
+    for b_host in broker_candidates:
+        if not b_host:
+            continue
+        try:
+            print(f" [MQTT CONNECT] Menghubungkan ke broker MQTT di {b_host}:{BROKER_PORT}...")
+            local_client.connect(b_host, BROKER_PORT, keepalive=60)
+            local_client.loop_start()
+            mqtt_connected = True
+            BROKER_HOST = b_host
+            print(f" [MQTT SUCCESS] Berhasil terhubung ke broker MQTT di {b_host}:{BROKER_PORT}")
+            break
+        except Exception as e:
+            print(f" [MQTT NOTICE] Gagal konek ke {b_host}:{BROKER_PORT} ({e}). Mencoba target cadangan...")
+
+    if not mqtt_connected:
+        print(" [MQTT WARNING] Broker MQTT lokal/remote tidak merespons. Komunikasi berjalan via HTTP REST Dual-Sync.")
 
     t_loop = threading.Thread(target=telemetry_loop, daemon=True)
     t_loop.start()

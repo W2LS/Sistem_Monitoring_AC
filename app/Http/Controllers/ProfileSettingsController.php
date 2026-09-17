@@ -126,8 +126,19 @@ class ProfileSettingsController extends Controller
     {
         // Auto-detect Server LAN IP for Raspberry Pi connection
         $detectedHost = $this->detectLanHost($request);
-        $brokerHost = $request->query('broker_host') ?: $detectedHost;
-        $brokerPort = (int)$request->query('broker_port', 1883);
+        // Default to local broker (127.0.0.1) on RPi if running Mosquitto on RPi, or query override
+        $brokerHost = $request->query('broker_host') ?: (env('MQTT_HOST') && env('MQTT_HOST') !== $detectedHost ? env('MQTT_HOST') : '127.0.0.1');
+        $brokerPort = (int)$request->query('broker_port', (int)env('MQTT_PORT', 1883));
+
+        // Determine active dashboard HTTP port
+        $serverPort = $request->getPort();
+        $httpHost = $request->getHttpHost();
+        if (str_contains($httpHost, ':')) {
+            $serverPort = (int)explode(':', $httpHost)[1];
+        } elseif (!$serverPort || $serverPort == 80 || $serverPort == 443) {
+            $serverPort = 8000;
+        }
+        $dashboardHttpUrl = "http://{$detectedHost}:{$serverPort}";
 
         // 1. Download tailored standalone Python script for a specific device (No JSON required!)
         if ($type === 'device' || $request->has('device_id')) {
@@ -198,7 +209,7 @@ class ProfileSettingsController extends Controller
                 'location' => $location,
                 'mqtt_broker_host' => $brokerHost,
                 'mqtt_broker_port' => $brokerPort,
-                'dashboard_http_url' => "http://" . $this->detectLanHost($request) . ":" . ($request->getPort() ?: 8000),
+                'dashboard_http_url' => $dashboardHttpUrl,
                 'sophos_auth' => ['enabled' => true, 'user' => 'pin-00020', 'pass' => '5uiFS4eE', 'url' => 'https://sophostrn.pindad.com:8090/login.xml'],
                 'telegram' => [
                     'enabled' => (bool)SystemSetting::get('telegram_alert_enabled', true),

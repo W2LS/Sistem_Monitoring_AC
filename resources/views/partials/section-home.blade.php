@@ -44,6 +44,7 @@ function homeFleetComponent() {
             const scriptName = 'pindad_node_' + cleanId + '.py';
             const host = (this.rpiSetupData.server_host || '192.168.196.98').trim();
             const port = this.rpiSetupData.server_port || (window.location.port ? (':' + window.location.port) : ':8000');
+            const proto = window.location.protocol || 'http:';
             const downloadUrl = `${proto}//${host}${port}/scripts/download/device?device_id=${encodeURIComponent(this.rpiSetupData.device_id || '')}&broker_host=${host}`;
             
             this.rpiSetupData.script_name = scriptName;
@@ -492,8 +493,21 @@ function homeFleetComponent() {
                 </div>
             </div>
 
-            <!-- Download Standalone Python Script for This Room -->
+            <!-- Action Buttons for This Room -->
             <div class="flex items-center gap-2 shrink-0">
+                @if($isSuperAdmin && isset($currentDevice))
+                <button @click="openRpiSetup({
+                    name: '{{ addslashes($currentDevice->name ?? '') }}',
+                    device_id: '{{ $currentDevice->device_id ?? '' }}',
+                    ip_address: '{{ $currentDevice->ip_address ?? '' }}'
+                })" 
+                type="button" 
+                class="px-4 py-2.5 rounded-2xl bg-slate-900 hover:bg-[#8E1616] text-white font-black text-xs uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95"
+                title="Panduan Setup & Salin Perintah Auto-Start Raspberry Pi">
+                    <span class="text-amber-400">⚡</span>
+                    <span>Setup Node</span>
+                </button>
+                @endif
                 <a href="{{ route('scripts.download', ['type' => 'device', 'device_id' => $currentDevice->device_id ?? 'RPI3B_PINDAD_ROOM_1']) }}" 
                    class="px-4 py-2.5 rounded-2xl bg-[#1D1616] hover:bg-[#8E1616] text-white font-black text-xs uppercase tracking-wider transition cursor-pointer flex items-center gap-2 shadow-sm active:scale-95"
                    title="Unduh 1 file Python siap pakai untuk perangkat ini tanpa perlu file json">
